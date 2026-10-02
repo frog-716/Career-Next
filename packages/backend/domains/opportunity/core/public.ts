@@ -1,0 +1,55 @@
+import type Database from 'better-sqlite3';
+import {randomUUID} from 'node:crypto';
+import {Opportunity,OpportunityView,CoreRequest,Result,History,type Company} from '../../../../contracts/opportunity/schema';
+import type {BusinessTime} from '../../../../contracts/common/business-time';
+import {executeCommand} from '../../../platform/commands/receipts';
+export const coreMigration=`CREATE TABLE opportunity_core(id TEXT PRIMARY KEY,company_id TEXT NOT NULL REFERENCES opportunity_company(id),revision INTEGER NOT NULL,content_json TEXT NOT NULL);
+CREATE TABLE opportunity_core_history(id TEXT PRIMARY KEY,opportunity_id TEXT NOT NULL REFERENCES opportunity_core(id),revision INTEGER NOT NULL,history_json TEXT NOT NULL,UNIQUE(opportunity_id,revision));`;
+export function createOpportunityCore(db:Database.Database,dependencies:{resolveCompany(id:string):Company|undefined}){
+ function read(id:string){const row=db.prepare('SELECT content_json FROM opportunity_core WHERE id=?').get(id) as {content_json:string}|undefined;if(!row)throw Error('not_found');return Opportunity.parse(JSON.parse(row.content_json));}
+ function view(opportunity:Opportunity){const company=dependencies.resolveCompany(opportunity.companyId);if(!company)throw Error('not_found');return OpportunityView.parse({...opportunity,companyName:company.name});}
+ function handle(input:CoreRequest):Result{
+  const request=CoreRequest.parse(input);
+  if(request.operation==='read')return {kind:'opportunity',opportunity:view(read(request.id))};
+  if(request.operation==='list')return Result.parse({kind:'opportunities',items:(db.prepare("SELECT content_json FROM opportunity_core ORDER BY json_extract(content_json,'$.recordedAt') DESC,rowid DESC LIMIT 500").all() as {content_json:string}[]).map(row=>view(Opportunity.parse(JSON.parse(row.content_json))))});
+  if(request.operation==='history'){read(request.id);return Result.parse({kind:'history',items:(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision DESC').all(request.id) as {history_json:string}[]).map(row=>JSON.parse(row.history_json))});}
+  return executeCommand(db,'opportunity',request.commandId,request,()=>{
+   const recordedAt=new Date().toISOString();let opportunity:Opportunity;let previousResult:Opportunity['result']|undefined;let correctedEventId:string|undefined;let previousCompanyId:string|undefined;let previousRole:string|undefined;
+   let type:'created'|'identity_edited'|'identity_corrected'|'stage_reached'|'stage_corrected'|'ended'|'end_corrected'|'continued'='created';
+   if(request.operation==='create'){
+    if(!dependencies.resolveCompany(request.companyId))throw Error('not_found');opportunity={id:randomUUID(),companyId:request.companyId,role:request.role,revision:1,phase:'preparation',result:'active',stageDates:{submitted:{kind:'unknown'},interview:{kind:'unknown'},offer:{kind:'unknown'}},recordedAt};
+   }else{
+    const old=read(request.id);if(old.revision!==request.expectedRevision)throw Error('conflict');opportunity={...old,revision:old.revision+1,recordedAt};
+    switch(request.operation){
+     case 'edit':previousCompanyId=old.companyId;previousRole=old.role;if(!dependencies.resolveCompany(request.companyId))throw Error('not_found');if(request.companyId!==old.companyId&&!request.correction)throw Error('invalid_transition');opportunity.companyId=request.companyId;opportunity.role=request.role;type=request.correction?'identity_corrected':'identity_edited';break;
+     case 'record-stage':{const ranks={preparation:0,submitted:1,interview:2,offer:3};if(ranks[request.stage]>ranks[old.phase])opportunity.phase=request.stage;const prior=old.stageDates[request.stage];const next=request.businessTime;
+      opportunity.stageDates={...old.stageDates,[request.stage]:earliest(prior,next)};type='stage_reached';break;}
+     case 'correct-stage':{
+      const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));
+      const events=new Map<string,{stage:'submitted'|'interview'|'offer';time:History['businessTime'];voided:boolean}>();
+      for(const item of history){if(item.type==='stage_reached'&&item.stage&&item.stage!=='preparation')events.set(item.id,{stage:item.stage,time:item.businessTime,voided:false});if(item.type==='stage_corrected'&&item.correctedEventId&&item.stage&&item.stage!=='preparation')events.set(item.correctedEventId,{stage:item.stage,time:item.businessTime,voided:!!item.voided});}
+      if(!events.has(request.eventId))throw Error('not_found');events.set(request.eventId,{stage:request.stage,time:request.businessTime,voided:request.voided});correctedEventId=request.eventId;
+      opportunity.phase='preparation';opportunity.stageDates={submitted:{kind:'unknown'},interview:{kind:'unknown'},offer:{kind:'unknown'}};const ranks={preparation:0,submitted:1,interview:2,offer:3};
+      for(const event of events.values()){if(event.voided)continue;if(ranks[event.stage]>ranks[opportunity.phase])opportunity.phase=event.stage;opportunity.stageDates[event.stage]=earliest(opportunity.stageDates[event.stage],event.time);}
+      type='stage_corrected';break;
+     }
+     case 'end':previousResult=old.result;if(old.result===request.outcome)throw Error('invalid_transition');opportunity.result=request.outcome;type='ended';break;
+     case 'correct-end':{if(old.result==='active')throw Error('invalid_transition');const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision DESC').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));const corrected=new Set(history.map(item=>item.correctedEventId));const target=history.find(item=>item.type==='ended'&&item.result===old.result&&!corrected.has(item.id));if(!target?.previousResult)throw Error('invalid_transition');opportunity.result=target.previousResult;correctedEventId=target.id;type='end_corrected';break;}
+     case 'recontinue':if(old.result==='active')throw Error('invalid_transition');opportunity.result='active';type='continued';break;
+    }
+   }
+   db.prepare('INSERT INTO opportunity_core VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET company_id=excluded.company_id,revision=excluded.revision,content_json=excluded.content_json').run(opportunity.id,opportunity.companyId,opportunity.revision,JSON.stringify(opportunity));
+   const history={id:randomUUID(),opportunityId:opportunity.id,revision:opportunity.revision,type,companyId:opportunity.companyId,role:opportunity.role,...previousCompanyId?{previousCompanyId,previousRole}:{},reason:request.operation==='create'?'创建一次尝试':request.reason,businessTime:request.operation==='create'?{kind:'unknown'}:request.businessTime,phase:opportunity.phase,result:opportunity.result,recordedAt,...previousResult?{previousResult}:{},...correctedEventId?{correctedEventId}:{},...request.operation==='record-stage'||request.operation==='correct-stage'?{stage:request.stage}:{},...request.operation==='correct-stage'?{voided:request.voided}:{}};
+   db.prepare('INSERT INTO opportunity_core_history VALUES (?,?,?,?)').run(history.id,opportunity.id,opportunity.revision,JSON.stringify(history));return Result.parse({kind:'opportunity',opportunity:view(opportunity)});
+  });
+ }
+ function resolveOpportunity(id:string){try{const opportunity=view(read(id));return {id:opportunity.id,companyName:opportunity.companyName,role:opportunity.role};}catch{return undefined;}}
+ return {handle,resolveOpportunity};
+}
+
+function earliest(prior:BusinessTime,next:BusinessTime):BusinessTime {
+ if(next.kind==='unknown')return prior;if(prior.kind==='unknown')return next;
+ if(prior.kind==='instant'&&next.kind==='instant')return Date.parse(next.instant)<Date.parse(prior.instant)?next:prior;
+ const priorDate=prior.kind==='date'?prior.date:prior.instant.slice(0,10);const nextDate=next.kind==='date'?next.date:next.instant.slice(0,10);
+ return nextDate<priorDate||nextDate===priorDate&&next.kind==='date'?next:prior;
+}
