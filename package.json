@@ -1,0 +1,12 @@
+{
+  "name": "career-next",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "npm@10.9.8",
+  "workspaces": [
+    "apps/desktop",
+    "packages/contracts",
+    "packages/backend",
+    "packages/frontend"
+  ]
+}

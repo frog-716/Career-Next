@@ -1,0 +1,23 @@
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+*.log
+
+# Local configuration and application data
+.env
+.env.*
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.pem
+*.key
+userData/
+
+# OS metadata
+.DS_Store
