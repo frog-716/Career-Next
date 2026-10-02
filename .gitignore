@@ -21,3 +21,6 @@ userData/
 
 # OS metadata
 .DS_Store
+
+# G0 packaging output
+out/

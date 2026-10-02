@@ -4,13 +4,13 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。当前仅完成开发环境初始化；未进入 G0，尚无应用实现或运行入口。旧 Career 仅属历史证据，本轮未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。当前处于 G0 技术可行性验证，只有临时桌面探针，没有业务实现；本轮不进入 G1。旧 Career 仅属历史证据，本轮未读取或导入。
 
 ## 冻结输入与阅读入口
 
 1. 先读本 MAP，再读 [Product Spec 入口](docs/product-spec/rebuild-spec/README.md) 和 [PRODUCT](docs/product-spec/rebuild-spec/PRODUCT.md)。产品正文位于 `docs/product-spec/rebuild-spec/`；`audit/` 仅保留决策追溯，校验清单位于 `docs/product-spec/SHA256SUMS.txt`。
 2. 再读 [ARCHITECTURE](docs/architecture/ARCHITECTURE.md)、[MODULES](docs/architecture/MODULES.md)，按需查看 [DATA](docs/architecture/DATA.md)、[AI-RUNTIME](docs/architecture/AI-RUNTIME.md) 与 `ADR/`。
-3. [DELIVERY](docs/architecture/DELIVERY.md) 是后续开发顺序和验收门的导航，本轮不执行其中的 G0 或后续计划。
+3. [DELIVERY](docs/architecture/DELIVERY.md) 是开发顺序和验收门的导航。本轮只执行 G0，证据与未完成项见 [G0 Issue #1](https://github.com/frog-716/Career-Next/issues/1)。
 
 状态以用户于 2026-10-02 确认为准：Product Spec = Frozen R3，Architecture V2 = Frozen。两个 ZIP 的全部文件已原样保存，仅移除各自外层目录；正文中的 R2 标题、待审查状态和历史阶段指令保留原文，不覆盖当前状态或本轮授权范围。
 
@@ -24,7 +24,14 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 | `packages/backend/` | 业务 owner、跨域用例、AI Runtime、平台能力 |
 | `tests/` | 后续合同、跨域集成、旅程与真实桌面验证 |
 
-上述四个 package 均为私有 npm workspace，当前仅有清单，无依赖或业务模块样板。顶层名称对应冻结架构的 desktop / contracts / frontend / backend。
+上述四个 package 均为私有 npm workspace。顶层名称对应冻结架构的 desktop / contracts / frontend / backend；当前各自的 `probe/` 仅用于 G0，不是领域模块或正式工程基础层。
+
+## G0 运行入口
+
+- `apps/desktop/probe/`：窗口、安全桥、临时 Secret 与受限 PDF；`packages/backend/probe/`：utilityProcess、单一 SQLite 写线程与可停止的慢查询线程。
+- `packages/contracts/probe/`：最小受检合同；`packages/frontend/probe/`：React 技术测试界面。
+- 根 `package.json`、`scripts/g0-build.mjs`、`forge.config.cjs`：工具链与打包；`tests/g0*.test.ts`：独立后端和真实 Electron 验证。
+- 可复现命令和边界说明见 [README](README.md)。临时数据库、Secret 密文、PDF 与构建产物不进入 Git；关闭探针后清理本次临时数据。
 
 ## 依赖方向与 owner 原则
 

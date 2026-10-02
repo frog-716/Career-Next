@@ -8,5 +8,42 @@
     "packages/contracts",
     "packages/backend",
     "packages/frontend"
-  ]
+  ],
+  "dependencies": {
+    "better-sqlite3": "13.0.3"
+  },
+  "description": "Career-Next G0 feasibility probe; no business implementation",
+  "main": "dist/desktop/main.cjs",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/g0-build.mjs",
+    "test": "vitest run tests/g0.unit.test.ts",
+    "native:rebuild": "electron-rebuild --force --only better-sqlite3",
+    "dev": "electron .",
+    "smoke:dev": "vitest run tests/g0.electron.test.ts",
+    "package": "electron-forge package --platform=darwin --arch=arm64",
+    "smoke:packaged": "CAREER_G0_PACKAGED=1 vitest run tests/g0.electron.test.ts",
+    "install:electron": "install-electron",
+    "package:x64": "electron-forge package --platform=darwin --arch=x64"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "8.0.1",
+    "@electron-forge/plugin-auto-unpack-natives": "8.0.1",
+    "@electron/rebuild": "4.2.0",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "24.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "electron": "44.5.1",
+    "kysely": "0.29.6",
+    "node": "24.21.0",
+    "pdfjs-dist": "6.3.289",
+    "playwright": "1.63.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.2",
+    "vitest": "5.0.3",
+    "zod": "4.6.5"
+  }
 }
