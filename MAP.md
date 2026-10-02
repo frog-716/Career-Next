@@ -4,7 +4,7 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0 技术可行性验证已 PASS，真实 macOS 中文 IME 已由用户人工验收；G1 已 PASS，当前仅实现个人独立 Raw 的本地选择、未保存预览、人工确认、正式持久化和回读，不进入 G2。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，本轮未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0 技术可行性验证已 PASS，真实 macOS 中文 IME 已由用户人工验收；G1 已 PASS，G1 已建立个人独立 Raw 的本地选择、预览、确认保存和回读；当前开展 G2 第一批 W/E/P/O/R/U 人工业务切片，不启动 AI Runtime、不进入 G3。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，本轮未读取或导入。
 
 ## 冻结输入与阅读入口
 
@@ -54,3 +54,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 全局操作规则来自 `/Users/frog/.codex/AGENTS.md`，已确认可读取。
 
 项目工程协作入口见 [AGENTS.md](AGENTS.md)；Matt setup 配置位于 `docs/agents/`：[GitHub Issues](docs/agents/issue-tracker.md) 与 [Single-context 文档约定](docs/agents/domain.md)。
+
+## G2 协作入口
+
+任务和验收以 GitHub G2 umbrella / 六个业务 Issue 为正本；接口与并行边界见 [G2 集成约定](docs/agents/g2-integration.md)，统一术语见 [GLOSSARY](GLOSSARY.md)。根依赖、迁移批次和运行装配由 integration owner 串行维护。

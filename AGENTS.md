@@ -4,7 +4,7 @@
 - Product Spec Frozen R3 位于 `docs/product-spec/`，是产品规则唯一正本；未经明确授权不得修改。
 - Architecture V2 Frozen 位于 `docs/architecture/`，是冻结架构唯一正本；未经明确授权不得修改。
 - 旧 Career 不得作为新实现参考；只有未来明确授权的独立审计任务可以按其范围读取，不能据此导入旧实现。
-- G0、G1 已 PASS；当前仅实现个人独立 Raw 的选择、预览、确认保存和回读，证据见 MAP 引用的 Issue #2。`probe/` 保持为 G0 实验，不是正式平台；未经明确授权不进入 G2 或其他业务模块。
+- G0、G1 已 PASS；当前已授权 G2 第一批 W/E/P/O/R/U 人工业务切片。`probe/` 仅为 G0 实验；不启动 AI Runtime，不进入 G3。
 
 ## Agent skills
 
