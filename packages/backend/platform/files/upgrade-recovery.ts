@@ -1,6 +1,8 @@
-import type Database from 'better-sqlite3';
+import Database from 'better-sqlite3';
+import {createLedger} from '../database/ledger';
+import {createBlobBroker} from './blobs';
 import { randomUUID } from 'node:crypto';
-import { open,readFile,rename,mkdir,stat,cp,writeFile } from 'node:fs/promises';
+import { open,readFile,rename,mkdir,stat,cp } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { syncDirectory } from './staging';
@@ -28,8 +30,20 @@ export async function createUpgradeRecovery(database:Database.Database,root:stri
   const blobs=path.join(root,'blobs');let exists=false;
   try{await stat(blobs);exists=true;}catch(error){if(!(error instanceof Error&&'code' in error&&error.code==='ENOENT'))throw error;}
   if(exists)await cp(blobs,path.join(destination,'blobs'),{recursive:true,errorOnExist:true,force:false});
-  await writeFile(path.join(destination,'upgrade.json'),JSON.stringify({fromVersion,toVersion}),{mode:0o600});
-  await syncDirectory(destination);record.state='ready';await persist();
+  const copy=new Database(path.join(destination,'career.sqlite'),{readonly:true});
+  try{
+   const integrity=copy.pragma('quick_check') as {quick_check:string}[];
+   if(integrity.length!==1||integrity[0].quick_check!=='ok'||(copy.pragma('foreign_key_check') as unknown[]).length)throw Error('invalid_recovery_copy');
+   const broker=createBlobBroker(destination,16*1024*1024);
+   for(const artifact of createLedger(copy).retainedArtifacts()){
+    const bytes=await broker.readBytes(artifact.id,artifact.digest);if(bytes.length!==artifact.size)throw Error('invalid_recovery_copy');
+    const handle=await open(path.join(destination,'blobs',artifact.id),'r');try{await handle.sync();}finally{await handle.close();}
+   }
+  }finally{copy.close();}
+  const databaseFile=await open(path.join(destination,'career.sqlite'),'r');try{await databaseFile.sync();}finally{await databaseFile.close();}
+  const metadata=await open(path.join(destination,'upgrade.json'),'wx',0o600);try{await metadata.writeFile(JSON.stringify({fromVersion,toVersion}));await metadata.sync();}finally{await metadata.close();}
+  if(exists)await syncDirectory(path.join(destination,'blobs'));
+  await syncDirectory(destination);await syncDirectory(path.dirname(destination));await syncDirectory(root);record.state='ready';await persist();
  }catch(error){record.state='failed';await persist();throw error;}
  return destination;
 }

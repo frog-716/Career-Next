@@ -24,6 +24,7 @@ const resumeRequest=async(input:ResumeRequest)=>ResumeResult.parse(await window.
 const profileRequest=async(input:ProfileRequest)=>ProfileResult.parse(await window.career.request('profile',input));
 function Workspace(){
  const [workspace,setWorkspace]=useState<string>(),[error,setError]=useState(''),[epoch,setEpoch]=useState(0);
+ const [focusOpportunity,setFocusOpportunity]=useState<{id:string;sequence:number}>();
  const [client]=useState(()=>new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}}));
  const route=resolveRoute(useLocation().pathname),navigate=useNavigate();
  const lastResume=useRef<string|undefined>(undefined);if(route.view==='resume')lastResume.current=route.opportunityId;
@@ -34,7 +35,7 @@ function Workspace(){
   wiki:<><WikiPage request={wikiRequest} materials={window.careerMaterials} workspaceInstance={workspace}/><RawImport/></>,
   employment:<EmploymentPage request={employmentRequest}/>,
   project:<ProjectPage request={projectRequest} employmentRequest={employmentRequest} relationEpoch={epoch}/>,
-  opportunity:<OpportunityPage request={opportunityRequest} workspaceInstance={workspace} onOpenResume={id=>navigate(resumePath(id))}/>,
- }} resume={lastResume.current?<ResumePage request={resumeRequest} profileRequest={profileRequest} opportunityId={lastResume.current} active={route.view==='resume'} onReturn={()=>navigate('/opportunity')}/>:undefined}/></QueryClientProvider>;
+  opportunity:<OpportunityPage focusOpportunity={focusOpportunity} request={opportunityRequest} workspaceInstance={workspace} onOpenResume={id=>navigate(resumePath(id))}/>,
+ }} resume={lastResume.current?<ResumePage request={resumeRequest} profileRequest={profileRequest} opportunityId={lastResume.current} active={route.view==='resume'} onReturn={()=>{const id=lastResume.current;if(id)setFocusOpportunity(previous=>({id,sequence:(previous?.sequence??0)+1}));navigate('/opportunity');}}/>:undefined}/></QueryClientProvider>;
 }
 createRoot(document.getElementById('root')!).render(<HashRouter><Workspace/></HashRouter>);

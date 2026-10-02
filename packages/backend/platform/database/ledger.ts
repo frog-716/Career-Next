@@ -37,6 +37,7 @@ export function createLedger(db: Database.Database) {
       const result = db.prepare(`UPDATE platform_blobs SET state='published' WHERE id=? AND state='held' AND EXISTS(SELECT 1 FROM ${holds} WHERE blob_id=? AND command_id=?)`).run(blobId,blobId,commandId);
       if (result.changes !== 1) throw new Error('invalid_capability');
     },
+    retainedArtifacts() {return db.prepare(`SELECT DISTINCT b.id,b.digest,b.size FROM platform_blobs b JOIN ${retention} r ON r.blob_id=b.id`).all() as {id:string;digest:string;size:number}[];},
     describe(blobId: string) {return db.prepare('SELECT digest,size,state FROM platform_blobs WHERE id=?').get(blobId) as {digest:string;size:number;state:string}|undefined;},
     verifyHold(blobId: string, commandId: string, generation: string) {
       if (!db.prepare(`SELECT 1 FROM platform_blobs b JOIN ${holds} h ON b.id=h.blob_id WHERE b.id=? AND b.state='published' AND h.command_id=? AND h.generation=?`).get(blobId,commandId,generation)) throw new Error('invalid_capability');
