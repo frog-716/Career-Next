@@ -4,7 +4,7 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0 技术可行性验证已 PASS，真实 macOS 中文 IME 已由用户人工验收；G1 已 PASS，G1 已建立个人独立 Raw 的本地选择、预览、确认保存和回读；当前开展 G2 第一批 W/E/P/O/R/U 人工业务切片，不启动 AI Runtime、不进入 G3。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，本轮未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0 技术可行性验证已 PASS，真实 macOS 中文 IME 已由用户人工验收；G1 已 PASS，G1 已建立个人独立 Raw 的本地选择、预览、确认保存和回读；G2 第一批 W/E/P/O/R/U 人工业务切片已 PASS，Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。不启动 AI Runtime、不进入 G3。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，本轮未读取或导入。
 
 ## 冻结输入与阅读入口
 
@@ -61,4 +61,4 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `backend/domains/{wiki,employment,project,opportunity,profile,resume}/public.ts` 是业务公开能力；`bootstrap/` 注入跨域公开关系并维护单一 SQLite writer 和迁移批次。
 - `frontend/app/` 装配 `shell/` 的四入口和对应真实页面；保持编辑会话，任职成功写入后机械刷新项目的公开关系投影。
 - Resume 使用 Career 自有文档合同；Tiptap 仅作输入适配。当前稿、Profile 当前身份、命名版本各守自己的语义。后端冻结快照，Desktop 受限打印窗口生成 PDF，平台以 hold / retention 保住实际文件，再由 Resume 完成版本回执。
-- [G2 Issue #3](https://github.com/frog-716/Career-Next/issues/3) 及六个业务 Issue 是任务和验收正本；接口与并行边界见 [G2 集成约定](docs/agents/g2-integration.md)，统一术语见 [GLOSSARY](GLOSSARY.md)。根依赖、迁移批次和运行装配由 integration owner 串行维护。
+- [G2 Issue #3](https://github.com/frog-716/Career-Next/issues/3) 及六个业务 Issue 是任务和验收正本；运行和真人中文 IME 的 PASS 证据见 [G2 第一批验收](docs/verification/g2-first-batch.md)；接口与并行边界见 [G2 集成约定](docs/agents/g2-integration.md)，统一术语见 [GLOSSARY](GLOSSARY.md)。根依赖、迁移批次和运行装配由 integration owner 串行维护。
