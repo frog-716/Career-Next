@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BusinessTime,CommandId,Revision } from '../common/business-time';
+import { BusinessTime,CommandId,Revision } from '../common/business-time.ts';
 export const Company=z.object({id:z.uuid(),name:z.string().trim().min(1).max(200),revision:Revision}).strict();
 export type Company=z.infer<typeof Company>;
 export const Phase=z.enum(['preparation','submitted','interview','offer']);

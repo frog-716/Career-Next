@@ -1,8 +1,8 @@
 import { z } from 'zod';
 const Id=z.uuid();
 const Revision=z.number().int().nonnegative();
-import {Profile,SafeLink,type ProfileReader} from '../profile/schema';
-export {Profile,SafeLink} from '../profile/schema';
+import {Profile,SafeLink,type ProfileReader} from '../profile/schema.ts';
+export {Profile,SafeLink} from '../profile/schema.ts';
 export const Mark=z.discriminatedUnion('type',[
  z.strictObject({type:z.literal('bold')}),z.strictObject({type:z.literal('italic')}),z.strictObject({type:z.literal('strike')}),z.strictObject({type:z.literal('link'),href:SafeLink})
 ]);

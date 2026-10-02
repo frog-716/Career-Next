@@ -24,3 +24,8 @@ userData/
 
 # G0 packaging output
 out/
+
+# Deterministic module aggregation
+/packages/contracts/generated/
+/packages/backend/bootstrap/generated/
+/packages/frontend/generated/

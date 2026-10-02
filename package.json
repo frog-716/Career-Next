@@ -28,7 +28,10 @@
     "build:g0": "node scripts/g0-build.mjs",
     "test:g0": "vitest run tests/g0.unit.test.ts",
     "test:integration": "node scripts/g1-integration-build.mjs && vitest run tests/integration",
-    "smoke:g0": "vitest run tests/g0.electron.test.ts"
+    "smoke:g0": "vitest run tests/g0.electron.test.ts",
+    "generate": "node scripts/generate-modules.mjs",
+    "prebuild": "npm run generate",
+    "pretypecheck": "npm run generate"
   },
   "devDependencies": {
     "@electron-forge/cli": "8.0.1",

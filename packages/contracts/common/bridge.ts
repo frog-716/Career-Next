@@ -1,5 +1,6 @@
-import type { Identity } from '../materials/schema';
-export type BusinessModule = 'wiki' | 'employment' | 'project' | 'opportunity' | 'resume' | 'profile';
+import type { Identity } from '../materials/schema.ts';
+import type { BusinessModule } from '../generated/registry';
+export type { BusinessModule } from '../generated/registry';
 /** Owner schemas validate each input and result on both sides of this bounded bridge. */
 export interface CareerBridge {
   ready(): Promise<Identity>;

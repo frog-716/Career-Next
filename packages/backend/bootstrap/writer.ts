@@ -1,18 +1,11 @@
 import { parentPort, workerData } from 'node:worker_threads';
 import { openWorkspace } from '../platform/database/database';
 import { materialsMigration } from '../domains/materials/migration';
-import { createMaterialsStore } from '../domains/materials/store';
-import type { HumanSession } from '../domains/materials/store';
-import type { BusinessModule } from '../../contracts/common/bridge';
-import { createSessions } from '../platform/runtime/sessions';
+import { createWriterCommands } from './writer-commands';
 import { releases } from './releases';
-import { composeDomains } from './domain-registry';
 async function start() {
 const workspace = await openWorkspace(workerData.root, materialsMigration,releases);
-const authority=createSessions(workspace.workspaceInstance,workerData.generation);
-const materials=createMaterialsStore(workspace.database,workspace.workspaceInstance,workerData.generation,authority);
-const domains=composeDomains(workspace.database,materials);
-const store={...materials,business(session:HumanSession,module:BusinessModule,input:unknown){authority.check(session);return domains.handle(module,input);}};
+const store=createWriterCommands(workspace.database,workspace.workspaceInstance,workerData.generation);
 parentPort!.postMessage({ ready: true });
 let queue = Promise.resolve();
 parentPort!.on('message', (message: { id: string; call?: {method: keyof typeof store;args:unknown[]}; close?: boolean }) => {

@@ -1,6 +1,6 @@
 import {z} from 'zod';
-import {BusinessTime,CommandId,Revision} from '../common/business-time';
-import {EmploymentRelation,PersonRelation} from '../employment/schema';
+import {BusinessTime,CommandId,Revision} from '../common/business-time.ts';
+import {EmploymentRelation,PersonRelation} from '../employment/schema.ts';
 const name=z.string().trim().min(1).max(300);
 export const State=z.enum(['inprogress','paused','completed','cancelled']);
 export const Project=z.object({

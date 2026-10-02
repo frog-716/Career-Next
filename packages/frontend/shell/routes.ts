@@ -1,3 +1,5 @@
+import { matchPath } from 'react-router';
+import {routeCatalog} from '../generated/routes';
 export const navigationManifest=[
  {id:'wiki',path:'/wiki',label:'Wiki',icon:'◇'},
  {id:'opportunity',path:'/opportunity',label:'机会',icon:'◉'},
@@ -10,9 +12,10 @@ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 export function resumePath(opportunityId:string){if(!uuid.test(opportunityId))throw Error('invalid_route');return `/opportunity/${opportunityId}/resume`;}
 export function resolveRoute(path:string):Route{
  if(path==='/')return {module:'wiki',view:'module'};
- const module=navigationManifest.find(item=>item.path===path);
- if(module)return {module:module.id,view:'module'};
- const nested=/^\/opportunity\/([^/]+)\/resume$/.exec(path);
- if(nested&&uuid.test(nested[1]))return {module:'opportunity',view:'resume',opportunityId:nested[1]};
+ for(const entry of routeCatalog){
+  const match=matchPath(entry.path,path);if(!match)continue;
+  if(entry.view==='resume'){const id=match.params.opportunityId;if(id&&uuid.test(id))return {module:'opportunity',view:'resume',opportunityId:id};}
+  else return {module:entry.view,view:'module'};
+ }
  return {view:'not-found'};
 }
