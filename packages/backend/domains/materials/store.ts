@@ -4,12 +4,14 @@ import { randomUUID, createHash } from 'node:crypto';
 import { Receipt, ErrorCode } from '../../../contracts/materials/schema';
 import type { Identity, Preview, RawSummary, Confirm, SourceRef } from '../../../contracts/materials/schema';
 import { createLedger } from '../../platform/database/ledger';
-export type HumanSession = Identity & { actor: { kind: 'human'; token: string } };
+import { createSessions, type SessionAuthority } from '../../platform/runtime/sessions';
+import type { HumanSession } from '../../platform/runtime/sessions';
+export type { HumanSession } from '../../platform/runtime/sessions';
 export type ImportRow = { id: string; generation: string; connection: string; validity: number; state: string; name: string; digest: string; size: number; revision: 1 };
-export function createMaterialsStore(db: Database.Database, workspaceInstance: string, backendGeneration: string) {
+export function createMaterialsStore(db: Database.Database, workspaceInstance: string, backendGeneration: string, authority: SessionAuthority = createSessions(workspaceInstance, backendGeneration)) {
   const query = new Kysely<{ materials_raw: RawRow }>({dialect:new SqliteDialect({database:db})});
   const ledger = createLedger(db);
-  const sessions = new Map<string, string>();
+
   function receipt(commandId: string, payloadDigest?: string): Receipt {
     const row = ledger.receipt(commandId, payloadDigest);
     if (!row) return {status:'not_found',commandId};
@@ -17,9 +19,7 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
     if (row.status === 'failed') return {status:'failed',commandId,code:ErrorCode.parse(row.error)};
     return {status:'pending',commandId};
   }
-  function check(session: HumanSession) {
-    if (session.workspaceInstance !== workspaceInstance || session.backendGeneration !== backendGeneration || session.actor?.kind !== 'human' || sessions.get(session.connectionGeneration) !== session.actor.token) throw new Error('invalid_capability');
-  }
+  const check = authority.check;
   function valid(session: HumanSession, id: string) {
     check(session);
     const row = db.prepare('SELECT * FROM materials_imports WHERE id=?').get(id) as ImportRow | undefined;
@@ -28,10 +28,8 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
   }
   return {
     connect(): HumanSession {
-      const connectionGeneration = randomUUID(), token = randomUUID();
       db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1 WHERE state IN ('preparing','preview')").run();
-      sessions.clear(); sessions.set(connectionGeneration, token);
-      return { protocolVersion: 1, workspaceInstance, backendGeneration, connectionGeneration, actor: { kind: 'human', token } };
+      return authority.connect();
     },
     begin(session: HumanSession, name: string) {
       check(session); const id = randomUUID();
@@ -56,6 +54,11 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
       check(session); const row = db.prepare('SELECT * FROM materials_raw WHERE id=?').get(id) as RawRow | undefined;
       if (!row) throw new Error('not_found');
       return { ...summary(row), digest: row.digest, blobId: row.blob_id };
+    },
+    resolveSourceMetadata(input: SourceRef) {
+      if (input.owner !== 'materials' || input.revision !== 1 || input.scope !== 'personal' || input.locator !== 'whole') return undefined;
+      const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(input.objectId) as RawRow | undefined;
+      return row ? summary(row) : undefined;
     },
     receipt(session: HumanSession, commandId: string) { check(session); return receipt(commandId); },
     prepare(session: HumanSession, input: Confirm) {

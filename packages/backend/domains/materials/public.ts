@@ -7,9 +7,9 @@ import { Confirm, SourceRef, Raw, Preview, MAX_TEXT_BYTES, type Receipt } from '
 import { staging } from '../../platform/files/staging';
 import type { HumanSession, Store } from './store';
 
-export async function createMaterialsBackend(root: string, makeBlobs: typeof createBlobBroker = createBlobBroker, writerArtifact?: string) {
+export async function createMaterialsBackend(root: string, makeBlobs: typeof createBlobBroker = createBlobBroker, writerArtifact?: string, providedWriter?: Awaited<ReturnType<typeof startWriter<Store>>>) {
   await mkdir(root, { recursive: true, mode: 0o700 });
-  const writer = await startWriter<Store>(root, randomUUID(), writerArtifact);
+  const writer = providedWriter ?? await startWriter<Store>(root, randomUUID(), writerArtifact);
   const blobs = makeBlobs(root, MAX_TEXT_BYTES);
   const files = staging(root, MAX_TEXT_BYTES);
   async function collectGarbage() {

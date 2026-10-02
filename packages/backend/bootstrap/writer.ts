@@ -3,7 +3,8 @@ import { openWorkspace } from '../platform/database/database';
 import { materialsMigration } from '../domains/materials/migration';
 import { createMaterialsStore } from '../domains/materials/store';
 import type { Call } from '../domains/materials/store';
-const workspace = openWorkspace(workerData.root, materialsMigration);
+async function start() {
+const workspace = await openWorkspace(workerData.root, materialsMigration);
 const store = createMaterialsStore(workspace.database, workspace.workspaceInstance, workerData.generation);
 parentPort!.postMessage({ ready: true });
 let queue = Promise.resolve();
@@ -22,3 +23,6 @@ parentPort!.on('message', (message: { id: string; call?: Call; close?: boolean }
   }
   });
 });
+
+}
+void start().catch(error => {throw error;});

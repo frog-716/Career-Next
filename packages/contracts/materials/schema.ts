@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export const MAX_TEXT_BYTES = 256 * 1024;
-export const Identity = z.object({ protocolVersion: z.literal(1), workspaceInstance: z.uuid(), backendGeneration: z.uuid(), connectionGeneration: z.uuid() }).strict();
-export type Identity = z.infer<typeof Identity>;
+export { Identity } from '../common/runtime.ts';
+import type { Identity } from '../common/runtime.ts';
 export const SourceRef = z.object({ owner: z.literal('materials'), objectId: z.uuid(), revision: z.literal(1), locator: z.literal('whole'), scope: z.literal('personal') }).strict();
 export type SourceRef = z.infer<typeof SourceRef>;
 export const Preview = z.object({ importId: z.uuid(), revision: z.literal(1), name: z.string().max(255), size: z.number().int().max(MAX_TEXT_BYTES), digest: z.string().regex(/^[a-f0-9]{64}$/), text: z.string().max(MAX_TEXT_BYTES), saved: z.literal(false) }).strict();
