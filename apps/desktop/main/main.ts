@@ -7,6 +7,8 @@ import { Identity, Request, Result } from '../../../packages/contracts/materials
 import type { Identity as RuntimeIdentity, Request as MaterialRequest, Result as MaterialResult } from '../../../packages/contracts/materials/schema';
 import { BusinessModuleSchema,parseBusinessRequest,parseBusinessResult } from '../../../packages/contracts/registry';
 import type { BusinessModule } from '../../../packages/contracts/common/bridge';
+import {Result as ResumeResult,Request as ResumeRequest} from '../../../packages/contracts/resume/schema';
+import {printResume} from '../capabilities/print-resume';
 import { selectMaterial } from '../capabilities/select-material';
 app.setName('Career Next');
 // Standard Electron profile switch permits isolated data directories; never enables test capabilities.
@@ -24,7 +26,7 @@ function disconnect() {
   for(const item of pending.values()) {clearTimeout(item.timer);item.reject(new Error('disconnected'));} pending.clear();
 }
 function trusted(event: IpcMainInvokeEvent) {
-  if(event.sender!==window.webContents || event.senderFrame!==window.webContents.mainFrame || event.senderFrame.url!==url) throw new Error('invalid_capability');
+  if(event.sender!==window.webContents || event.senderFrame!==window.webContents.mainFrame || event.senderFrame.url.split('#')[0]!==url) throw new Error('invalid_capability');
 }
 async function connect(): Promise<RuntimeIdentity> {
   if(connecting) return connecting;
@@ -82,6 +84,36 @@ async function sendBusiness(module:BusinessModule,input:unknown):Promise<unknown
   port!.postMessage({requestId,identity:bound,module,request});
  });
 }
+const printing=new Map<string,Promise<unknown>>();
+async function sendPrint(printAction:'html'|'complete'|'fail',commandId:string,pdf?:Uint8Array):Promise<unknown>{
+ const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');
+ const requestId=randomUUID();
+ return new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);
+  pending.set(requestId,{resolve,reject,timer});port!.postMessage({requestId,identity:bound,printAction,commandId,pdf});
+ });
+}
+async function businessWithPrint(module:BusinessModule,input:unknown){
+ const result=await sendBusiness(module,input);
+ if(module!=='resume')return result;
+ const request=ResumeRequest.parse(input),parsed=ResumeResult.parse(result);
+ if(request.operation!=='resume.name-version'||parsed.status!=='pending-job')return parsed;
+ const bound=identity;if(!bound)throw Error('disconnected');
+ const key=bound.connectionGeneration+'/'+request.commandId;
+ const previous=printing.get(key);if(previous)return previous;
+ const job=(async()=>{
+  try{
+   const payload=await sendPrint('html',request.commandId);
+   if(!payload||typeof payload!=='object'||!('html'in payload)||typeof payload.html!=='string')throw Error('invalid_request');
+   const bytes=await printResume(payload.html);
+   if(identity!==bound)throw Error('invalid_capability');
+   return ResumeResult.parse(await sendPrint('complete',request.commandId,bytes));
+  }catch{
+   if(identity!==bound)throw Error('disconnected');
+   return ResumeResult.parse(await sendPrint('fail',request.commandId));
+  }
+ })();printing.set(key,job);void job.finally(()=>printing.delete(key)).catch(()=>undefined);return job;
+}
 if(locked) app.whenReady().then(async()=>{
   const root=path.join(__dirname,'../materials-renderer');
   protocol.handle('career',async request=>{
@@ -100,7 +132,7 @@ if(locked) app.whenReady().then(async()=>{
   ipcMain.handle('materials:ready',event=>{trusted(event);if(!identity)throw new Error('disconnected');return identity;});
   ipcMain.handle('materials:reconnect',event=>{trusted(event);return connect();});
   ipcMain.handle('materials:request',(event,input)=>{trusted(event);if(JSON.stringify(input).length>2048)throw new Error('invalid_request');return send(Request.parse(input));});
-  ipcMain.handle('career:request',(event,module,input)=>{trusted(event);if(JSON.stringify(input).length>1024*1024)throw Error('invalid_request');return sendBusiness(BusinessModuleSchema.parse(module),input);});
+  ipcMain.handle('career:request',(event,module,input)=>{trusted(event);if(JSON.stringify(input).length>1024*1024)throw Error('invalid_request');return businessWithPrint(BusinessModuleSchema.parse(module),input);});
   await connect();await window.loadURL(url);
 }).catch(()=>{ console.error('CAREER_STARTUP_FAILED');app.exit(1); });
 app.on('window-all-closed',()=>app.quit());

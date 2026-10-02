@@ -1,0 +1,104 @@
+import {it,expect} from 'vitest';
+import {mkdtemp,rm} from 'node:fs/promises';
+import path from 'node:path';
+import {tmpdir} from 'node:os';
+import {createRuntimeBackend} from '../../packages/backend/bootstrap/runtime';
+import {Request as EmploymentRequest,Result as EmploymentResult} from '../../packages/contracts/employment/schema';
+import {Request as ProjectRequest,Result as ProjectResult} from '../../packages/contracts/project/schema';
+import {Request as OpportunityRequest,Result as OpportunityResult} from '../../packages/contracts/opportunity/schema';
+import {Request as ProfileRequest,Result as ProfileResult} from '../../packages/contracts/profile/schema';
+import {Request as ResumeRequest,Result as ResumeResult} from '../../packages/contracts/resume/schema';
+
+it('one real writer resolves Employment and Person for Project without copying current role facts or migrating collaborators',async()=>{
+ const root=await mkdtemp(path.join(tmpdir(),'career-g2-business-project-'));
+ const start=()=>createRuntimeBackend(path.join(root,'workspace'),path.resolve('dist/application/writer.cjs'));
+ let runtime=await start();let session=await runtime.materials.connectHuman();
+ const employment=async(input:EmploymentRequest)=>EmploymentResult.parse(await runtime.business(session,'employment',input).catch(error=>{throw new Error(`employment/${input.operation}: ${String(error)}`);}));
+ const project=async(input:ProjectRequest)=>ProjectResult.parse(await runtime.business(session,'project',input).catch(error=>{throw new Error(`project/${input.operation}: ${String(error)}`);}));
+ try{
+  const makeEmployment=(company:string)=>employment({operation:'create',commandId:crypto.randomUUID(),company,role:'Engineer',goal:'Actual work',started:true,start:{kind:'unknown'},plannedEnd:{kind:'date',date:'2099-12-31'}});
+  const a=await makeEmployment('Workplace A');const b=await makeEmployment('Workplace B');
+  if(a.kind!=='employment'||b.kind!=='employment')throw new Error('Employment creation failed');
+  const makePerson=(employmentId:string)=>employment({operation:'person.create',commandId:crypto.randomUUID(),employmentId,name:'Same name',role:'Department reviewer',occurredAt:{kind:'unknown'}});
+  const pa=await makePerson(a.employment.id);const pb=await makePerson(b.employment.id);
+  if(pa.kind!=='person'||pb.kind!=='person')throw new Error('Person creation failed');
+  const created=await project({operation:'create',commandId:crypto.randomUUID(),name:'Independent project',description:'Project-owned content',tags:['manual'],employmentId:a.employment.id,occurredAt:{kind:'unknown'}});
+  if(created.kind!=='project')throw new Error('Project creation failed');
+  const id=created.project.id;
+  expect(await project({operation:'participant.join',commandId:crypto.randomUUID(),id,expectedRevision:1,personId:pb.person.id,projectRole:'Project reviewer',mode:'change',reason:'Incorrect employment scope',occurredAt:{kind:'unknown'}})).toMatchObject({kind:'failure',code:'invalid_relation'});
+  const joined=await project({operation:'participant.join',commandId:crypto.randomUUID(),id,expectedRevision:1,personId:pa.person.id,projectRole:'Project reviewer',mode:'change',reason:'Confirmed participation',occurredAt:{kind:'date',date:'2024-01-02'}});
+  expect(joined).toMatchObject({kind:'project',project:{revision:2},participants:[{personId:pa.person.id,projectRole:'Project reviewer',person:{role:'Department reviewer'}}]});
+  await employment({operation:'person.edit',commandId:crypto.randomUUID(),id:pa.person.id,employmentId:a.employment.id,expectedRevision:1,name:'Same name',role:'Department lead',mode:'change',reason:'Actual promotion',occurredAt:{kind:'unknown'}});
+  expect(await project({operation:'read',id})).toMatchObject({kind:'project',participants:[{projectRole:'Project reviewer',person:{role:'Department lead'}}]});
+  const associationCommand={operation:'associate' as const,commandId:crypto.randomUUID(),id,expectedRevision:2,employmentId:b.employment.id,mode:'change' as const,reason:'Project moves to B',occurredAt:{kind:'unknown' as const}};
+  const associated=await project(associationCommand);
+  expect(associated).toMatchObject({kind:'project',project:{employmentId:b.employment.id,revision:3},participants:[{personId:pa.person.id,employmentId:a.employment.id,active:false,projectRole:'Project reviewer'}]});
+  expect(await project({operation:'receipt',commandId:associationCommand.commandId})).toEqual(associated);
+  expect(await project(associationCommand)).toEqual(associated);
+  expect(await project({operation:'participant.join',commandId:crypto.randomUUID(),id,expectedRevision:3,personId:pb.person.id,projectRole:'Project implementer',mode:'change',reason:'Explicit new collaboration',occurredAt:{kind:'unknown'}})).toMatchObject({kind:'project',project:{revision:4},participants:[{personId:pa.person.id,active:false},{personId:pb.person.id,active:true,projectRole:'Project implementer'}]});
+  await employment({operation:'end',commandId:crypto.randomUUID(),id:b.employment.id,expectedRevision:1,mode:'change',reason:'Employment actually ended',actualEnd:{kind:'unknown'},occurredAt:{kind:'unknown'}});
+  expect(await project({operation:'read',id})).toMatchObject({kind:'project',project:{state:'inprogress',revision:4},employment:{status:'historical'}});
+  expect(await project({operation:'edit',commandId:crypto.randomUUID(),id,expectedRevision:2,name:'Stale overwrite',description:'',tags:[],mode:'correction',reason:'Stale client',occurredAt:{kind:'unknown'}})).toMatchObject({kind:'failure',code:'conflict',current:{revision:4,name:'Independent project'}});
+  const beforeRestart=await project({operation:'read',id});
+  await runtime.close();runtime=await start();session=await runtime.materials.connectHuman();
+  expect(await project({operation:'read',id})).toEqual(beforeRestart);
+  expect(await project({operation:'history',id})).toMatchObject({kind:'history',history:[{action:'created'},{action:'joined',participants:[{active:true}]},{action:'associated',participants:[{active:false}]},{action:'joined',participants:[{active:false},{active:true}]}]});
+ }finally{await runtime.close();await rm(root,{recursive:true,force:true});}
+},20000);
+
+it('Company, Opportunity and Profile compose independent Resume drafts with durable receipts, conflicts and restart recovery',async()=>{
+ const root=await mkdtemp(path.join(tmpdir(),'career-g2-business-resume-'));
+ const start=()=>createRuntimeBackend(path.join(root,'workspace'),path.resolve('dist/application/writer.cjs'));
+ let runtime=await start();let session=await runtime.materials.connectHuman();
+ const opportunity=async(input:OpportunityRequest)=>OpportunityResult.parse(await runtime.business(session,'opportunity',input).catch(error=>{throw new Error(`opportunity/${input.operation}: ${String(error)}`);}));
+ const profile=async(input:ProfileRequest)=>ProfileResult.parse(await runtime.business(session,'profile',input).catch(error=>{throw new Error(`profile/${input.operation}: ${String(error)}`);}));
+ const resume=async(input:ResumeRequest)=>ResumeResult.parse(await runtime.business(session,'resume',input).catch(error=>{throw new Error(`resume/${input.operation}: ${String(error)}`);}));
+ try{
+  const company=await opportunity({operation:'company.create',commandId:crypto.randomUUID(),name:'Hiring company'});
+  if(company.kind!=='company')throw new Error('Company creation failed');
+  const first=await opportunity({operation:'create',commandId:crypto.randomUUID(),companyId:company.company.id,role:'Engineer A'});
+  const second=await opportunity({operation:'create',commandId:crypto.randomUUID(),companyId:company.company.id,role:'Engineer B'});
+  if(first.kind!=='opportunity'||second.kind!=='opportunity')throw new Error('Opportunity creation failed');
+  const savedProfile=await profile({operation:'profile.save',commandId:crypto.randomUUID(),expectedRevision:0,name:'Initial identity',contact:'initial@example.test',links:[{label:'Portfolio',href:'https://example.test/portfolio'}]});
+  expect(savedProfile).toMatchObject({status:'profile',profile:{revision:1}});
+  const openA=await resume({operation:'resume.open',commandId:crypto.randomUUID(),opportunityId:first.opportunity.id});
+  const openB=await resume({operation:'resume.open',commandId:crypto.randomUUID(),opportunityId:second.opportunity.id});
+  if(openA.status!=='document'||openB.status!=='document')throw new Error('Resume opening failed');
+  expect(openA.document.id).not.toBe(openB.document.id);
+  expect((await opportunity({operation:'read',id:first.opportunity.id}))).toMatchObject({kind:'opportunity',opportunity:{phase:'preparation',result:'active'}});
+  const content=structuredClone(openA.document.content);
+  content.sections[0].blocks=[{id:crypto.randomUUID(),type:'paragraph',spans:[{text:'Persisted own resume body',marks:[{type:'bold'}]}]}];
+  const saveCommand={operation:'resume.save' as const,commandId:crypto.randomUUID(),resumeId:openA.document.id,expectedRevision:1,expectedProfileRevision:1,content};
+  const saved=await resume(saveCommand);
+  expect(saved).toMatchObject({status:'document',document:{id:openA.document.id,revision:2,content}});
+  expect(await resume({operation:'resume.receipt',commandId:saveCommand.commandId})).toEqual(saved);
+  expect(await resume(saveCommand)).toEqual(saved);
+  expect(await resume({operation:'resume.read',resumeId:openB.document.id})).toMatchObject({status:'document',document:{revision:1,content:openB.document.content}});
+  expect(await resume({operation:'resume.versions',resumeId:openA.document.id})).toEqual({status:'versions',versions:[]});
+  await opportunity({operation:'company.rename',commandId:crypto.randomUUID(),id:company.company.id,expectedRevision:1,name:'Updated hiring company'});
+  const profileCommand={operation:'profile.save' as const,commandId:crypto.randomUUID(),expectedRevision:1,name:'Current identity',contact:'current@example.test',links:[]};
+  const currentProfile=await profile(profileCommand);
+  expect(await profile({operation:'profile.receipt',commandId:profileCommand.commandId})).toEqual(currentProfile);
+  for(const resumeId of [openA.document.id,openB.document.id])expect(await resume({operation:'resume.read',resumeId})).toMatchObject({status:'document',profile:{revision:2,name:'Current identity',contact:'current@example.test'},opportunity:{companyName:'Updated hiring company'}});
+  expect(await profile({operation:'profile.save',commandId:crypto.randomUUID(),expectedRevision:1,name:'Stale identity',contact:'',links:[]})).toMatchObject({status:'conflict',profile:{revision:2,name:'Current identity'}});
+  expect(await resume({...saveCommand,commandId:crypto.randomUUID(),expectedRevision:2,expectedProfileRevision:1})).toMatchObject({status:'conflict',document:{revision:2},profile:{revision:2}});
+  expect(await resume({...saveCommand,commandId:crypto.randomUUID(),expectedRevision:1,expectedProfileRevision:2})).toMatchObject({status:'conflict',document:{revision:2}});
+  const aBeforeRestart=await resume({operation:'resume.read',resumeId:openA.document.id});
+  await runtime.close();runtime=await start();session=await runtime.materials.connectHuman();
+  expect(await resume({operation:'resume.read',resumeId:openA.document.id})).toEqual(aBeforeRestart);
+  expect(await resume({operation:'resume.receipt',commandId:saveCommand.commandId})).toEqual(saved);
+  expect(await resume({operation:'resume.open',commandId:crypto.randomUUID(),opportunityId:first.opportunity.id})).toEqual(aBeforeRestart);
+  const versionCommand={operation:'resume.name-version' as const,commandId:crypto.randomUUID(),resumeId:openA.document.id,expectedRevision:2,expectedProfileRevision:2,name:'Pending snapshot only'};
+  const pending=await resume(versionCommand);
+  expect(pending.status).toBe('pending-job');
+  if(pending.status!=='pending-job')throw new Error('Snapshot preparation failed');
+  expect(pending.job).toMatchObject({resumeId:openA.document.id,opportunityId:first.opportunity.id,resumeRevision:2,profileRevision:2,content,profile:{name:'Current identity'}});
+  await profile({operation:'profile.save',commandId:crypto.randomUUID(),expectedRevision:2,name:'Newer identity',contact:'newer@example.test',links:[]});
+  expect(await resume(versionCommand)).toEqual(pending);
+  expect(await resume({operation:'resume.receipt',commandId:versionCommand.commandId})).toEqual(pending);
+  expect(await resume({operation:'resume.versions',resumeId:openA.document.id})).toEqual({status:'versions',versions:[]});
+  // Pending print jobs are not completed versions and cannot be restored as if a PDF exists.
+  expect(await resume({operation:'resume.restore',commandId:crypto.randomUUID(),resumeId:openA.document.id,versionId:versionCommand.commandId,expectedRevision:2,expectedProfileRevision:3})).toEqual({status:'not-found'});
+  expect(await resume({operation:'resume.read',resumeId:openA.document.id})).toMatchObject({status:'document',document:{revision:2,content},profile:{revision:3,name:'Newer identity'}});
+ }finally{await runtime.close();await rm(root,{recursive:true,force:true});}
+},20000);

@@ -12,12 +12,12 @@
   "dependencies": {
     "better-sqlite3": "13.0.3"
   },
-  "description": "Career-Next: personal Raw vertical slice",
+  "description": "Career-Next: local career workspace, G2 first manual slices",
   "main": "dist/application/main.cjs",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "node scripts/g1-build.mjs",
-    "test": "vitest run tests/materials-state.test.ts tests/materials-boundaries.test.ts",
+    "test": "vitest run tests --exclude 'tests/integration/**' --exclude 'tests/desktop/**' --exclude 'tests/g0.*.test.ts'",
     "native:rebuild": "electron-rebuild --force --only better-sqlite3",
     "dev": "electron .",
     "smoke:dev": "vitest run tests/desktop/materials.electron.test.ts",
@@ -31,7 +31,9 @@
     "smoke:g0": "vitest run tests/g0.electron.test.ts",
     "generate": "node scripts/generate-modules.mjs",
     "prebuild": "npm run generate",
-    "pretypecheck": "npm run generate"
+    "pretypecheck": "npm run generate",
+    "smoke:g2": "vitest run tests/desktop/g2.electron.test.ts",
+    "smoke:g2:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g2.electron.test.ts"
   },
   "devDependencies": {
     "@electron-forge/cli": "8.0.1",

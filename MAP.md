@@ -55,6 +55,10 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 
 项目工程协作入口见 [AGENTS.md](AGENTS.md)；Matt setup 配置位于 `docs/agents/`：[GitHub Issues](docs/agents/issue-tracker.md) 与 [Single-context 文档约定](docs/agents/domain.md)。
 
-## G2 协作入口
+## G2 正式入口与协作
 
-任务和验收以 GitHub G2 umbrella / 六个业务 Issue 为正本；接口与并行边界见 [G2 集成约定](docs/agents/g2-integration.md)，统一术语见 [GLOSSARY](GLOSSARY.md)。根依赖、迁移批次和运行装配由 integration owner 串行维护。
+- `contracts/<owner>/manifest.ts` 和 `frontend/features/<owner>/routes.ts` 是各模块合同与路由片段；`npm run generate` 机械产生合同总册、后端路由注册与前端路由总册，生成目录不提交。
+- `backend/domains/{wiki,employment,project,opportunity,profile,resume}/public.ts` 是业务公开能力；`bootstrap/` 注入跨域公开关系并维护单一 SQLite writer 和迁移批次。
+- `frontend/app/` 装配 `shell/` 的四入口和对应真实页面；保持编辑会话，任职成功写入后机械刷新项目的公开关系投影。
+- Resume 使用 Career 自有文档合同；Tiptap 仅作输入适配。当前稿、Profile 当前身份、命名版本各守自己的语义。后端冻结快照，Desktop 受限打印窗口生成 PDF，平台以 hold / retention 保住实际文件，再由 Resume 完成版本回执。
+- [G2 Issue #3](https://github.com/frog-716/Career-Next/issues/3) 及六个业务 Issue 是任务和验收正本；接口与并行边界见 [G2 集成约定](docs/agents/g2-integration.md)，统一术语见 [GLOSSARY](GLOSSARY.md)。根依赖、迁移批次和运行装配由 integration owner 串行维护。
