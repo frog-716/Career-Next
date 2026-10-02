@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery,useQueryClient,useMutation } from '@tanstack/react-query';
 import { BusinessTime } from '../../../contracts/common/business-time';
 import type { Employment,Person,Request,Result } from '../../../contracts/employment/schema';
-import { submitEmploymentCommand,checkEmploymentCommand,type EmploymentRequest,type CommandState } from './commands';
+import { submitEmploymentCommand,checkEmploymentCommand,employmentLifecycleCanProceed,type EmploymentRequest,type CommandState } from './commands';
 type PageProps={request:EmploymentRequest};
 function displayTime(time:BusinessTime):string {return time.kind==='unknown'?'未知':time.kind==='date'?time.date:`${time.instant}（${time.timezone}）`;
 }
@@ -80,7 +80,7 @@ setPlanned({kind:'unknown'});
 }});
  return <form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>{if(!values.started)return;
 commands.save({operation:'create',commandId:crypto.randomUUID(),company:values.company,role:values.role,goal:values.goal,started:true,start,plannedEnd:planned});
-})}><h3>新增任职</h3>
+})}><fieldset disabled={commands.blocked}><h3>新增任职</h3>
 <label>公司
 <input {...form.register('company',{required:true,maxLength:300})}/>
 </label>
@@ -96,7 +96,7 @@ commands.save({operation:'create',commandId:crypto.randomUUID(),company:values.c
 <input type="checkbox" {...form.register('started',{required:true})}/>我确认已经真实开始这段任职
 </label>
 <button disabled={commands.blocked} type="submit">创建任职
-</button>{commands.status}
+</button></fieldset>{commands.status}
 </form>;
 }
 function PersonEditor({person,employmentId,request,onSaved}:PageProps&{person?:Person;
@@ -119,7 +119,7 @@ setReadError('');
 }catch{setReadError('人物历史暂时不可读，可重新读取');
 }}
  return <article>
-<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save(person?{operation:'person.edit',commandId:crypto.randomUUID(),id:person.id,employmentId,expectedRevision:revision,name:values.name,role:values.role,reason:values.reason,mode:values.mode,occurredAt}:{operation:'person.create',commandId:crypto.randomUUID(),employmentId,name:values.name,role:values.role,occurredAt}))}><h4>{person?'维护人物':'新增人物（同名不会合并）'}</h4>
+<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save(person?{operation:'person.edit',commandId:crypto.randomUUID(),id:person.id,employmentId,expectedRevision:revision,name:values.name,role:values.role,reason:values.reason,mode:values.mode,occurredAt}:{operation:'person.create',commandId:crypto.randomUUID(),employmentId,name:values.name,role:values.role,occurredAt}))}><fieldset disabled={commands.blocked}><h4>{person?'维护人物':'新增人物（同名不会合并）'}</h4>
 <label>姓名
 <input {...form.register('name',{required:true,maxLength:300})}/>
 </label>
@@ -139,12 +139,12 @@ setReadError('');
 </label></>}
 <TimeInput label="人物角色实际业务时间" value={occurredAt} onChange={setOccurredAt}/>
 <button disabled={commands.blocked}>保存人物
-</button>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'name' in commands.state.result.current&&<>
-<button type="button" onClick={()=>{const state=commands.state;
+</button></fieldset>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'name' in commands.state.result.current&&<>
+<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'name' in state.result.current)setRevision(state.result.current.revision);
 }}>保留输入，按最新版本重新保存
 </button>
-<button type="button" onClick={()=>{const state=commands.state;
+<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'name' in state.result.current){form.reset({name:state.result.current.name,role:state.result.current.role,reason:'',mode:'change'});
 setRevision(state.result.current.revision);
 }}}>放弃本地修改，使用当前人物
@@ -197,7 +197,10 @@ const [readError,setReadError]=useState('');
  const commands=useCommands(request,result=>{if(result.kind==='employment'){setRevision(result.employment.revision);
 onSaved();
 }});
- const action=(operation:'end'|'reopen')=>{const {mode,reason}=form.getValues();
+ const [lifecycleError,setLifecycleError]=useState('');
+ const action=(operation:'end'|'reopen')=>{const values=form.getValues();const {mode,reason}=values;
+if(!employmentLifecycleCanProceed(employment,{...values,start,plannedEnd:planned,actualEnd},operation)){setLifecycleError('请先保存任职内容，再执行结束或恢复；当前输入仍保留。');return;}
+setLifecycleError('');
 if(!reason.trim()){form.setError('reason',{message:'请填写变化说明'});
 return;
 }commands.save(operation==='end'?{operation,commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,mode,reason,occurredAt,actualEnd}:{operation,commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,mode,reason,occurredAt});
@@ -211,7 +214,7 @@ setReadError('');
  return <section><h3>{employment.company} · {employment.role}</h3>
 <p>{employment.status==='current'?'当前任职':'历史任职'}；实际开始 {displayTime(employment.start)}；计划结束 {displayTime(employment.plannedEnd)}；实际结束 {displayTime(employment.actualEnd)}；录入时间 {employment.recordedAt}
 </p>
-<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save({operation:'edit',commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,company:values.company,role:values.role,goal:values.goal,start,plannedEnd:planned,actualEnd:employment.status==='current'?{kind:'unknown'}:actualEnd,reason:values.reason,mode:values.mode,occurredAt}))}>
+<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save({operation:'edit',commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,company:values.company,role:values.role,goal:values.goal,start,plannedEnd:planned,actualEnd:employment.status==='current'?{kind:'unknown'}:actualEnd,reason:values.reason,mode:values.mode,occurredAt}))}><fieldset disabled={commands.blocked}>
 <label>公司
 <input {...form.register('company',{required:true,maxLength:300})}/>
 </label>
@@ -240,13 +243,13 @@ setReadError('');
 </p>}
 <button disabled={commands.blocked}>保存任职
 </button>
-<button type="button" disabled={commands.blocked} onClick={()=>action(employment.status==='current'?'end':'reopen')}>{employment.status==='current'?'确认任职已真实结束':'恢复同一任职'}
-</button>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'company' in commands.state.result.current&&<>
-<button type="button" onClick={()=>{const state=commands.state;
+{lifecycleError&&<p role="alert">{lifecycleError}</p>}<button type="button" disabled={commands.blocked} onClick={()=>action(employment.status==='current'?'end':'reopen')}>{employment.status==='current'?'确认任职已真实结束':'恢复同一任职'}
+</button></fieldset>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'company' in commands.state.result.current&&<>
+<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'company' in state.result.current)setRevision(state.result.current.revision);
 }}>保留输入，按最新版本重新保存
 </button>
-<button type="button" onClick={()=>{const state=commands.state;
+<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'company' in state.result.current){const current=state.result.current;
 form.reset({company:current.company,role:current.role,goal:current.goal,reason:'',mode:'change',started:true});
 setStart(current.start);

@@ -20,3 +20,14 @@ return result.kind==='not_recorded'?{status:'not_recorded',command}:{status:'kno
 }catch{return {status:'unknown',command};
 }
 }
+/** Lifecycle commands do not save company, role, goal or planned/start edits. */
+export function employmentLifecycleCanProceed(
+ saved:import('../../../contracts/employment/schema').Employment,
+ draft:Pick<import('../../../contracts/employment/schema').Employment,'company'|'role'|'goal'|'start'|'plannedEnd'|'actualEnd'>,
+ operation:'end'|'reopen',
+):boolean{
+ return draft.company===saved.company&&draft.role===saved.role&&draft.goal===saved.goal
+  &&JSON.stringify(draft.start)===JSON.stringify(saved.start)
+  &&JSON.stringify(draft.plannedEnd)===JSON.stringify(saved.plannedEnd)
+  &&(operation==='end'||JSON.stringify(draft.actualEnd)===JSON.stringify(saved.actualEnd));
+}
