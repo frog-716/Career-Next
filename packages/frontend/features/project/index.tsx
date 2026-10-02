@@ -64,14 +64,32 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
  const [personId,setPersonId]=useState('');const [projectRole,setProjectRole]=useState('');
  const [selectedParticipation,setSelectedParticipation]=useState('');const [roleDraft,setRoleDraft]=useState('');
  const [history,setHistory]=useState<Extract<Result,{kind:'history'}>>();const [historyError,setHistoryError]=useState('');
- const commands=useProjectCommands(request,result=>{if(result.kind==='project'){setRevision(result.project.revision);onSaved(result);commands.markClean();}});
+ const submittedAction=useRef<Request|undefined>(undefined);
+ const commands=useProjectCommands(request,result=>{if(result.kind==='project'){
+  const action=submittedAction.current?.operation;
+  if(action==='state.change'||action==='reopen')setStateChoice(result.project.state);
+  if(action==='associate')setAssociation(result.project.employmentId??'');
+  if(action==='participant.join'){setPersonId('');setProjectRole('');}
+  if(action==='participant.edit'||action==='participant.leave')setRoleDraft(result.participants.find(item=>item.id===selectedParticipation)?.projectRole??'');
+  setChange(emptyChange);setRevision(result.project.revision);onSaved(result);commands.markClean();
+ }});
  const common=()=>({commandId:crypto.randomUUID(),id:project.id,expectedRevision:revision,...change});
  const [actionError,setActionError]=useState('');
  function save(command:Request){
   const fields=form.getValues();
-  const contentDirty=fields.name!==project.name||fields.description!==project.description||JSON.stringify(parseTags(fields.tags))!==JSON.stringify(project.tags);
+  const contentDirty=fields.name.trim()!==project.name||fields.description!==project.description||JSON.stringify(parseTags(fields.tags))!==JSON.stringify(project.tags);
   if(command.operation!=='edit'&&contentDirty){setActionError('请先保存项目内容，再执行状态、关联或协作动作；当前输入仍保留。');return;}
-  setActionError('');commands.save(command);
+  const selected=value.participants.find(item=>item.id===selectedParticipation);
+  const roleDirty=roleDraft!==(selected?.projectRole??'');
+  const joinDirty=personId!==''||projectRole!=='';
+  const associationDirty=association!==(project.employmentId??'');
+  const stateDirty=stateChoice!==project.state;
+  const unrelatedDirty=(roleDirty&&command.operation!=='participant.edit')
+   ||(joinDirty&&command.operation!=='participant.join')
+   ||(associationDirty&&command.operation!=='associate')
+   ||(stateDirty&&command.operation!=='state.change'&&command.operation!=='reopen');
+  if(unrelatedDirty){setActionError('请先保存或清理其他未提交的状态、关联或协作输入；它们仍保留。');return;}
+  submittedAction.current=command;setActionError('');commands.save(command);
  }
  async function readHistory(){try{
   const result=await request({operation:'history',id:project.id});if(result.kind!=='history')throw new Error('history_failed');setHistory(result);setHistoryError('');
@@ -97,6 +115,7 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
    <label>新的关联任职<select aria-label="新的关联任职" value={association} onChange={event=>setAssociation(event.target.value)}><option value="">个人项目（不关联任职）</option><EmploymentOptions employmentRequest={employmentRequest}/></select></label>
    <button disabled={commands.blocked} onClick={()=>save({operation:'associate',...common(),employmentId:association||null})}>确认变更任职关联</button>
    <h4>当前协作与历史语境</h4>
+   <button type="button" onClick={()=>{setStateChoice(project.state);setAssociation(project.employmentId??'');setPersonId('');setProjectRole('');setRoleDraft(value.participants.find(item=>item.id===selectedParticipation)?.projectRole??'');}}>放弃未提交的状态、关联和协作输入（保留项目正文）</button>
    <ul>{value.participants.map(participant=><li key={participant.id}>
     {participant.person?.name??'原人物目前不可读'} · 原任职语境：{participant.employment?.company??'原任职目前不可读'} · 当前任职职务：{participant.person?.role??'不可读'} · 项目职责：{participant.projectRole||'未填写'} · {participant.active&&participant.contextId===project.contextId?'当前协作':'历史协作'}
    </li>)}</ul>
