@@ -5,6 +5,8 @@ import { readFile, mkdir, writeFile, rename, open } from 'node:fs/promises';
 import path from 'node:path';
 import { Identity, Request, Result } from '../../../packages/contracts/materials/schema';
 import type { Identity as RuntimeIdentity, Request as MaterialRequest, Result as MaterialResult } from '../../../packages/contracts/materials/schema';
+import { BusinessModuleSchema,parseBusinessRequest,parseBusinessResult } from '../../../packages/contracts/registry';
+import type { BusinessModule } from '../../../packages/contracts/common/bridge';
 import { selectMaterial } from '../capabilities/select-material';
 app.setName('Career Next');
 // Standard Electron profile switch permits isolated data directories; never enables test capabilities.
@@ -16,7 +18,7 @@ const url='career://app/index.html';
 let window: BrowserWindow, backend: UtilityProcess | undefined, port: MessagePortMain | undefined, identity: RuntimeIdentity | undefined;
 let connecting: Promise<RuntimeIdentity> | undefined;
 let quitting=false, quitReady=false;
-const pending=new Map<string,{resolve(result: MaterialResult):void; reject(error:Error):void; timer:ReturnType<typeof setTimeout>}>();
+const pending=new Map<string,{resolve(result: unknown):void; reject(error:Error):void; timer:ReturnType<typeof setTimeout>}>();
 function disconnect() {
   port?.close(); port=undefined; identity=undefined;
   for(const item of pending.values()) {clearTimeout(item.timer);item.reject(new Error('disconnected'));} pending.clear();
@@ -45,7 +47,7 @@ async function connect(): Promise<RuntimeIdentity> {
         const item=pending.get(event.data.requestId);if(!item) return;
         clearTimeout(item.timer);pending.delete(event.data.requestId);
         if(!identity || JSON.stringify(event.data.identity)!==JSON.stringify(identity)){ item.reject(new Error('invalid_capability'));return; }
-        try { item.resolve(Result.parse(event.data.result)); } catch { item.reject(new Error('invalid_request')); }
+        try { if(event.data.error){item.reject(new Error(event.data.error));return;} item.resolve(event.data.result); } catch { item.reject(new Error('invalid_request')); }
       });
     });
     activePort.start();backend.postMessage({connect:true},[channel.port2]);
@@ -67,8 +69,18 @@ async function send(request: MaterialRequest): Promise<MaterialResult> {
   const requestId=randomUUID();
   return new Promise((resolve,reject)=>{
     const timer=setTimeout(()=>{pending.delete(requestId);reject(new Error('disconnected'));},15000);
-    pending.set(requestId,{resolve,reject,timer});port!.postMessage({requestId,identity:bound,request,selectedFile});
+    pending.set(requestId,{resolve: value=>{try{resolve(Result.parse(value));}catch{reject(Error('invalid_request'));}},reject,timer});port!.postMessage({requestId,identity:bound,request,selectedFile});
   });
+}
+async function sendBusiness(module:BusinessModule,input:unknown):Promise<unknown>{
+ const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');
+ const request=parseBusinessRequest(module,input);
+ const requestId=randomUUID();
+ return new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);
+  pending.set(requestId,{resolve:value=>{try{resolve(parseBusinessResult(module,value));}catch{reject(Error('invalid_request'));}},reject,timer});
+  port!.postMessage({requestId,identity:bound,module,request});
+ });
 }
 if(locked) app.whenReady().then(async()=>{
   const root=path.join(__dirname,'../materials-renderer');
@@ -86,6 +98,7 @@ if(locked) app.whenReady().then(async()=>{
   ipcMain.handle('materials:ready',event=>{trusted(event);if(!identity)throw new Error('disconnected');return identity;});
   ipcMain.handle('materials:reconnect',event=>{trusted(event);return connect();});
   ipcMain.handle('materials:request',(event,input)=>{trusted(event);if(JSON.stringify(input).length>2048)throw new Error('invalid_request');return send(Request.parse(input));});
+  ipcMain.handle('career:request',(event,module,input)=>{trusted(event);if(JSON.stringify(input).length>1024*1024)throw Error('invalid_request');return sendBusiness(BusinessModuleSchema.parse(module),input);});
   await connect();await window.loadURL(url);
 }).catch(()=>{ console.error('CAREER_STARTUP_FAILED');app.exit(1); });
 app.on('window-all-closed',()=>app.quit());

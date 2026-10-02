@@ -6,3 +6,7 @@ const bridge: MaterialsBridge = {
   reconnect: () => ipcRenderer.invoke('materials:reconnect'),
 };
 contextBridge.exposeInMainWorld('careerMaterials',bridge);
+
+import type { CareerBridge } from '../../../packages/contracts/common/bridge';
+const career:CareerBridge={ready:bridge.ready,reconnect:bridge.reconnect,request:(module,input)=>ipcRenderer.invoke('career:request',module,input)};
+contextBridge.exposeInMainWorld('career',career);

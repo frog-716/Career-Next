@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { SourceRef } from '../materials/schema';
-import { BusinessTime } from '../common/business-time';
+import { SourceRef } from '../materials/schema.ts';
+import { BusinessTime } from '../common/business-time.ts';
 export const SourceLink=z.object({ref:SourceRef,purpose:z.string().trim().min(1).max(500)}).strict();
 export const Scope=z.enum(['personal','cognition']);
 export const Nature=z.enum(['fact_statement','observation','hypothesis']);

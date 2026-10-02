@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BusinessTime, CommandId, Revision } from '../common/business-time';
+import { BusinessTime, CommandId, Revision } from '../common/business-time.ts';
 const text=z.string().trim().min(1).max(300);
 export const EmploymentRelation=z.object({id:z.uuid(),company:text,role:text,status:z.enum(['current','historical']),revision:Revision}).strict();
 export type EmploymentRelation=z.infer<typeof EmploymentRelation>;
