@@ -1,0 +1,311 @@
+import { useState,useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useQuery,useQueryClient,useMutation } from '@tanstack/react-query';
+import { BusinessTime } from '../../../contracts/common/business-time';
+import type { Employment,Person,Request,Result } from '../../../contracts/employment/schema';
+import { submitEmploymentCommand,checkEmploymentCommand,type EmploymentRequest,type CommandState } from './commands';
+type PageProps={request:EmploymentRequest};
+function displayTime(time:BusinessTime):string {return time.kind==='unknown'?'未知':time.kind==='date'?time.date:`${time.instant}（${time.timezone}）`;
+}
+function TimeInput({label,value,onChange}:{label:string;
+value:BusinessTime;
+onChange:(value:BusinessTime)=>void}) {
+ return <fieldset>
+<legend>{label}
+</legend>
+<select aria-label={`${label}类型`} value={value.kind} onChange={event=>onChange(event.target.value==='date'?{kind:'date',date:''}:event.target.value==='instant'?{kind:'instant',instant:'',timezone:''}:{kind:'unknown'})}>
+<option value="unknown">未知
+</option>
+<option value="date">仅日期
+</option>
+<option value="instant">精确时刻（含时区）
+</option>
+</select>{value.kind==='date'&&
+<input aria-label={label} type="date" value={value.date} onChange={event=>onChange({...value,date:event.target.value})}/>} {value.kind==='instant'&&<>
+<input aria-label={`${label}时刻`} placeholder="2024-01-01T09:00:00+08:00" value={value.instant} onChange={event=>onChange({...value,instant:event.target.value})}/>
+<input aria-label={`${label}时区`} placeholder="Asia/Shanghai" value={value.timezone} onChange={event=>onChange({...value,timezone:event.target.value})}/></>}
+</fieldset>;
+}
+const errors:Record<string,string>={invalid_input:'请检查必填内容和业务日期。',not_found:'指定对象不存在，请返回列表。',conflict:'发生冲突，本地输入已保留。请比较最新内容后明确决定。',invalid_transition:'这项变化不符合当前真实任职状态或实际日期。',storage_error:'保存失败，请检查资料位置后重试。'};
+function SaveStatus({state,pending,unsaved,onCheck,onContinue}:{state:CommandState|undefined;
+pending:boolean;
+unsaved:boolean;
+onCheck:()=>void;
+onContinue:()=>void}) {
+ return <div role="status">{pending?'保存中':!state?'未保存':state.status==='unknown'?'结果待核对，本地输入保留':state.status==='not_recorded'?'原命令尚未记录，确认后可继续原保存':state.result.kind==='failure'?errors[state.result.code]:unsaved?'已有保存结果，当前输入未保存':'已保存'}{state&&(state.status==='unknown'||state.status==='not_recorded')&&
+<button type="button" disabled={pending} onClick={onCheck}>核对原保存结果
+</button>}{state?.status==='not_recorded'&&
+<button type="button" disabled={pending} onClick={onContinue}>继续原保存
+</button>}{state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&
+<details>
+<summary>服务器当前内容（本地输入仍保留）
+</summary>{'company' in state.result.current?
+<p>{state.result.current.company} / {state.result.current.role} / {state.result.current.status==='current'?'当前':'历史'}；开始 {displayTime(state.result.current.start)}；实际结束 {displayTime(state.result.current.actualEnd)}；目标 {state.result.current.goal}
+</p>:
+<p>{state.result.current.name} / {state.result.current.role}
+</p>}
+</details>}
+</div>;
+}
+function useCommands(request:EmploymentRequest,onSaved:(result:Result)=>void) {
+ const [state,setState]=useState
+<CommandState>();
+ const [unsaved,setUnsaved]=useState(false);
+
+ const mutation=useMutation({retry:false,mutationFn:({command,check}:{command:Request;
+check?:boolean})=>check?checkEmploymentCommand(request,command):submitEmploymentCommand(request,command),onSuccess:next=>{setState(next);if(next.status==='known'&&next.result.kind==='failure')setUnsaved(true);
+if(next.status==='known'&&next.result.kind!=='failure')onSaved(next.result);
+}});
+ useEffect(()=>{if(!mutation.isPending&&!unsaved&&state?.status!=='unknown'&&state?.status!=='not_recorded')return;const protect=(event:BeforeUnloadEvent)=>{event.preventDefault();};window.addEventListener('beforeunload',protect);return ()=>window.removeEventListener('beforeunload',protect);},[unsaved,state,mutation.isPending]);
+ return {state,pending:mutation.isPending,blocked:mutation.isPending||state?.status==='unknown'||state?.status==='not_recorded',markUnsaved:()=>setUnsaved(true),save:(command:Request)=>{setUnsaved(false);mutation.mutate({command});},status:
+<SaveStatus state={state} pending={mutation.isPending} unsaved={unsaved} onCheck={()=>state&&mutation.mutate({command:state.command,check:true})} onContinue={()=>state?.status==='not_recorded'&&mutation.mutate({command:state.command})}/>};
+}
+type EmploymentFields={company:string;
+role:string;
+goal:string;
+started:boolean;
+reason:string;
+mode:'change'|'correction'};
+function CreateEmployment({request,onCreated}:PageProps&{onCreated:(id:string)=>void}) {
+ const form=useForm
+<EmploymentFields>({defaultValues:{company:'',role:'',goal:'',started:false}});
+const [start,setStart]=useState
+<BusinessTime>({kind:'unknown'});
+const [planned,setPlanned]=useState
+<BusinessTime>({kind:'unknown'});
+ const commands=useCommands(request,result=>{if(result.kind==='employment'){onCreated(result.employment.id);
+form.reset();
+setStart({kind:'unknown'});
+setPlanned({kind:'unknown'});
+}});
+ return <form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>{if(!values.started)return;
+commands.save({operation:'create',commandId:crypto.randomUUID(),company:values.company,role:values.role,goal:values.goal,started:true,start,plannedEnd:planned});
+})}><h3>新增任职</h3>
+<label>公司
+<input {...form.register('company',{required:true,maxLength:300})}/>
+</label>
+<label>岗位
+<input {...form.register('role',{required:true,maxLength:300})}/>
+</label>
+<label>当前目标
+<textarea {...form.register('goal',{maxLength:4000})}/>
+</label>
+<TimeInput label="实际开始" value={start} onChange={setStart}/>
+<TimeInput label="计划结束" value={planned} onChange={setPlanned}/>
+<label>
+<input type="checkbox" {...form.register('started',{required:true})}/>我确认已经真实开始这段任职
+</label>
+<button disabled={commands.blocked} type="submit">创建任职
+</button>{commands.status}
+</form>;
+}
+function PersonEditor({person,employmentId,request,onSaved}:PageProps&{person?:Person;
+employmentId:string;
+onSaved:()=>void}) {
+ const form=useForm({defaultValues:{name:person?.name??'',role:person?.role??'',reason:'',mode:'change' as 'change'|'correction'}});
+const [occurredAt,setOccurredAt]=useState
+<BusinessTime>({kind:'unknown'});
+const [revision,setRevision]=useState(person?.revision??1);
+const [history,setHistory]=useState<Extract<Result,{kind:'person.history'}>>();
+const [readError,setReadError]=useState('');
+ const commands=useCommands(request,result=>{if(result.kind==='person'){setRevision(result.person.revision);
+if(!person)form.reset();
+onSaved();
+}});
+ async function readHistory(){try{const result=await request({operation:'person.history',id:person!.id,employmentId});
+if(result.kind==='person.history'){setHistory(result);
+setReadError('');
+}else setReadError('人物历史暂时不可读');
+}catch{setReadError('人物历史暂时不可读，可重新读取');
+}}
+ return <article>
+<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save(person?{operation:'person.edit',commandId:crypto.randomUUID(),id:person.id,employmentId,expectedRevision:revision,name:values.name,role:values.role,reason:values.reason,mode:values.mode,occurredAt}:{operation:'person.create',commandId:crypto.randomUUID(),employmentId,name:values.name,role:values.role,occurredAt}))}><h4>{person?'维护人物':'新增人物（同名不会合并）'}</h4>
+<label>姓名
+<input {...form.register('name',{required:true,maxLength:300})}/>
+</label>
+<label>任职角色
+<input {...form.register('role',{maxLength:300})}/>
+</label>{person&&<>
+<label>变化类型
+<select {...form.register('mode')}>
+<option value="change">后来真实变化
+</option>
+<option value="correction">纠正原记录
+</option>
+</select>
+</label>
+<label>变化说明
+<input {...form.register('reason',{required:true,maxLength:1000})}/>
+</label></>}
+<TimeInput label="人物角色实际业务时间" value={occurredAt} onChange={setOccurredAt}/>
+<button disabled={commands.blocked}>保存人物
+</button>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'name' in commands.state.result.current&&<>
+<button type="button" onClick={()=>{const state=commands.state;
+if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'name' in state.result.current)setRevision(state.result.current.revision);
+}}>保留输入，按最新版本重新保存
+</button>
+<button type="button" onClick={()=>{const state=commands.state;
+if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'name' in state.result.current){form.reset({name:state.result.current.name,role:state.result.current.role,reason:'',mode:'change'});
+setRevision(state.result.current.revision);
+}}}>放弃本地修改，使用当前人物
+</button></>}
+</form>{person&&
+<button onClick={()=>void readHistory()}>读取人物角色历史
+</button>}{readError&&
+<p role="alert">{readError}
+</p>}{history&&
+<ol>{history.history.map(item=>
+<li key={item.revision}>{item.person.name} / {item.person.role}；{item.mode==='correction'?'纠错':item.mode==='change'?'真实变化':'录入'}；{item.reason}；实际时间 {displayTime(item.occurredAt)}；录入 {item.recordedAt}
+</li>)}
+</ol>}
+</article>;
+}
+function EmploymentEditor({id,request}:PageProps&{id:string}) {
+ const client=useQueryClient();
+const query=useQuery({queryKey:['employment',id],queryFn:async()=>{const result=await request({operation:'read',id});
+if(result.kind!=='employment')throw new Error('read_failed');
+return result;
+},retry:false});
+ if(query.isPending)return <p>读取任职中
+</p>;
+if(!query.data)return <div role="alert">指定任职暂时无法读取。
+<button onClick={()=>void query.refetch()}>重新读取
+</button>
+</div>;
+ return <>{query.isError&&
+<p role="alert">已保存、暂时未刷新。输入仍保留。
+<button onClick={()=>void query.refetch()}>重新读取
+</button>
+</p>}
+<EmploymentDetails employment={query.data.employment} people={query.data.people} request={request} onSaved={()=>{void client.invalidateQueries({queryKey:['employment',id]});
+void client.invalidateQueries({queryKey:['employments']});
+}}/></>;
+}
+function EmploymentDetails({employment,people,request,onSaved}:PageProps&{employment:Employment;
+people:Person[];
+onSaved:()=>void}) {
+ const form=useForm
+<EmploymentFields>({defaultValues:{company:employment.company,role:employment.role,goal:employment.goal,reason:'',mode:'change'}});
+ const [revision,setRevision]=useState(employment.revision);
+const [start,setStart]=useState(employment.start);
+const [planned,setPlanned]=useState(employment.plannedEnd);
+const [actualEnd,setActualEnd]=useState(employment.actualEnd);
+const [occurredAt,setOccurredAt]=useState
+<BusinessTime>({kind:'unknown'});
+const [history,setHistory]=useState<Extract<Result,{kind:'history'}>>();
+const [readError,setReadError]=useState('');
+ const commands=useCommands(request,result=>{if(result.kind==='employment'){setRevision(result.employment.revision);
+onSaved();
+}});
+ const action=(operation:'end'|'reopen')=>{const {mode,reason}=form.getValues();
+if(!reason.trim()){form.setError('reason',{message:'请填写变化说明'});
+return;
+}commands.save(operation==='end'?{operation,commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,mode,reason,occurredAt,actualEnd}:{operation,commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,mode,reason,occurredAt});
+};
+ async function readHistory(){try{const result=await request({operation:'history',id:employment.id});
+if(result.kind==='history'){setHistory(result);
+setReadError('');
+}else setReadError('历史暂时无法读取');
+}catch{setReadError('历史暂时无法读取，可重新读取');
+}}
+ return <section><h3>{employment.company} · {employment.role}</h3>
+<p>{employment.status==='current'?'当前任职':'历史任职'}；实际开始 {displayTime(employment.start)}；计划结束 {displayTime(employment.plannedEnd)}；实际结束 {displayTime(employment.actualEnd)}；录入时间 {employment.recordedAt}
+</p>
+<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save({operation:'edit',commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,company:values.company,role:values.role,goal:values.goal,start,plannedEnd:planned,actualEnd:employment.status==='current'?{kind:'unknown'}:actualEnd,reason:values.reason,mode:values.mode,occurredAt}))}>
+<label>公司
+<input {...form.register('company',{required:true,maxLength:300})}/>
+</label>
+<label>岗位
+<input {...form.register('role',{required:true,maxLength:300})}/>
+</label>
+<label>当前目标
+<textarea {...form.register('goal',{maxLength:4000})}/>
+</label>
+<TimeInput label="实际开始" value={start} onChange={setStart}/>
+<TimeInput label="计划结束" value={planned} onChange={setPlanned}/>
+<TimeInput label="实际结束" value={actualEnd} onChange={setActualEnd}/>
+<TimeInput label="本次变化实际业务时间" value={occurredAt} onChange={setOccurredAt}/>
+<label>变化类型
+<select {...form.register('mode')}>
+<option value="change">后来真实变化
+</option>
+<option value="correction">纠正原记录
+</option>
+</select>
+</label>
+<label>变化说明
+<input {...form.register('reason',{required:true,maxLength:1000})}/>
+</label>{form.formState.errors.reason&&
+<p role="alert">请填写变化说明
+</p>}
+<button disabled={commands.blocked}>保存任职
+</button>
+<button type="button" disabled={commands.blocked} onClick={()=>action(employment.status==='current'?'end':'reopen')}>{employment.status==='current'?'确认任职已真实结束':'恢复同一任职'}
+</button>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'company' in commands.state.result.current&&<>
+<button type="button" onClick={()=>{const state=commands.state;
+if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'company' in state.result.current)setRevision(state.result.current.revision);
+}}>保留输入，按最新版本重新保存
+</button>
+<button type="button" onClick={()=>{const state=commands.state;
+if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'company' in state.result.current){const current=state.result.current;
+form.reset({company:current.company,role:current.role,goal:current.goal,reason:'',mode:'change',started:true});
+setStart(current.start);
+setPlanned(current.plannedEnd);
+setActualEnd(current.actualEnd);
+setRevision(current.revision);
+}}}>放弃本地修改，使用当前任职
+</button></>}
+</form>
+<button onClick={()=>void readHistory()}>读取任职历史
+</button>{readError&&
+<p role="alert">{readError}
+</p>}{history&&
+<ol>{history.history.map(item=>
+<li key={item.revision}>{item.action==='ended'?'结束':item.action==='reopened'?'恢复':item.action==='created'?'创建':'维护'} · {item.mode==='correction'?'纠错':item.mode==='change'?'真实变化':'录入'} · {item.reason} · 实际业务时间 {displayTime(item.occurredAt)} · 实际结束 {displayTime(item.employment.actualEnd)} · 录入 {item.recordedAt}
+</li>)}
+</ol>}<h3>任职内人物</h3>{people.map(person=>
+<PersonEditor key={person.id} person={person} employmentId={employment.id} request={request} onSaved={onSaved}/>)}
+<PersonEditor employmentId={employment.id} request={request} onSaved={onSaved}/>
+</section>;
+}
+export function EmploymentPage({request}:PageProps) {
+ const client=useQueryClient();
+const list=useQuery({queryKey:['employments'],queryFn:async()=>{const result=await request({operation:'list'});
+if(result.kind!=='list')throw new Error('read_failed');
+return result;
+},retry:false});
+const [selected,setSelected]=useState
+<string>();
+const [opened,setOpened]=useState<string[]>([]);
+const [creating,setCreating]=useState(false);
+ function open(id:string){setSelected(id);
+setOpened(old=>old.includes(id)?old:[...old,id]);
+}
+ return <section aria-label="任职"><h2>任职</h2>
+<button onClick={()=>setCreating(value=>!value)}>{creating?'收起新增（保留输入）':'新增任职'}
+</button>
+<div hidden={!creating}>
+<CreateEmployment request={request} onCreated={id=>{setCreating(false);
+open(id);
+void client.invalidateQueries({queryKey:['employments']});
+}}/>
+</div>{list.isError&&
+<p role="alert">列表暂时未刷新，已保存内容不受影响。
+<button onClick={()=>void list.refetch()}>重新读取列表
+</button>
+</p>}{list.data?.kind==='list'&&
+<ul>{list.data.employments.map(item=>
+<li key={item.id}>
+<button onClick={()=>open(item.id)}>{item.company} · {item.role} · {item.status==='current'?'当前':'历史'}
+</button>
+</li>)}
+</ul>}{!selected&&list.data?.kind==='list'&&list.data.employments.length===0&&
+<p>尚无任职，请确认已真实开始后创建。
+</p>}{selected&&
+<button onClick={()=>setSelected(undefined)}>返回任职列表（保留输入）
+</button>}{opened.map(id=>
+<div key={id} hidden={id!==selected}>
+<EmploymentEditor id={id} request={request}/>
+</div>)}
+</section>;
+}
