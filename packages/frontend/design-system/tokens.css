@@ -1,0 +1,7 @@
+:root {
+ --career-bg:#f6f7f9; --career-surface:#fff; --career-ink:#202631;
+ --career-muted:#536173; --career-border:#ccd3dc; --career-accent:#255ac0;
+ --career-space:12px; --career-radius:8px; --career-sidebar:76px;
+ font-family:system-ui,-apple-system,'PingFang SC',sans-serif;
+ color:var(--career-ink); background:var(--career-bg);
+}
