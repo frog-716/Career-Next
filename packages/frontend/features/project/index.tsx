@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState,useEffect,useRef} from 'react';
 import {useForm} from 'react-hook-form';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import type {Request as EmploymentRequest,Result as EmploymentResult} from '../../../contracts/employment/schema';
@@ -6,7 +6,7 @@ import type {Project,Result,Request} from '../../../contracts/project/schema';
 import type {ProjectRequest} from './commands';
 import {useProjectCommands} from './useProjectCommands';
 import {ChangeControls,displayTime,emptyChange,type ChangeContext} from './ChangeControls';
-export type ProjectPageProps={request:ProjectRequest;employmentRequest?:(input:EmploymentRequest)=>Promise<EmploymentResult>};
+export type ProjectPageProps={request:ProjectRequest;relationEpoch?:number;employmentRequest?:(input:EmploymentRequest)=>Promise<EmploymentResult>};
 const labels={inprogress:'进行中',paused:'暂停',completed:'完成',cancelled:'取消'};
 const actionLabels={created:'创建项目',edited:'维护项目',state_changed:'状态变化',reopened:'真实重新推进',associated:'任职关联变化',joined:'加入项目',rejoined:'重新加入',left:'退出项目',role_changed:'项目职责变化'};
 const parseTags=(value:string)=>value.split(/[,，]/).map(item=>item.trim()).filter(Boolean);
@@ -20,21 +20,23 @@ function EmploymentOptions({employmentRequest}:Pick<ProjectPageProps,'employment
 function CreateProject({request,employmentRequest,onCreated}:ProjectPageProps&{onCreated:(id:string)=>void}){
  const form=useForm<Fields>({defaultValues:{name:'',description:'',tags:''}});
  const [employmentId,setEmploymentId]=useState('');
- const commands=useProjectCommands(request,result=>{if(result.kind==='project'){onCreated(result.project.id);form.reset();setEmploymentId('');}});
+ const commands=useProjectCommands(request,result=>{if(result.kind==='project'){onCreated(result.project.id);form.reset();setEmploymentId('');commands.markClean();}});
  return <form onChange={commands.markDirty} onSubmit={form.handleSubmit(values=>commands.save({operation:'create',commandId:crypto.randomUUID(),name:values.name,description:values.description,tags:parseTags(values.tags),employmentId:employmentId||null,occurredAt:{kind:'unknown'}}))}>
-  <h3>创建独立项目</h3>
+  <fieldset disabled={commands.blocked}><h3>创建独立项目</h3>
   <label>项目名称<input {...form.register('name',{required:true,maxLength:300})}/></label>
   <label>描述<textarea {...form.register('description',{maxLength:12000})}/></label>
   <label>自由标签（逗号分隔）<input {...form.register('tags')}/></label>
-  <label>关联任职<select value={employmentId} onChange={event=>setEmploymentId(event.target.value)}><option value="">个人项目（不关联任职）</option><EmploymentOptions employmentRequest={employmentRequest}/></select></label>
-  <button disabled={commands.blocked}>创建项目</button>{commands.status}
+  <label>关联任职<select aria-label="关联任职" value={employmentId} onChange={event=>setEmploymentId(event.target.value)}><option value="">个人项目（不关联任职）</option><EmploymentOptions employmentRequest={employmentRequest}/></select></label>
+  <button disabled={commands.blocked}>创建项目</button></fieldset>{commands.status}
  </form>;
 }
-function ProjectEditor({id,request,employmentRequest}:ProjectPageProps&{id:string}){
+function ProjectEditor({id,request,employmentRequest,relationEpoch}:ProjectPageProps&{id:string}){
  const client=useQueryClient();
  const query=useQuery({queryKey:['project',id],retry:false,queryFn:async()=>{
   const result=await request({operation:'read',id});if(result.kind!=='project')throw new Error('read_failed');return result;
  }});
+ const observedEpoch=useRef(relationEpoch);
+ useEffect(()=>{if(observedEpoch.current===relationEpoch)return;observedEpoch.current=relationEpoch;void client.invalidateQueries({queryKey:['project',id]});},[relationEpoch,client,id]);
  if(query.isPending)return <p>读取项目中</p>;
  if(!query.data)return <p role="alert">指定项目暂时无法打开。<button onClick={()=>void query.refetch()}>重新读取项目</button></p>;
  return <>{query.isError&&<p role="alert">已保存、暂时未刷新，当前输入保留。<button onClick={()=>void query.refetch()}>重新读取</button></p>}
@@ -48,7 +50,7 @@ function PersonSelector({employmentId,employmentRequest,value,onChange}:Pick<Pro
   const result=await employmentRequest!({operation:'read',id:employmentId!});if(result.kind!=='employment')throw new Error('read_failed');return result;
  }});
  return <>
-  <label>当前任职人物<select value={value} onChange={event=>onChange(event.target.value)}><option value="">请选择已确认人物</option>{query.data?.people.map((person,index)=><option key={person.id} value={person.id}>{person.name} · {person.role||'未填任职角色'} · 第{index+1}位</option>)}</select></label>
+  <label>当前任职人物<select aria-label="当前任职人物" value={value} onChange={event=>onChange(event.target.value)}><option value="">请选择已确认人物</option>{query.data?.people.map((person,index)=><option key={person.id} value={person.id}>{person.name} · {person.role||'未填任职角色'} · 第{index+1}位</option>)}</select></label>
   {query.isError&&<p role="alert">人物列表暂时不可读。<button type="button" onClick={()=>void query.refetch()}>重新读取人物</button></p>}
  </>;
 }
@@ -62,9 +64,15 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
  const [personId,setPersonId]=useState('');const [projectRole,setProjectRole]=useState('');
  const [selectedParticipation,setSelectedParticipation]=useState('');const [roleDraft,setRoleDraft]=useState('');
  const [history,setHistory]=useState<Extract<Result,{kind:'history'}>>();const [historyError,setHistoryError]=useState('');
- const commands=useProjectCommands(request,result=>{if(result.kind==='project'){setRevision(result.project.revision);onSaved(result);}});
+ const commands=useProjectCommands(request,result=>{if(result.kind==='project'){setRevision(result.project.revision);onSaved(result);commands.markClean();}});
  const common=()=>({commandId:crypto.randomUUID(),id:project.id,expectedRevision:revision,...change});
- function save(command:Request){commands.save(command);}
+ const [actionError,setActionError]=useState('');
+ function save(command:Request){
+  const fields=form.getValues();
+  const contentDirty=fields.name!==project.name||fields.description!==project.description||JSON.stringify(parseTags(fields.tags))!==JSON.stringify(project.tags);
+  if(command.operation!=='edit'&&contentDirty){setActionError('请先保存项目内容，再执行状态、关联或协作动作；当前输入仍保留。');return;}
+  setActionError('');commands.save(command);
+ }
  async function readHistory(){try{
   const result=await request({operation:'history',id:project.id});if(result.kind!=='history')throw new Error('history_failed');setHistory(result);setHistoryError('');
  }catch{setHistoryError('历史暂时不可读，可重新读取。');}}
@@ -73,7 +81,7 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
  return <section>
   <h3>{project.name}</h3><p>{labels[project.state]} · {project.stateNote}</p>
   <p>当前归属：{project.employmentId?value.employment?`${value.employment.company} · ${value.employment.role}`:'原关联任职目前不可读':'个人项目'}；录入时间 {project.recordedAt}</p>
-  <form onChange={commands.markDirty} onSubmit={form.handleSubmit(fields=>save({operation:'edit',...common(),name:fields.name,description:fields.description,tags:parseTags(fields.tags)}))}>
+  <fieldset disabled={commands.blocked}><form onChange={commands.markDirty} onSubmit={form.handleSubmit(fields=>save({operation:'edit',...common(),name:fields.name,description:fields.description,tags:parseTags(fields.tags)}))}>
    <h4>维护项目（完成后仍可维护）</h4>
    <label>项目名称<input {...form.register('name',{required:true,maxLength:300})}/></label>
    <label>描述<textarea {...form.register('description',{maxLength:12000})}/></label>
@@ -81,12 +89,12 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
    <button disabled={commands.blocked}>保存项目内容</button>
   </form>
   <div onChange={commands.markDirty}><ChangeControls value={change} onChange={setChange}/>
-   <label>项目状态<select value={stateChoice} onChange={event=>setStateChoice(event.target.value as Project['state'])}>{Object.entries(labels).map(([state,label])=><option key={state} value={state}>{label}</option>)}</select></label>
+   <label>项目状态<select aria-label="项目状态" value={stateChoice} onChange={event=>setStateChoice(event.target.value as Project['state'])}>{Object.entries(labels).map(([state,label])=><option key={state} value={state}>{label}</option>)}</select></label>
    <button disabled={commands.blocked} onClick={()=>save({operation:'state.change',...common(),state:stateChoice})}>记录状态变化或纠错</button>
    {(project.state==='completed'||project.state==='cancelled')&&<button disabled={commands.blocked} onClick={()=>save({operation:'reopen',commandId:crypto.randomUUID(),id:project.id,expectedRevision:revision,reason:change.reason,occurredAt:change.occurredAt})}>真实重新推进同一项目</button>}
    <h4>当前任职关联</h4>
    <p>变更任职或改为个人项目后，原协作者及职责会明确转为历史；不会自动迁移同名人物。</p>
-   <label>新的关联任职<select value={association} onChange={event=>setAssociation(event.target.value)}><option value="">个人项目（不关联任职）</option><EmploymentOptions employmentRequest={employmentRequest}/></select></label>
+   <label>新的关联任职<select aria-label="新的关联任职" value={association} onChange={event=>setAssociation(event.target.value)}><option value="">个人项目（不关联任职）</option><EmploymentOptions employmentRequest={employmentRequest}/></select></label>
    <button disabled={commands.blocked} onClick={()=>save({operation:'associate',...common(),employmentId:association||null})}>确认变更任职关联</button>
    <h4>当前协作与历史语境</h4>
    <ul>{value.participants.map(participant=><li key={participant.id}>
@@ -97,16 +105,16 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
     <label>新参与的项目职责<input value={projectRole} maxLength={1000} onChange={event=>setProjectRole(event.target.value)}/></label>
     <button disabled={commands.blocked||!personId} onClick={()=>save({operation:'participant.join',...common(),personId,projectRole})}>确认加入或重新加入项目</button>
    </>}
-   <label>维护参与关系<select value={selectedParticipation} onChange={event=>selectParticipation(event.target.value)}><option value="">请选择参与关系</option>{value.participants.map((participant,index)=><option key={participant.id} value={participant.id}>{participant.person?.name??'原人物'} · {participant.projectRole} · {participant.active&&participant.contextId===project.contextId?'当前':'历史'} · 第{index+1}条</option>)}</select></label>
+   <label>维护参与关系<select aria-label="维护参与关系" value={selectedParticipation} onChange={event=>selectParticipation(event.target.value)}><option value="">请选择参与关系</option>{value.participants.map((participant,index)=><option key={participant.id} value={participant.id}>{participant.person?.name??'原人物'} · {participant.projectRole} · {participant.active&&participant.contextId===project.contextId?'当前':'历史'} · 第{index+1}条</option>)}</select></label>
    <label>参与关系的项目职责<input value={roleDraft} maxLength={1000} onChange={event=>setRoleDraft(event.target.value)}/></label>
    <button disabled={commands.blocked||!selectedParticipation} onClick={()=>save({operation:'participant.edit',...common(),participationId:selectedParticipation,projectRole:roleDraft})}>保存项目职责</button>
    <button disabled={commands.blocked||!selectedParticipation} onClick={()=>save({operation:'participant.leave',...common(),participationId:selectedParticipation})}>记录退出或纠正参与</button>
   </div>
-  {commands.status}
+  </fieldset>{actionError&&<p role="alert">{actionError}</p>}{commands.status}
   {conflict&&<div>
    <p>当前服务器状态：{labels[conflict.state]}。本地名称、描述和输入仍保留。</p>
-   <button onClick={()=>setRevision(conflict.revision)}>保留本地输入，按最新版本重新保存</button>
-   <button onClick={()=>{form.reset({name:conflict.name,description:conflict.description,tags:conflict.tags.join(', ')});setAssociation(conflict.employmentId??'');setStateChoice(conflict.state);setRevision(conflict.revision);setChange(emptyChange);setPersonId('');setProjectRole('');setSelectedParticipation('');setRoleDraft('');commands.markClean();}}>放弃本地修改，使用当前项目</button>
+   <button disabled={commands.blocked} onClick={()=>setRevision(conflict.revision)}>保留本地输入，按最新版本重新保存</button>
+   <button disabled={commands.blocked} onClick={()=>{form.reset({name:conflict.name,description:conflict.description,tags:conflict.tags.join(', ')});setAssociation(conflict.employmentId??'');setStateChoice(conflict.state);setRevision(conflict.revision);setChange(emptyChange);setPersonId('');setProjectRole('');setSelectedParticipation('');setRoleDraft('');commands.markClean();}}>放弃本地修改，使用当前项目</button>
   </div>}
   <button onClick={()=>void readHistory()}>读取项目与协作历史</button>{historyError&&<p role="alert">{historyError}</p>}
   {history&&<ol>{history.history.map(item=><li key={item.revision}>
@@ -115,8 +123,10 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
   </li>)}</ol>}
  </section>;
 }
-export function ProjectPage({request,employmentRequest}:ProjectPageProps){
+export function ProjectPage({request,employmentRequest,relationEpoch}:ProjectPageProps){
  const client=useQueryClient();const [selected,setSelected]=useState<string>();const [opened,setOpened]=useState<string[]>([]);const [creating,setCreating]=useState(false);
+ const observedEpoch=useRef(relationEpoch);
+ useEffect(()=>{if(observedEpoch.current===relationEpoch)return;observedEpoch.current=relationEpoch;void client.invalidateQueries({queryKey:['projects']});void client.invalidateQueries({queryKey:['employments']});void client.invalidateQueries({queryKey:['employment']});},[relationEpoch,client]);
  const list=useQuery({queryKey:['projects'],retry:false,queryFn:async()=>{const result=await request({operation:'list'});if(result.kind!=='list')throw new Error('read_failed');return result;}});
  function open(id:string){setSelected(id);setOpened(old=>old.includes(id)?old:[...old,id]);}
  return <section aria-label="项目">
@@ -126,6 +136,6 @@ export function ProjectPage({request,employmentRequest}:ProjectPageProps){
   <ul>{list.data?.projects.map(project=><li key={project.id}><button onClick={()=>open(project.id)}>{project.name} · {labels[project.state]} · {project.employment?.company??(project.employmentId?'关联任职目前不可读':'个人项目')}</button></li>)}</ul>
   {!selected&&list.data?.projects.length===0&&<p>尚无项目。个人项目无需先创建任职。</p>}
   {selected&&<button onClick={()=>setSelected(undefined)}>返回项目列表（保留输入）</button>}
-  {opened.map(id=><div key={id} hidden={id!==selected}><ProjectEditor id={id} request={request} employmentRequest={employmentRequest}/></div>)}
+  {opened.map(id=><div key={id} hidden={id!==selected}><ProjectEditor id={id} request={request} employmentRequest={employmentRequest} relationEpoch={relationEpoch}/></div>)}
  </section>;
 }

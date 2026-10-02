@@ -26,6 +26,6 @@ export function useProjectCommands(request:ProjectRequest,onSaved:(result:Result
  return {
   state,status,pending:mutation.isPending,blocked:mutation.isPending||state?.status==='unknown'||state?.status==='not_recorded',
   markDirty:()=>setDirty(true),markClean:()=>setDirty(false),
-  save:(command:Request)=>{setDirty(false);mutation.mutate({command});},
+  save:(command:Request)=>mutation.mutate({command}),
  };
 }
