@@ -16,6 +16,7 @@ export const CompanyRequest=z.discriminatedUnion('operation',[
  z.object({operation:z.literal('company.create'),...Command,name:Company.shape.name}).strict(),
  z.object({operation:z.literal('company.rename'),...Existing,name:Company.shape.name}).strict(),
  z.object({operation:z.literal('company.list')}).strict(),
+ z.object({operation:z.literal('company.read'),id:z.uuid()}).strict(),
 ]);
 export type CompanyRequest=z.infer<typeof CompanyRequest>;
 export const CoreRequest=z.discriminatedUnion('operation',[

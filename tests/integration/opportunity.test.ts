@@ -48,3 +48,10 @@ it('the exact intent receipt and owned objects remain readable after closing and
  const root=mkdtempSync(path.join(tmpdir(),'career-opportunity-reopen-'));const filename=path.join(root,'career.sqlite');let db=new Database(filename);db.pragma('foreign_keys=ON');db.exec(commandMigration);db.exec(opportunityMigration);let domain=createOpportunityDomain(db);
  const c=domain.handle({operation:'company.create',commandId:randomUUID(),name:'持久公司'});if(c.kind!=='company')throw Error();const intent={operation:'create',commandId:randomUUID(),companyId:c.company.id,role:'持久岗位'};const saved=domain.handle(intent);if(saved.kind!=='opportunity')throw Error();db.close();db=new Database(filename);db.pragma('foreign_keys=ON');opened.push({db,root});domain=createOpportunityDomain(db);expect(domain.handle({operation:'read',id:saved.opportunity.id})).toEqual(saved);expect(domain.handle({operation:'receipt',commandId:intent.commandId})).toEqual(saved);expect(domain.handle(intent)).toEqual(saved);
 });
+it('Company public read supplies the known revision for an explicit conflicted rename retry',()=>{
+ const d=setup();const created=d.handle({operation:'company.create',commandId:randomUUID(),name:'初始名称'});if(created.kind!=='company')throw Error();const id=created.company.id;
+ d.handle({operation:'company.rename',commandId:randomUUID(),id,expectedRevision:1,name:'另一窗口名称'});
+ const draft={operation:'company.rename',commandId:randomUUID(),id,expectedRevision:1,name:'我的保留草稿'};expect(d.handle(draft)).toEqual({kind:'failure',code:'conflict'});
+ const current=d.handle({operation:'company.read',id});if(current.kind!=='company')throw Error('read missing');expect(current.company.name).toBe('另一窗口名称');
+ const saved=d.handle({...draft,commandId:randomUUID(),expectedRevision:current.company.revision});if(saved.kind!=='company')throw Error();expect(saved.company.id).toBe(id);expect(saved.company.name).toBe('我的保留草稿');
+});

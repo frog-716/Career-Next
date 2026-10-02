@@ -9,6 +9,7 @@ export function createCompanyDomain(db:Database.Database){
  function handle(input:CompanyRequest):Result{
   const request=CompanyRequest.parse(input);
   if(request.operation==='company.list')return Result.parse({kind:'companies',items:db.prepare('SELECT id,name,revision FROM opportunity_company ORDER BY rowid DESC LIMIT 500').all()});
+  if(request.operation==='company.read'){const company=resolveCompany(request.id);if(!company)throw Error('not_found');return {kind:'company',company};}
   return executeCommand(db,'opportunity',request.commandId,request,()=>{
    let company:Company;
    if(request.operation==='company.create'){company={id:randomUUID(),name:request.name,revision:1};db.prepare('INSERT INTO opportunity_company VALUES (?,?,?)').run(company.id,1,company.name);}
