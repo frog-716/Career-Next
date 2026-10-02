@@ -26,6 +26,26 @@ export function createBlobBroker(root: string, maxBytes: number) {
         await syncDirectory(directory);
       } finally { await rm(temporary, { force: true }); }
     },
+    async publishBytes(blobId: string, input: Uint8Array, digest: string, check: () => Promise<unknown>) {
+      if(!uuid.test(blobId)||input.byteLength===0||input.byteLength>maxBytes)throw Error('storage_failed');
+      const bytes=Buffer.from(input);
+      if(createHash('sha256').update(bytes).digest('hex')!==digest)throw Error('storage_failed');
+      await check();
+      await mkdir(path.join(root,'staging'),{recursive:true,mode:0o700});
+      const temporary=path.join(root,'staging',`publish-${blobId}`);
+      try {
+        const output=await open(temporary,'wx',0o600);
+        try {for(let offset=0;offset<bytes.length;offset+=16384){await check();await output.writeFile(bytes.subarray(offset,offset+16384));}await output.sync();}
+        finally{await output.close();}
+        await check();await link(temporary,path.join(directory,blobId));await syncDirectory(directory);
+      }finally{await rm(temporary,{force:true});}
+    },
+    async readBytes(blobId: string, digest: string) {
+      if(!uuid.test(blobId))throw Error('content_unavailable');
+      const bytes=await readBounded(path.join(directory,blobId),maxBytes);
+      if(createHash('sha256').update(bytes).digest('hex')!==digest)throw Error('content_unavailable');
+      return bytes;
+    },
     async read(blobId: string, digest: string) {
       try {
         const bytes = await readBounded(path.join(directory, blobId), maxBytes);
@@ -57,3 +77,5 @@ async function readBounded(filename: string, maxBytes: number, check?: () => Pro
     return bytes.subarray(0, count);
   } finally { await handle.close(); }
 }
+
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
