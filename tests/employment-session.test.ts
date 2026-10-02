@@ -19,7 +19,7 @@ beforeAll(async()=>{
    const records=location.hash==='#existing'?[employment]:[];
    const people=[];
    let release;
-   window.endCommands=0;
+   window.endCommands=0;window.editCommands=0;
    window.releaseSave=()=>release();
    const request=async(input)=>{
     if(input.operation==='list')return {kind:'list',employments:records};
@@ -34,7 +34,8 @@ beforeAll(async()=>{
      const person={id:'00000000-0000-4000-8000-000000000002',employmentId:employment.id,name:input.name,role:input.role,revision:1,recordedAt:'2026-10-02T00:00:00.000Z'};people.push(person);
      return {kind:'person',person};
     }
-    if(input.operation==='end'||input.operation==='reopen')window.endCommands++;
+    if(input.operation==='end'||input.operation==='reopen'){window.endCommands++;window.lastEnd=input;}
+    if(input.operation==='edit')window.editCommands++;
     return {kind:'failure',code:'invalid_transition'};
    };
    createRoot(document.getElementById('root')).render(React.createElement(QueryClientProvider,{client:new QueryClient()},React.createElement(EmploymentPage,{request})));
@@ -90,5 +91,20 @@ it('lifecycle action refuses to clear an unsaved role or goal',async()=>{
   await p.getByText('请先保存任职内容，再执行结束或恢复；当前输入仍保留。',{exact:true}).waitFor();
   expect(await goal.inputValue()).toBe('Unsaved goal');
   expect(await p.evaluate(()=>(window as unknown as {endCommands:number}).endCommands)).toBe(0);
+ }finally{await p.close();}
+});
+
+it('ordinary current-employment save cannot discard a drafted actual end date',async()=>{
+ const p=await page(true);try{
+  await p.getByRole('button',{name:'Test company · Engineer · 当前'}).click();
+  await p.getByLabel('实际结束类型',{exact:true}).selectOption('date');
+  const endDate=p.getByLabel('实际结束',{exact:true});await endDate.fill('2024-03-04');
+  await p.getByLabel('变化说明',{exact:true}).filter({visible:true}).fill('Actually ended');
+  await p.getByRole('button',{name:'保存任职',exact:true}).click();
+  await p.getByText('请使用“确认任职已真实结束”提交实际结束日期；当前输入仍保留。',{exact:true}).waitFor();
+  expect(await endDate.inputValue()).toBe('2024-03-04');
+  expect(await p.evaluate(()=>(window as unknown as {editCommands:number}).editCommands)).toBe(0);
+  await p.getByRole('button',{name:'确认任职已真实结束'}).click();
+  expect(await p.evaluate(()=>(window as unknown as {lastEnd:{actualEnd:unknown}}).lastEnd.actualEnd)).toEqual({kind:'date',date:'2024-03-04'});
  }finally{await p.close();}
 });

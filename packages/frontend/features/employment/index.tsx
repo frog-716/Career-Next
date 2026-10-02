@@ -214,7 +214,7 @@ setReadError('');
  return <section><h3>{employment.company} · {employment.role}</h3>
 <p>{employment.status==='current'?'当前任职':'历史任职'}；实际开始 {displayTime(employment.start)}；计划结束 {displayTime(employment.plannedEnd)}；实际结束 {displayTime(employment.actualEnd)}；录入时间 {employment.recordedAt}
 </p>
-<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save({operation:'edit',commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,company:values.company,role:values.role,goal:values.goal,start,plannedEnd:planned,actualEnd:employment.status==='current'?{kind:'unknown'}:actualEnd,reason:values.reason,mode:values.mode,occurredAt}))}><fieldset disabled={commands.blocked}>
+<form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>{if(employment.status==='current'&&actualEnd.kind!=='unknown'){setLifecycleError('请使用“确认任职已真实结束”提交实际结束日期；当前输入仍保留。');return;}setLifecycleError('');commands.save({operation:'edit',commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,company:values.company,role:values.role,goal:values.goal,start,plannedEnd:planned,actualEnd,reason:values.reason,mode:values.mode,occurredAt});})}><fieldset disabled={commands.blocked}>
 <label>公司
 <input {...form.register('company',{required:true,maxLength:300})}/>
 </label>
