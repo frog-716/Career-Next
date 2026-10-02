@@ -35,4 +35,6 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - AI Runtime 管任务、权限和提案，目标业务 owner 负责正式写入；关联与来源引用不自动授予读取、外发或修改权。
 - 根依赖、lockfile、bootstrap 与未来迁移发布顺序由集成 owner 串行管理；公共合同和模块边界变化时同步本 MAP。
 
-全局操作规则来自 `/Users/frog/.codex/AGENTS.md`，已确认可读取；本仓库不另建项目级 AGENTS.md。
+全局操作规则来自 `/Users/frog/.codex/AGENTS.md`，已确认可读取。
+
+项目工程协作入口见 [AGENTS.md](AGENTS.md)；Matt setup 配置位于 `docs/agents/`：[GitHub Issues](docs/agents/issue-tracker.md) 与 [Single-context 文档约定](docs/agents/domain.md)。
