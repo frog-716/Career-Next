@@ -2,7 +2,7 @@
 
 Career 是保存在个人电脑上的长期职业工作台，帮助用户推进求职、记录真实工作，并积累可找回、可复用的职业资料。
 
-当前处于全量重写项目的 G0 技术可行性验证阶段。Product Spec Frozen R3 与 Architecture V2 Frozen 已确认；本仓库是从零重写的唯一开发仓库，目前只有工具链与最小桌面探针，没有业务功能。
+G0 技术可行性验证已 PASS，真实 macOS 中文 IME 已由用户人工验收，尚未进入 G1。Product Spec Frozen R3 与 Architecture V2 Frozen 已确认；本仓库是从零重写的唯一开发仓库，目前只有工具链与最小桌面探针，没有业务功能。
 
 - [冻结产品规格](docs/product-spec/rebuild-spec/README.md)
 - [冻结架构](docs/architecture/ARCHITECTURE.md)
