@@ -31,7 +31,7 @@ export function createResumeSaveSession(initial:{resumeId:string;revision:number
   async verify(){if(!pending||value.status!=='unknown')return false;try{const result=await request({operation:'resume.receipt',commandId:pending.commandId});if(result.status==='not-found'){value.status='unknown';notify();return false;}return apply(result,pendingGeneration);}catch{return false;}},
   async continueOriginal(){if(!pending||value.status!=='unknown')return false;try{return apply(await request(pending),pendingGeneration);}catch{notify();return false;}},
   compare(current:Extract<Result,{status:'conflict'}>){value.comparison=current;value.status='conflict';notify();},
-  useComparisonRevision(){if(value.comparison?.document){value.revision=value.comparison.document.revision;value.profileRevision=value.comparison.profile.revision;value.comparison=undefined;value.status='dirty';notify();}},
+  useComparisonRevision(){if(value.comparison?.document){value.revision=value.comparison.document.revision;value.profileRevision=value.comparison.profile.revision;value.comparison=undefined;generation++;value.status='dirty';notify();}},
   profileRevision(revision:number){value.profileRevision=revision;notify();},
   adopted(content:CareerDocument,revision:number,profileRevision:number){value.content=content;value.revision=revision;value.profileRevision=profileRevision;generation++;savedGeneration=generation;value.status='saved';notify();},
   dispose(){disposed=true;}

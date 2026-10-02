@@ -1,4 +1,4 @@
-import { useMemo,useState,useRef } from 'react';
+import { useMemo,useState,useRef,useEffect } from 'react';
 import { QueryClient,QueryClientProvider,useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Request,Result,type Knowledge,type History } from '../../../contracts/wiki/schema';
@@ -14,6 +14,7 @@ function WikiContents({request,materials,workspaceInstance='wiki-session'}:WikiP
  const [includeRetired,setIncludeRetired]=useState(false);const [status,setStatus]=useState('未保存');const [pending,setPending]=useState<Request>();const [saveState,setSaveState]=useState<WikiSaveState>();const [busy,setBusy]=useState(false);
  const [history,setHistory]=useState<History[]>([]);const [sourceText,setSourceText]=useState('');const [sourceId,setSourceId]=useState('');const [purpose,setPurpose]=useState('');const [server,setServer]=useState<Knowledge>();
  const form=useForm<Form>({defaultValues:empty});const dirty=form.formState.isDirty||sourcesDirty;const contentDirty=!!(form.formState.dirtyFields.title||form.formState.dirtyFields.body||form.formState.dirtyFields.scope||form.formState.dirtyFields.nature||sourcesDirty);const viewGeneration=useRef(0);
+ useEffect(()=>{const protect=(event:BeforeUnloadEvent)=>{if(dirty||pending){event.preventDefault();event.returnValue='';}};window.addEventListener('beforeunload',protect);return()=>window.removeEventListener('beforeunload',protect);},[dirty,pending]);
  const list=useQuery({queryKey:['wiki',workspaceInstance,'list',includeRetired],queryFn:async()=>{const r=Result.parse(await request({operation:'list',includeRetired}));if(r.kind!=='list')throw Error('列表读取失败');return r.items;}});
  const rawList=useQuery({queryKey:['wiki',workspaceInstance,'materials'],enabled:!!materials,queryFn:async()=>{if(!materials)return [];const r=MaterialsResult.parse(await materials.request({operation:'list'}));if(r.kind!=='list')throw Error('来源列表暂不可读');return r.items;}});
  const sourceCandidates=useMemo(()=>rawList.data??[],[rawList.data]);

@@ -38,3 +38,11 @@ it('frozen PDF rendering escapes user HTML and disallows resource/script links',
  const snapshot={id:randomUUID(),resumeId:randomUUID(),opportunityId:randomUUID(),resumeRevision:1,profileRevision:1,content,profile:{revision:1,name:'<script>alert(1)</script>',contact:'a & b',links:[{label:'我的网页',href:'https://example.test/'}]},contentHash:'d'.repeat(64),templateVersion:'a4-basic-1',fontVersion:'macos-system-cjk',engineVersion:'electron-44.5.1',rendererVersion:'career-print-1',recordedAt:new Date().toISOString()};
  const html=renderSnapshot(snapshot);expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');expect(html).not.toContain('<script>');expect(html).toContain('a &amp; b');expect(html).toContain('size:A4');expect(()=>renderSnapshot({...snapshot,profile:{...snapshot.profile,links:[{label:'bad',href:'javascript:alert(1)'}]}})).toThrow();
 });
+it('keeping local text at a newer conflict baseline submits it before claiming saved',async()=>{
+ const calls:Request[]=[];const resumeId=randomUUID(),opportunityId=randomUUID();
+ const session=createResumeSaveSession({resumeId,revision:1,profileRevision:0,content},async request=>{calls.push(request);return {status:'document',document:{id:resumeId,opportunityId,revision:3,content,recordedAt:new Date().toISOString()},profile:{revision:0,name:'',contact:'',links:[]},opportunity:{id:opportunityId,companyName:'X',role:'Y'}};});
+ const formal=structuredClone(content);formal.sections[0].blocks=[{id:randomUUID(),type:'paragraph',spans:[{text:'服务器另一个正文',marks:[]}]}];
+ session.compare({status:'conflict',document:{id:resumeId,opportunityId,revision:2,content:formal,recordedAt:new Date().toISOString()},profile:{revision:0,name:'',contact:'',links:[]}});
+ session.useComparisonRevision();expect(await session.flush()).toBe(true);expect(calls).toHaveLength(1);
+ expect(calls[0]).toMatchObject({operation:'resume.save',expectedRevision:2,content});session.dispose();
+});

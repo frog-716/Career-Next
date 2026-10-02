@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol, utilityProcess, MessageChannelMain } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, utilityProcess, MessageChannelMain, dialog } from 'electron';
 import type { UtilityProcess, MessagePortMain, IpcMainInvokeEvent } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { readFile, mkdir, writeFile, rename, open } from 'node:fs/promises';
@@ -17,7 +17,7 @@ protocol.registerSchemesAsPrivileged([{scheme:'career',privileges:{standard:true
 const url='career://app/index.html';
 let window: BrowserWindow, backend: UtilityProcess | undefined, port: MessagePortMain | undefined, identity: RuntimeIdentity | undefined;
 let connecting: Promise<RuntimeIdentity> | undefined;
-let quitting=false, quitReady=false;
+let quitting=false, quitReady=false, quitRequested=false;
 const pending=new Map<string,{resolve(result: unknown):void; reject(error:Error):void; timer:ReturnType<typeof setTimeout>}>();
 function disconnect() {
   port?.close(); port=undefined; identity=undefined;
@@ -93,6 +93,8 @@ if(locked) app.whenReady().then(async()=>{
     }catch{return new Response('Not found',{status:404});}
   });
   window=new BrowserWindow({width:850,height:720,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true,devTools:false}});
+  window.on('closed',()=>{void shutdown();});
+  window.webContents.on('will-prevent-unload',event=>{const choice=dialog.showMessageBoxSync(window,{type:'question',message:'还有未保存或待核对的输入',detail:'继续编辑可以保留当前输入；退出会丢弃尚未提交的内容。',buttons:['继续编辑','丢弃未保存输入并退出'],defaultId:0,cancelId:0,noLink:true});if(choice===1)event.preventDefault();else quitRequested=false;});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',event=>event.preventDefault());window.webContents.on('will-frame-navigate',event=>event.preventDefault());
   window.webContents.session.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
   ipcMain.handle('materials:ready',event=>{trusted(event);if(!identity)throw new Error('disconnected');return identity;});
@@ -102,9 +104,13 @@ if(locked) app.whenReady().then(async()=>{
   await connect();await window.loadURL(url);
 }).catch(()=>{ console.error('CAREER_STARTUP_FAILED');app.exit(1); });
 app.on('window-all-closed',()=>app.quit());
+async function shutdown(){
+ if(quitting)return;quitting=true;
+ disconnect();for(const item of BrowserWindow.getAllWindows())item.destroy();
+ const exited=new Promise<void>(resolve=>{if(!backend?.pid)return resolve();backend.once('exit',()=>resolve());backend.kill();});
+ await exited;quitReady=true;app.quit();
+}
 app.on('before-quit',event=>{
-  if(quitReady)return;event.preventDefault();if(quitting)return;quitting=true;
-  disconnect();for(const item of BrowserWindow.getAllWindows())item.destroy();
-  const exited=new Promise<void>(resolve=>{if(!backend?.pid)return resolve();backend.once('exit',()=>resolve());backend.kill();});
-  void exited.finally(()=>{quitReady=true;app.quit();});
+ if(quitReady)return;event.preventDefault();if(quitRequested)return;quitRequested=true;
+ if(window&&!window.isDestroyed())window.close();else void shutdown();
 });

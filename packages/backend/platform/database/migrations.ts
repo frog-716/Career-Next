@@ -1,6 +1,5 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, cp, stat, writeFile } from 'node:fs/promises';
-import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { createUpgradeRecovery } from '../files/upgrade-recovery';
 import type Database from 'better-sqlite3';
 import { Kysely, SqliteDialect } from 'kysely';
 import { Migrator } from 'kysely/migration';
@@ -16,25 +15,25 @@ export async function applyReleases(database: Database.Database, root:string, le
    seen.add(fragment.id);
   }
  }
+ const current=database.pragma('user_version',{simple:true}) as number;
  const hasManifest=database.prepare("SELECT name FROM sqlite_master WHERE name='platform_migration_batches'").get();
+ if(current>1&&!hasManifest)throw Error('migration_mismatch');
  if(hasManifest) {
   const rows=database.prepare('SELECT version,name,checksum FROM platform_migration_batches ORDER BY version').all() as {version:number;name:string;checksum:string}[];
-  for(const row of rows) {
-   if(row.version===1) {if(row.checksum!==digest(legacySql))throw Error('migration_mismatch');continue;}
+  if(rows.length!==current)throw Error('migration_mismatch');
+  for(const [index,row] of rows.entries()) {
+   if(row.version!==index+1)throw Error('migration_mismatch');
+   if(row.version===1) {if(row.name!=='001-g1'||row.checksum!==digest(legacySql))throw Error('migration_mismatch');continue;}
    const batch=batches.find(item=>item.version===row.version);
    if(!batch||row.name!==batch.name||row.checksum!==digest(batch))throw Error('migration_mismatch');
   }
+  if(!database.prepare("SELECT name FROM sqlite_master WHERE name='platform_migration_fragments'").get())throw Error('migration_mismatch');
+  const fragments=database.prepare('SELECT id,batch_version,checksum FROM platform_migration_fragments ORDER BY rowid').all() as {id:string;batch_version:number;checksum:string}[];
+  const expected=batches.filter(batch=>batch.version<=current).flatMap(batch=>batch.fragments.map(fragment=>({id:fragment.id,batch_version:batch.version,checksum:digest(fragment)})));
+  if(JSON.stringify(fragments)!==JSON.stringify(expected))throw Error('migration_mismatch');
  }
- const current=database.pragma('user_version',{simple:true}) as number;
  if(current===batches.length+1)return;
- // No request is admitted yet: one SQLite backup plus the immutable blob collection.
- const recovery=path.join(root,'recovery',`upgrade-${current}-${randomUUID()}`);
- await mkdir(recovery,{recursive:true,mode:0o700});
- await database.backup(path.join(recovery,'career.sqlite'));
- const blobs=path.join(root,'blobs');
- try {await stat(blobs);await cp(blobs,path.join(recovery,'blobs'),{recursive:true,errorOnExist:true,force:false});}
- catch(error) {if(!(error instanceof Error && 'code' in error && error.code==='ENOENT'))throw error;}
- await writeFile(path.join(recovery,'upgrade.json'),JSON.stringify({fromVersion:current,toVersion:batches.length+1}),{mode:0o600});
+ await createUpgradeRecovery(database,root,current,batches.length+1);
  const query=new Kysely<Record<string,never>>({dialect:new SqliteDialect({database})});
  const migrator=new Migrator({db:query,provider:{async getMigrations(){return Object.fromEntries(batches.map(batch=>[batch.name,{async up(){
   database.exec('CREATE TABLE IF NOT EXISTS platform_migration_batches(version INTEGER PRIMARY KEY,name TEXT NOT NULL UNIQUE,checksum TEXT NOT NULL);CREATE TABLE IF NOT EXISTS platform_migration_fragments(id TEXT PRIMARY KEY,batch_version INTEGER NOT NULL,checksum TEXT NOT NULL);');
