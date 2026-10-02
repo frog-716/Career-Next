@@ -18,7 +18,7 @@ beforeAll(async()=>{
    const employment=()=>({id:project.employmentId,company,role:'Engineer',status:'current',revision:1});
    const records=location.hash==='#existing'?[project]:[];
    let release;window.releaseSave=()=>release();window.nonBodyCommands=0;
-   const view=()=>({kind:'project',project,employment:project.employmentId?employment():null,participants:project.employmentId?[{id:'00000000-0000-4000-8000-000000000005',projectId:project.id,contextId:project.contextId,employmentId:project.employmentId,personId:'00000000-0000-4000-8000-000000000004',projectRole:'Original project role',active:true,recordedAt:'2026-10-02T00:00:00.000Z',person:{id:'00000000-0000-4000-8000-000000000004',employmentId:project.employmentId,name:'Confirmed person',role:'Manager',revision:1},employment:employment()}]:[]});
+   const view=()=>({kind:'project',project,employment:project.employmentId?employment():null,participants:project.employmentId?[{id:'00000000-0000-4000-8000-000000000005',projectId:project.id,contextId:project.contextId,employmentId:project.employmentId,personId:'00000000-0000-4000-8000-000000000004',projectRole:'Original project role',active:true,recordedAt:'2026-10-02T00:00:00.000Z',person:{id:'00000000-0000-4000-8000-000000000004',employmentId:project.employmentId,name:'Confirmed person',role:'Manager',revision:1},employment:employment()},{id:'00000000-0000-4000-8000-000000000007',projectId:project.id,contextId:project.contextId,employmentId:project.employmentId,personId:'00000000-0000-4000-8000-000000000006',projectRole:'Second project role',active:true,recordedAt:'2026-10-02T00:00:00.000Z',person:{id:'00000000-0000-4000-8000-000000000006',employmentId:project.employmentId,name:'Second confirmed person',role:'Reviewer',revision:1},employment:employment()}]:[]});
    const request=async(input)=>{
     if(input.operation==='list')return {kind:'list',projects:records.map(item=>({...item,employment:item.employmentId?employment():null}))};
     if(input.operation==='read')return view();
@@ -90,5 +90,22 @@ it('unsaved collaboration role cannot lose its protection through a lifecycle or
   await p.getByRole('button',{name:'确认变更任职关联'}).click();
   expect(await role.inputValue()).toBe('Unsaved collaboration role');
   expect(await p.evaluate(()=>(window as unknown as {nonBodyCommands:number}).nonBodyCommands)).toBe(0);
+ }finally{await p.close();}
+});
+
+it('switching participation requires explicit consent to discard an unsaved role and cancellation keeps its protection',async()=>{
+ const p=await page(true);try{
+  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();
+  const selection=p.getByLabel('维护参与关系',{exact:true});const role=p.getByLabel('参与关系的项目职责',{exact:true});
+  await selection.selectOption('00000000-0000-4000-8000-000000000005');await role.fill('Unsaved collaboration role');
+  let consent=false;const prompts:string[]=[];p.on('dialog',async dialog=>{prompts.push(dialog.message());if(consent)await dialog.accept();else await dialog.dismiss();});
+  await selection.selectOption('00000000-0000-4000-8000-000000000007');
+  expect(await selection.inputValue()).toBe('00000000-0000-4000-8000-000000000005');expect(await role.inputValue()).toBe('Unsaved collaboration role');
+  await p.getByLabel('变化说明',{exact:true}).fill('Unrelated state event');await p.getByRole('button',{name:'记录状态变化或纠错'}).click();
+  await p.getByText('请先保存或清理其他未提交的状态、关联或协作输入；它们仍保留。',{exact:true}).waitFor();
+  expect(await p.evaluate(()=>(window as unknown as {nonBodyCommands:number}).nonBodyCommands)).toBe(0);
+  consent=true;await selection.selectOption('00000000-0000-4000-8000-000000000007');
+  expect(await selection.inputValue()).toBe('00000000-0000-4000-8000-000000000007');expect(await role.inputValue()).toBe('Second project role');
+  expect(prompts).toEqual(['切换参与关系会放弃当前未保存的项目职责，是否继续？','切换参与关系会放弃当前未保存的项目职责，是否继续？']);
  }finally{await p.close();}
 });

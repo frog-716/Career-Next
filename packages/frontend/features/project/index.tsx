@@ -94,7 +94,11 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
  async function readHistory(){try{
   const result=await request({operation:'history',id:project.id});if(result.kind!=='history')throw new Error('history_failed');setHistory(result);setHistoryError('');
  }catch{setHistoryError('历史暂时不可读，可重新读取。');}}
- function selectParticipation(id:string){const participation=value.participants.find(item=>item.id===id);setSelectedParticipation(id);setRoleDraft(participation?.projectRole??'');}
+ function selectParticipation(id:string){
+  const selected=value.participants.find(item=>item.id===selectedParticipation);
+  if(id!==selectedParticipation&&roleDraft!==(selected?.projectRole??'')&&!window.confirm('切换参与关系会放弃当前未保存的项目职责，是否继续？'))return;
+  const participation=value.participants.find(item=>item.id===id);setSelectedParticipation(id);setRoleDraft(participation?.projectRole??'');
+ }
  const conflict=commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'?commands.state.result.current:undefined;
  return <section>
   <h3>{project.name}</h3><p>{labels[project.state]} · {project.stateNote}</p>
