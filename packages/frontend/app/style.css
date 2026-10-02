@@ -1,0 +1,8 @@
+body { font: 16px system-ui; color: #19222a; background: #f7f8fa; margin: 0; }
+main { max-width: 880px; margin: auto; padding: 28px; }
+section { background: white; border: 1px solid #d3d8df; padding: 20px; margin: 20px 0; border-radius: 8px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; font: inherit; line-height: 1.6; }
+button { font: inherit; padding: 8px 14px; cursor: pointer; }
+button:disabled { cursor: default; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+#status { font-weight: 600; }

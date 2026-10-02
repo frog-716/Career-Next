@@ -1,7 +1,8 @@
 // Independent Vite bundles; Forge is only responsible for packaging.
 import { build } from 'vite';
 import { mkdir, rm } from 'node:fs/promises';
-await rm('dist', { recursive: true, force: true });
+await rm('dist/desktop', { recursive: true, force: true });
+await rm('dist/renderer', { recursive: true, force: true });
 await mkdir('dist/desktop', { recursive: true });
 for (const [name, entry] of Object.entries({
   main: 'apps/desktop/probe/main.ts', preload: 'apps/desktop/probe/preload.ts',

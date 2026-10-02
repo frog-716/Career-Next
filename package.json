@@ -12,19 +12,23 @@
   "dependencies": {
     "better-sqlite3": "13.0.3"
   },
-  "description": "Career-Next G0 feasibility probe; no business implementation",
-  "main": "dist/desktop/main.cjs",
+  "description": "Career-Next: personal Raw vertical slice",
+  "main": "dist/application/main.cjs",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "node scripts/g0-build.mjs",
-    "test": "vitest run tests/g0.unit.test.ts",
+    "build": "node scripts/g1-build.mjs",
+    "test": "vitest run tests/materials-state.test.ts tests/materials-boundaries.test.ts",
     "native:rebuild": "electron-rebuild --force --only better-sqlite3",
     "dev": "electron .",
-    "smoke:dev": "vitest run tests/g0.electron.test.ts",
+    "smoke:dev": "vitest run tests/desktop/materials.electron.test.ts",
     "package": "electron-forge package --platform=darwin --arch=arm64",
-    "smoke:packaged": "CAREER_G0_PACKAGED=1 vitest run tests/g0.electron.test.ts",
+    "smoke:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/materials.electron.test.ts",
     "install:electron": "install-electron",
-    "package:x64": "electron-forge package --platform=darwin --arch=x64"
+    "package:x64": "electron-forge package --platform=darwin --arch=x64",
+    "build:g0": "node scripts/g0-build.mjs",
+    "test:g0": "vitest run tests/g0.unit.test.ts",
+    "test:integration": "node scripts/g1-integration-build.mjs && vitest run tests/integration",
+    "smoke:g0": "vitest run tests/g0.electron.test.ts"
   },
   "devDependencies": {
     "@electron-forge/cli": "8.0.1",

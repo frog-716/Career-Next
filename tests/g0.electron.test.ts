@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 it('runs the real isolated G0 process/native/PDF/Secret/security chain', async () => {
   const packaged = process.env.CAREER_G0_PACKAGED === '1';
   const executablePath = packaged ? path.resolve('out/CareerNextG0-darwin-arm64/CareerNextG0.app/Contents/MacOS/CareerNextG0') : undefined;
-  const application = await _electron.launch({ executablePath, args: packaged ? [] : ['.'], timeout: 30_000 });
+  const application = await _electron.launch({ executablePath, args: packaged ? [] : ['dist/desktop/main.cjs'], timeout: 30_000 });
   let directory = '';
   try {
     const page = await application.firstWindow();
@@ -127,25 +127,25 @@ it('runs the real isolated G0 process/native/PDF/Secret/security chain', async (
     await page.evaluate(() => { location.href = 'https://example.com'; });
     await page.waitForTimeout(100);
     expect(page.url()).toBe('career-g0://app/index.html');
-    const untrusted = await application.evaluate(async ({ app, BrowserWindow }) => {
+    const untrusted = await application.evaluate(async ({ app, BrowserWindow }, localRenderer) => {
       const foreign = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
       try {
         await foreign.loadURL('data:text/html,external-content');
         const external = await foreign.webContents.executeJavaScript('typeof window.careerG0');
-        await foreign.loadFile(app.getAppPath() + '/dist/renderer/index.html');
+        await foreign.loadFile(localRenderer ?? app.getAppPath() + '/dist/renderer/index.html');
         const file = await foreign.webContents.executeJavaScript('typeof window.careerG0');
         return { external, file };
       } finally { foreign.destroy(); }
-    });
+    }, packaged ? undefined : path.resolve('dist/renderer/index.html'));
     expect(untrusted).toEqual({ external: 'undefined', file: 'undefined' });
-    const senderRejected = await application.evaluate(async ({ app, BrowserWindow }) => {
+    const senderRejected = await application.evaluate(async ({ app, BrowserWindow }, localPreload) => {
       const foreign = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true,
-        nodeIntegration: false, preload: app.getAppPath() + '/dist/desktop/preload.cjs' } });
+        nodeIntegration: false, preload: localPreload ?? app.getAppPath() + '/dist/desktop/preload.cjs' } });
       try {
         await foreign.loadURL('data:text/html,untrusted-sender');
         return await foreign.webContents.executeJavaScript('(async () => { try { await window.careerG0.request({kind:"status"}); return false; } catch { return true; } })()');
       } finally { foreign.destroy(); }
-    });
+    }, packaged ? undefined : path.resolve('dist/desktop/preload.cjs'));
     expect(senderRejected).toBe(true);
     const evidence = { runtime, mode: packaged ? 'packaged' : 'dev', sqlite: db.sqlite, stopMs: Math.round(stop.elapsedMs),
       pdfSelectableChinese: true, snapshotBound: true, secretStatusOnly: true, reconnectNoReplay: true, resources, processMemory: metrics.map(({ pid: _pid, ...p }) => p) };
