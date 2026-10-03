@@ -1,0 +1,132 @@
+{
+  "gate": "G6",
+  "matrix": "F4-04",
+  "baseline": "ae6224d5cfc6a5a1bdfe8e4f72d4f3d9d8e0303b",
+  "status": "PASS_LOCAL_BROWSER_FEATURE_PATH",
+  "command": "npx vitest run tests/g6-scale-ui.test.ts tests/project-session.test.ts tests/opportunity-ui.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/g6-scale-final.json",
+  "exitCode": 0,
+  "files": 3,
+  "passed": 9,
+  "failed": 0,
+  "startTime": 1791019979100,
+  "observations": {
+    "opportunities": 100,
+    "projects": 100,
+    "employments": 3,
+    "chineseOneChar": 50,
+    "chineseTwoChar": 50,
+    "endedFiltered": 25,
+    "noMatch": 0,
+    "noMatchOwners": [
+      "project",
+      "opportunity"
+    ],
+    "englishMixedCase": 50,
+    "longTitleOpened": {
+      "project": 158,
+      "opportunity": 153
+    },
+    "actualScroll": {
+      "project": {
+        "before": 193,
+        "returned": 193,
+        "navigationRetained": 193,
+        "windowBefore": 0,
+        "windowReturned": 0
+      },
+      "opportunity": {
+        "before": 193,
+        "returned": 193,
+        "windowBefore": 66,
+        "windowReturned": 66
+      }
+    },
+    "draftsRetained": true,
+    "pageErrors": [],
+    "benchmark": false
+  },
+  "suites": [
+    {
+      "file": "tests/g6-scale-ui.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "100 real Opportunities and Projects remain navigable with Chinese short queries, ended filters and retained list position",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/opportunity-ui.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "Company conflict keeps the draft through public read/revision retry and dirty or unknown UI protects leaving",
+          "status": "passed"
+        },
+        {
+          "name": "keeps unrelated event drafts during identity saves and follows only new explicit owner-navigation requests",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/project-session.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "delayed project creation locks all draft fields until the saved result is known",
+          "status": "passed"
+        },
+        {
+          "name": "state, association and collaboration actions cannot silently save or clear unrelated content drafts",
+          "status": "passed"
+        },
+        {
+          "name": "employment relation epoch refreshes live projection while preserving project content drafts",
+          "status": "passed"
+        },
+        {
+          "name": "delayed lifecycle result locks project fields instead of accepting input that is not in its command",
+          "status": "passed"
+        },
+        {
+          "name": "unsaved collaboration role cannot lose its protection through a lifecycle or association save",
+          "status": "passed"
+        },
+        {
+          "name": "switching participation requires explicit consent to discard an unsaved role and cancellation keeps its protection",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "red": {
+    "command": "npx vitest run tests/g6-scale-ui.test.ts --maxWorkers=1",
+    "exitCode": 1,
+    "actual": "Expected window return delta <2px; actual 64px in original unbounded Project list",
+    "path": "/tmp/g6-scale-window-red.log",
+    "sha256": "f5d1283edc175034835c671bc0423a28f9e3798e44de3f291b82af71f3355c29"
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit",
+    "exitCode": 0,
+    "evidence": "/tmp/g6-scale-typecheck-final.log"
+  },
+  "diffcheck": {
+    "command": "git diff --check -- packages/frontend/features/project/index.tsx packages/frontend/features/opportunity/index.tsx tests/g6-scale-ui.test.ts docs/verification/g6-scale-ui.md docs/verification/g6-scale-ui.json",
+    "exitCode": 0
+  },
+  "scope": [
+    "real Chrome, production CareerShell/HashRouter, ProjectPage and OpportunityPage",
+    "actual SQLite public owners: 100 Projects, 100 Opportunities, 3 Employments",
+    "wheel input plus window.scrollY and scroll-container scrollTop observations, not merely saved filters",
+    "no shared build or package/native rebuild, no real user records or old Career"
+  ],
+  "notTested": [
+    "normal packaged arm64 desktop in this line",
+    "macOS human IME in this line",
+    "performance benchmark/FPS guarantee",
+    "cross-process list position across application restart"
+  ]
+}

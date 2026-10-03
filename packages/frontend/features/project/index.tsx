@@ -1,5 +1,5 @@
 import {wasPurged,type PurgeNotice} from '../../design-system/purge-notice';
-import {useState,useEffect,useRef} from 'react';
+import {useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {useForm} from 'react-hook-form';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import type {Request as EmploymentRequest,Result as EmploymentResult} from '../../../contracts/employment/schema';
@@ -149,18 +149,23 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
 }
 export function ProjectPage({purgeNotice,request,employmentRequest,relationEpoch}:ProjectPageProps){
  const client=useQueryClient();const [selected,setSelected]=useState<string>();const [opened,setOpened]=useState<string[]>([]);const [creating,setCreating]=useState(false);
+ const [search,setSearch]=useState(''),[stateFilter,setStateFilter]=useState('all');
+ const listPosition=useRef<{left:number;top:number}|undefined>(undefined),details=useRef<HTMLDivElement>(null);
+ useLayoutEffect(()=>{if(selected)details.current?.scrollIntoView({block:'start'});else if(listPosition.current)window.scrollTo(listPosition.current);},[selected]);
  const observedEpoch=useRef(relationEpoch);
  useEffect(()=>{if(observedEpoch.current===relationEpoch)return;observedEpoch.current=relationEpoch;void client.invalidateQueries({queryKey:['projects']});void client.invalidateQueries({queryKey:['employments']});void client.invalidateQueries({queryKey:['employment']});},[relationEpoch,client]);
  const list=useQuery({queryKey:['projects'],retry:false,queryFn:async()=>{const result=await request({operation:'list'});if(result.kind!=='list')throw new Error('read_failed');return result;}});
  useEffect(()=>{if(!purgeNotice)return;const removed=opened.filter(id=>wasPurged(purgeNotice,'project',id));setOpened(old=>old.filter(id=>!removed.includes(id)));if(selected&&removed.includes(selected))setSelected(undefined);void list.refetch();},[purgeNotice?.sequence]);
- function open(id:string){setSelected(id);setOpened(old=>old.includes(id)?old:[...old,id]);}
+ function open(id:string){listPosition.current={left:window.scrollX,top:window.scrollY};setSelected(id);setOpened(old=>old.includes(id)?old:[...old,id]);}
  return <section aria-label="项目" data-feedback-owner="project" data-feedback-id={selected}>
   <h2>项目</h2><button onClick={()=>setCreating(value=>!value)}>{creating?'收起新增（保留输入）':'新增项目'}</button>
   <div hidden={!creating}><CreateProject request={request} employmentRequest={employmentRequest} onCreated={id=>{setCreating(false);open(id);void client.invalidateQueries({queryKey:['projects']});}}/></div>
   {list.isError&&<p role="alert">项目列表暂时未刷新。<button onClick={()=>void list.refetch()}>重新读取列表</button></p>}
-  <ul>{list.data?.projects.map(project=><li key={project.id}><button onClick={()=>open(project.id)}>{project.name} · {labels[project.state]} · {project.employment?.company??(project.employmentId?'关联任职目前不可读':'个人项目')}</button></li>)}</ul>
+  <label>搜索项目<input value={search} onChange={e=>setSearch(e.target.value)} maxLength={300}/></label><label>项目状态筛选<select value={stateFilter} onChange={e=>setStateFilter(e.target.value)}><option value="all">全部</option>{Object.entries(labels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+  <ul aria-label="项目列表" style={{maxHeight:'60vh',overflowY:'auto'}}>{list.data?.projects.filter(project=>(stateFilter==='all'||project.state===stateFilter)&&project.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map(project=><li key={project.id}><button onClick={()=>open(project.id)}>{project.name} · {labels[project.state]} · {project.employment?.company??(project.employmentId?'关联任职目前不可读':'个人项目')}</button></li>)}</ul>
+  {list.data&&list.data.projects.length>0&&!list.data.projects.some(project=>(stateFilter==='all'||project.state===stateFilter)&&project.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))&&<p>没有符合筛选条件的项目</p>}
   {!selected&&list.data?.projects.length===0&&<p>尚无项目。个人项目无需先创建任职。</p>}
   {selected&&<button onClick={()=>setSelected(undefined)}>返回项目列表（保留输入）</button>}
-  {opened.map(id=><div key={id} hidden={id!==selected}><ProjectEditor id={id} request={request} employmentRequest={employmentRequest} relationEpoch={relationEpoch}/></div>)}
+  {opened.map(id=><div key={id} ref={id===selected?details:undefined} hidden={id!==selected}><ProjectEditor id={id} request={request} employmentRequest={employmentRequest} relationEpoch={relationEpoch}/></div>)}
  </section>;
 }
