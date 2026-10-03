@@ -4,8 +4,8 @@ import { dispatchMaterials } from '../transport/materials';
 import { Identity } from '../../contracts/materials/schema';
 import type { MessagePortMain } from 'electron';
 async function start() {
-const runtime=await createRuntimeBackend(process.argv[2]!);
-const backend=runtime.materials;
+const runtime=await createRuntimeBackend(process.argv[2]!,undefined,process.argv[3]??process.argv[2]!);
+
 let currentPort: MessagePortMain | undefined;
 let connectionQueue=Promise.resolve();
 process.parentPort!.on('message',event=>{
@@ -17,7 +17,8 @@ process.parentPort!.on('message',event=>{
     currentPort=port;
     port.on('message',async event=>{
       if(currentPort!==port) return;
-      const {requestId,request,identity: bound,selectedFile,module,printAction,commandId,pdf}=event.data;
+      const {requestId,request,identity: bound,selectedFile,module,printAction,commandId,pdf,sentFileAction}=event.data;
+      if(sentFileAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||sentFileAction!=='select'||typeof selectedFile!=='string')throw Error('invalid_capability');const result=await runtime.selectSentFile(session,selectedFile);if(currentPort===port)port.postMessage({requestId,identity,result});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'file_failed'});}return;}
       if(printAction){
         try{
           const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity))throw Error('invalid_capability');
@@ -35,7 +36,7 @@ process.parentPort!.on('message',event=>{
         }catch{if(currentPort===port)port.postMessage({requestId,identity,error:'invalid_request'});}
         return;
       }
-      const result=await dispatchMaterials(backend,session,bound,request,selectedFile);
+      const result=await dispatchMaterials(runtime.materials,session,bound,request,selectedFile);
       if(currentPort===port) port.postMessage({requestId,identity,result});
     });
     port.start(); port.postMessage({ready:identity});

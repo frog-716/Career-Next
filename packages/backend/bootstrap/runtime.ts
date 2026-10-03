@@ -1,50 +1,70 @@
-import { randomUUID,createHash } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
-import { startWriter } from '../platform/database/client';
-import { createMaterialsBackend } from '../domains/materials/public';
-import { renderSnapshot } from '../domains/resume/public';
-import { createBlobBroker } from '../platform/files/blobs';
-import type { HumanSession } from '../platform/runtime/sessions';
-import type { BusinessModule } from '../../contracts/common/bridge';
-import { Result as ResumeResult } from '../../contracts/resume/schema';
-import type { RuntimeStore } from './writer-commands';
+import {randomUUID,createHash} from 'node:crypto';
+import {mkdir,open,readFile} from 'node:fs/promises';
+import {constants} from 'node:fs';
+import path from 'node:path';
+import {startWriter} from '../platform/database/client';
+import {createMaterialsBackend} from '../domains/materials/public';
+import {renderSnapshot} from '../domains/resume/public';
+import {createBlobBroker} from '../platform/files/blobs';
+import {createPersistenceSinkGate,type PersistenceToken,type PersistenceReference} from '../platform/persistence/fence';
+import type {ProductionSinkAdapter} from '../platform/files/staging';
+import {createAiController} from '../ai-runtime/controller';
+import {createDeterministicFakeProvider} from '../platform/providers/deterministic-fake';
+import {Request as AiRequest,Result as AiResult} from '../../contracts/ai/schema';
+import {Result as DataResult} from '../../contracts/application/schema';
+import {Result as ResumeResult} from '../../contracts/resume/schema';
+import type {HumanSession} from '../platform/runtime/sessions';
+import type {BusinessModule} from '../../contracts/common/bridge';
+import type {RuntimeStore} from './writer-commands';
 const maximumPdfBytes=16*1024*1024;
-export async function createRuntimeBackend(root:string,writerArtifact?:string){
- await mkdir(root,{recursive:true,mode:0o700});
- const writer=await startWriter<RuntimeStore>(root,randomUUID(),writerArtifact);
- const materials=await createMaterialsBackend(root,undefined,undefined,writer);
- const blobs=createBlobBroker(root,maximumPdfBytes);
- await blobs.initialize();
- let closing=false;
- const operations=new Set<Promise<unknown>>(),prints=new Map<string,Promise<ResumeResult>>();
- function track<T>(job:Promise<T>){operations.add(job);void job.finally(()=>operations.delete(job)).catch(()=>undefined);return job;}
- async function completePdf(session:HumanSession,commandId:string,input:Uint8Array):Promise<ResumeResult>{
-  await writer.call('pdfCheck',session,commandId);
-  const bytes=Buffer.from(input);
-  if(bytes.length===0||bytes.length>maximumPdfBytes||bytes.subarray(0,5).toString()!=='%PDF-'||!bytes.subarray(-1024).includes(Buffer.from('%%EOF'))){return writer.call('pdfFail',commandId);}
-  const artifact={blobId:randomUUID(),digest:createHash('sha256').update(bytes).digest('hex'),size:bytes.length};
-  try{
-   const prepared=await writer.call('pdfPrepare',session,commandId,artifact);
-   if(prepared.kind==='receipt')return ResumeResult.parse(prepared.result);
-   await blobs.publishBytes(artifact.blobId,bytes,artifact.digest,()=>writer.call('pdfCheck',session,commandId));
-   const published=await blobs.readBytes(artifact.blobId,artifact.digest);
-   if(published.length!==artifact.size)throw Error('storage_failed');
-   await writer.call('pdfPublished',session,commandId,artifact.blobId);
-   const result=ResumeResult.parse(await writer.call('pdfCommit',session,commandId,artifact));
-   if(result.status==='version')return result;
-   const failed=await writer.call('pdfFail',commandId);await materials.collectGarbage().catch(()=>undefined);return ResumeResult.parse(failed);
-  }catch{
-   const result=await writer.call('pdfFail',commandId);
-   await materials.collectGarbage().catch(()=>undefined);
-   return ResumeResult.parse(result);
-  }
+export async function createRuntimeBackend(initialRoot:string,writerArtifact?:string,dataRoot=initialRoot){
+ let root=initialRoot,closing=false,maintenance=false,admission=true,currentSession:HumanSession|undefined;
+ const operations=new Set<Promise<unknown>>(),prints=new Map<string,Promise<ResumeResult>>(),tokens=new Map<string,PersistenceToken>();
+ let writer!:Awaited<ReturnType<typeof startWriter<RuntimeStore>>>;
+ let materials!:Awaited<ReturnType<typeof createMaterialsBackend>>;
+ let blobs!:ReturnType<typeof createBlobBroker>;
+ let gate!:ReturnType<typeof createPersistenceSinkGate>;
+ let controller!:ReturnType<typeof createAiController>;
+ function track<T>(job:Promise<T>){operations.add(job);void job.finally(()=>operations.delete(job)).catch(()=>{});return job;}
+ function allowed(){if(closing||maintenance||!admission)throw Error('maintenance_busy');}
+ function adapter(token:PersistenceToken):ProductionSinkAdapter {tokens.set(token.id,token);return {controlledSink:filename=>gate.controlledSink(token,filename),withLease:work=>gate.withLease(token,work)};}
+ async function drain(refs:readonly PersistenceReference[]){controller?.revokeReferences(refs);await gate.drain(refs);}
+ async function initialize(){await mkdir(root,{recursive:true,mode:0o700});admission=true;
+ writer=await startWriter<RuntimeStore>(root,randomUUID(),writerArtifact,{dataRoot,control:async(action,args)=>{if(action==='drain'){await drain(args[0] as PersistenceReference[]);return;}if(action==='beforeActivate'){admission=false;controller?.shutdown();await drain([...tokens.values()].flatMap(t=>[...t.inputs,...t.targets]));return;}if(action==='maintenance'){maintenance=args[0]===true;return;}throw Error('invalid_request');}});
+ gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await writer.call('persistenceAssert',token);});
+ materials=await createMaterialsBackend(root,undefined,undefined,writer,async id=>adapter(await writer.call('producerToken',id)));
+ blobs=createBlobBroker(root,maximumPdfBytes);await blobs.initialize();
+ const aiWriter=writer;controller=createAiController({prepareDispatch:id=>aiWriter.call('aiPrepareDispatch',id),markProcessing:id=>aiWriter.call('aiMarkProcessing',id),settle:(id,value)=>aiWriter.call('aiSettle',id,value),markUnknown:(id,reason)=>aiWriter.call('aiMarkUnknown',id,reason),failOperation:(id,reason)=>aiWriter.call('aiFailOperation',id,reason),cancelBeforeHandoff:id=>aiWriter.call('aiCancelBeforeHandoff',id),stop:async(taskId,mode)=>{if(!currentSession)throw Error('invalid_capability');await aiWriter.call('business',currentSession,'ai',{operation:'ai.stop',commandId:randomUUID(),taskId,mode});}},createDeterministicFakeProvider());
  }
- return {materials,
-  async connectHuman(){if(closing)throw Error('disconnected');const session=await materials.connectHuman();await Promise.allSettled([...operations]);await writer.call('recoverPending');await materials.collectGarbage();return session;},
-  business(session:HumanSession,module:BusinessModule,input:unknown){if(closing)return Promise.reject(Error('disconnected'));return track(writer.call('business',session,module,input));},
-  async printHtml(session:HumanSession,commandId:string){if(closing)throw Error('disconnected');const snapshot=await writer.call('pdfCheck',session,commandId);return {html:renderSnapshot(snapshot)};},
-  completePdf(session:HumanSession,commandId:string,input:Uint8Array){if(closing)return Promise.reject(Error('disconnected'));const key=session.connectionGeneration+'/'+commandId;const previous=prints.get(key);if(previous)return previous;const job=track(completePdf(session,commandId,input));prints.set(key,job);void job.finally(()=>prints.delete(key)).catch(()=>undefined);return job;},
-  failPdf(session:HumanSession,commandId:string){return track((async()=>{await writer.call('pdfCheck',session,commandId);return writer.call('pdfFail',commandId);})());},
-  async close(){closing=true;await Promise.allSettled([...operations]);await materials.close();},
+ // Writer startup recovery can request drain before there is any producer/sink.
+ gate=createPersistenceSinkGate(()=>{throw Error('persistence_denied');});await initialize();
+ const automatic=setInterval(()=>{if(!closing&&!maintenance&&admission)void writer.call('automaticBackup').catch(()=>{});},60000);automatic.unref();
+ async function completePdf(session:HumanSession,commandId:string,input:Uint8Array):Promise<ResumeResult>{
+  await writer.call('pdfCheck',session,commandId);const token=await writer.call('producerToken',commandId),sink=adapter(token),bytes=Buffer.from(input);
+  if(bytes.length===0||bytes.length>maximumPdfBytes||bytes.subarray(0,5).toString()!=='%PDF-'||!bytes.subarray(-1024).includes(Buffer.from('%%EOF')))return writer.call('pdfFail',commandId);
+  const artifact={blobId:randomUUID(),digest:createHash('sha256').update(bytes).digest('hex'),size:bytes.length};
+  try{const prepared=await writer.call('pdfPrepare',session,commandId,artifact);if(prepared.kind==='receipt')return ResumeResult.parse(prepared.result);
+   await blobs.publishBytes(artifact.blobId,bytes,artifact.digest,()=>writer.call('persistenceAssert',token),sink);
+   const published=await blobs.readBytes(artifact.blobId,artifact.digest,sink);if(published.length!==artifact.size)throw Error('storage_failed');
+   await writer.call('pdfPublished',session,commandId,artifact.blobId);return ResumeResult.parse(await writer.call('pdfCommit',session,commandId,artifact));
+  }catch{const result=await writer.call('pdfFail',commandId);await materials.collectGarbage().catch(()=>{});return ResumeResult.parse(result);}
+ }
+ return {get materials(){return materials;},
+ async connectHuman(){allowed();currentSession=await materials.connectHuman();await Promise.allSettled([...operations]);await writer.call('recoverPending');await materials.collectGarbage();return currentSession;},
+ business(session:HumanSession,module:BusinessModule,input:unknown){allowed();return track((async()=>{
+  if(module==='ai'){const request=AiRequest.parse(input);if(request.operation==='ai.stop'){await controller.stop(request.taskId,request.mode);return writer.call('business',session,module,{operation:'ai.read',taskId:request.taskId});}}
+  const result=await writer.call('business',session,module,input);
+  if(module==='ai'){const request=AiRequest.parse(input),value=AiResult.parse(result);if(request.operation==='ai.authorize'&&value.kind==='task'){controller.openAfterAuthorization(value.task.id);void controller.start(value.task.id,request.operationId).catch(()=>{});}}
+  if(module==='application'){const value=DataResult.parse(result);if(value.kind==='restored'){await writer.close();root=path.resolve(dataRoot,value.copy.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}}
+  return result;
+ })());},
+ async selectSentFile(session:HumanSession,filename:string){allowed();if(!['.pdf','.txt','.md'].includes(path.extname(filename).toLowerCase()))throw Error('unsupported_file');return track((async()=>{const token=await writer.call('artifactToken',session),sink=adapter(token);let prepared:{id:string;blobId:string}|undefined;
+ try{const bytes=await sink.withLease(async()=>{await writer.call('persistenceAssert',token);const handle=await open(filename,constants.O_RDONLY|constants.O_NOFOLLOW);try{const info=await handle.stat();if(!info.isFile()||info.size<1||info.size>maximumPdfBytes)throw Error('unsupported_file');const buffer=Buffer.alloc(info.size+1);let count=0;while(count<buffer.length){await writer.call('persistenceAssert',token);const value=await handle.read(buffer,count,Math.min(65536,buffer.length-count),count);if(!value.bytesRead)break;count+=value.bytesRead;}if(count!==info.size)throw Error('file_failed');return buffer.subarray(0,count);}finally{await handle.close();}});
+ const digest=createHash('sha256').update(bytes).digest('hex');prepared=await writer.call('artifactPrepare',session,token,path.basename(filename),digest,bytes.length);await blobs.publishBytes(prepared.blobId,bytes,digest,()=>writer.call('persistenceAssert',token),sink);return await writer.call('artifactComplete',session,token,prepared.id);
+ }catch(error){if(prepared)await writer.call('artifactFail',prepared.id).catch(()=>{});await materials.collectGarbage().catch(()=>{});throw error;}})());},
+ async printHtml(session:HumanSession,commandId:string){allowed();const snapshot=await writer.call('pdfCheck',session,commandId);return {html:renderSnapshot(snapshot)};},
+ completePdf(session:HumanSession,commandId:string,input:Uint8Array){allowed();const key=session.connectionGeneration+'/'+commandId,previous=prints.get(key);if(previous)return previous;const job=track(completePdf(session,commandId,input));prints.set(key,job);void job.finally(()=>prints.delete(key)).catch(()=>{});return job;},
+ failPdf(session:HumanSession,commandId:string){return track((async()=>{await writer.call('pdfCheck',session,commandId);return writer.call('pdfFail',commandId);})());},
+ async close(){closing=true;clearInterval(automatic);await Promise.allSettled([...operations]);await materials.close();},
  };
 }

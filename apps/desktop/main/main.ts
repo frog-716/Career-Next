@@ -9,6 +9,9 @@ import { BusinessModuleSchema,parseBusinessRequest,parseBusinessResult } from '.
 import type { BusinessModule } from '../../../packages/contracts/common/bridge';
 import {Result as ResumeResult,Request as ResumeRequest} from '../../../packages/contracts/resume/schema';
 import {printResume} from '../capabilities/print-resume';
+import {activeWorkspace} from '../capabilities/active-workspace';
+import {createManagedCopies,durableJson} from '../../../packages/backend/platform/backup/managed-copies';
+import {SentFileCandidate} from '../../../packages/contracts/opportunity/submission/file-selection';
 import { selectMaterial } from '../capabilities/select-material';
 app.setName('Career Next');
 // Standard Electron profile switch permits isolated data directories; never enables test capabilities.
@@ -32,10 +35,11 @@ async function connect(): Promise<RuntimeIdentity> {
   if(connecting) return connecting;
   connecting=(async()=>{
     disconnect();
-    const root=path.join(app.getPath('userData'),'workspaces','local');
+    const dataRoot=app.getPath('userData'),active=await activeWorkspace(dataRoot),root=active.root;
+    const copies=createManagedCopies(dataRoot),copy=copies.register({relativePath:path.relative(dataRoot,root),kind:'current_workspace',state:'candidate'});
     await mkdir(root,{recursive:true,mode:0o700});
     if(!backend?.pid) {
-      const child=utilityProcess.fork(path.join(__dirname,'utility.cjs'),[root],{serviceName:'Career Materials Backend',stdio:'pipe',allowLoadingUnsignedLibraries:false});
+      const child=utilityProcess.fork(path.join(__dirname,'utility.cjs'),[root,dataRoot],{serviceName:'Career Materials Backend',stdio:'pipe',allowLoadingUnsignedLibraries:false});
       backend=child;
       child.on('exit',()=>{ if(backend===child){ backend=undefined; disconnect(); } });
     }
@@ -54,11 +58,9 @@ async function connect(): Promise<RuntimeIdentity> {
     });
     activePort.start();backend.postMessage({connect:true},[channel.port2]);
     const current=await ready;
-    // One verified local workspace pointer, written only after backend lock/migration/recovery/ready.
-    const pointer=path.join(app.getPath('userData'),'active-workspace-pointer.json');
-    const temp=pointer+'.pending'; const handle=await open(temp,'w',0o600);
-    try{await handle.writeFile(JSON.stringify({copy:'local',workspaceInstance:current.workspaceInstance}));await handle.sync();}finally{await handle.close();}
-    await rename(temp,pointer);const dir=await open(app.getPath('userData'),'r');try{await dir.sync();}finally{await dir.close();}
+    if(active.expected&&active.expected!==current.workspaceInstance)throw Error('active_pointer_identity_mismatch');
+    copies.update(copy.id,{state:'ready'});
+    if(active.initial)durableJson(path.join(dataRoot,'active-workspace-pointer.json'),{copyId:copy.id,relativePath:path.relative(dataRoot,root),workspaceInstance:current.workspaceInstance});
     return current;
   })();
   try{return await connecting;}finally{connecting=undefined;}
@@ -95,7 +97,7 @@ async function sendPrint(printAction:'html'|'complete'|'fail',commandId:string,p
 }
 async function businessWithPrint(module:BusinessModule,input:unknown){
  const result=await sendBusiness(module,input);
- if(module!=='resume')return result;
+ if(module==='application'&&result&&typeof result==='object'&&'kind'in result&&result.kind==='restored'){await connect();}if(module!=='resume')return result;
  const request=ResumeRequest.parse(input),parsed=ResumeResult.parse(result);
  if((request.operation!=='resume.name-version'&&request.operation!=='resume.export')||parsed.status!=='pending-job')return parsed;
  const bound=identity;if(!bound)throw Error('disconnected');
@@ -132,6 +134,7 @@ if(locked) app.whenReady().then(async()=>{
   ipcMain.handle('materials:ready',event=>{trusted(event);if(!identity)throw new Error('disconnected');return identity;});
   ipcMain.handle('materials:reconnect',event=>{trusted(event);return connect();});
   ipcMain.handle('materials:request',(event,input)=>{trusted(event);if(JSON.stringify(input).length>2048)throw new Error('invalid_request');return send(Request.parse(input));});
+  ipcMain.handle('career:sent-file',async event=>{trusted(event);const bound=identity;if(!bound||!port)throw Error('disconnected');const choice=await dialog.showOpenDialog(window,{properties:['openFile'],filters:[{name:'实际发送材料',extensions:['pdf','txt','md']}]});if(choice.canceled)return undefined;if(identity!==bound||!port)throw Error('invalid_capability');const requestId=randomUUID();return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:value=>resolve(SentFileCandidate.parse(value)),reject,timer});port!.postMessage({requestId,identity:bound,sentFileAction:'select',selectedFile:choice.filePaths[0]});});});
   ipcMain.handle('career:request',(event,module,input)=>{trusted(event);if(JSON.stringify(input).length>1024*1024)throw Error('invalid_request');return businessWithPrint(BusinessModuleSchema.parse(module),input);});
   await connect();await window.loadURL(url);
 }).catch(()=>{ console.error('CAREER_STARTUP_FAILED');app.exit(1); });

@@ -1,3 +1,4 @@
+import {G4Support} from './g4-support';
 import {createRoot} from 'react-dom/client';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {HashRouter,useLocation,useNavigate} from 'react-router';
@@ -34,7 +35,7 @@ function Workspace(){
  const employmentRequest=useCallback(async(input:EmploymentRequest)=>{const result=EmploymentResult.parse(await window.career.request('employment',input));if(!['list','read','history','person.history'].includes(input.operation)&&(result.kind==='employment'||result.kind==='person'))setEpoch(value=>value+1);return result;},[]);
  useEffect(()=>{void window.career.ready().then(value=>setWorkspace(Identity.parse(value).workspaceInstance)).catch(()=>setError('工作区连接失败，请重新连接。'));},[]);
  if(!workspace)return <main><p>{error||'正在打开工作区…'}</p>{error&&<button onClick={async()=>{try{setWorkspace(Identity.parse(await window.career.reconnect()).workspaceInstance);setError('');}catch{setError('连接暂不可用，请重试。');}}}>重新连接工作区</button>}</main>;
- return <QueryClientProvider client={client}><CareerShell pages={{
+ return <QueryClientProvider client={client}><G4Support key={workspace} workspaceInstance={workspace} onRestore={async()=>{const identity=Identity.parse(await window.career.ready());client.clear();lastResume.current=undefined;setFocusOpportunity(undefined);setResearchFocus(undefined);setWorkspace(identity.workspaceInstance);setEpoch(e=>e+1);navigate('/wiki');}} onApplied={()=>setEpoch(e=>e+1)}/><CareerShell key={workspace} pages={{
   wiki:<><WikiPage request={wikiRequest} materials={window.careerMaterials} workspaceInstance={workspace}/><WikiResearchReferences opportunityRequest={opportunityRequest} researchRequest={researchRequest} onOpenOwner={id=>{setFocusOpportunity(previous=>({id,sequence:(previous?.sequence??0)+1}));setResearchFocus(previous=>({id,sequence:(previous?.sequence??0)+1}));navigate('/opportunity');}}/><RawImport/></>,
   employment:<EmploymentPage request={employmentRequest}/>,
   project:<ProjectPage request={projectRequest} employmentRequest={employmentRequest} relationEpoch={epoch}/>,

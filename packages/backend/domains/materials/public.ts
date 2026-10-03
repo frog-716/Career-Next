@@ -4,10 +4,11 @@ import { randomUUID } from 'node:crypto';
 import { startWriter } from '../../platform/database/client';
 import { createBlobBroker } from '../../platform/files/blobs';
 import { Confirm, SourceRef, Raw, Preview, MAX_TEXT_BYTES, type Receipt } from '../../../contracts/materials/schema';
+import type {ProductionSinkAdapter} from '../../platform/files/staging';
 import { staging } from '../../platform/files/staging';
 import type { HumanSession, Store } from './store';
 
-export async function createMaterialsBackend(root: string, makeBlobs: typeof createBlobBroker = createBlobBroker, writerArtifact?: string, providedWriter?: Awaited<ReturnType<typeof startWriter<Store>>>) {
+export async function createMaterialsBackend(root: string, makeBlobs: typeof createBlobBroker = createBlobBroker, writerArtifact?: string, providedWriter?: Awaited<ReturnType<typeof startWriter<Store>>>,sinkFor?:(id:string)=>Promise<ProductionSinkAdapter>) {
   await mkdir(root, { recursive: true, mode: 0o700 });
   const writer = providedWriter ?? await startWriter<Store>(root, randomUUID(), writerArtifact);
   const blobs = makeBlobs(root, MAX_TEXT_BYTES);
@@ -45,7 +46,7 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
     if (!['.txt', '.md'].includes(path.extname(filename).toLowerCase())) throw new Error('unsupported_file');
     const id = await writer.call('begin', session, path.basename(filename));
     try {
-      const file = await files.select(id, filename, () => writer.call('valid', session, id));
+      const file = await files.select(id, filename, () => writer.call('valid', session, id),await sinkFor?.(id));
       const preview = Preview.parse({ ...file, importId: id, revision: 1, saved: false });
       await writer.call('preview', session, preview);
       return preview;
@@ -80,7 +81,7 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
         const prepared = await writer.call('prepare', session, input);
         if (prepared.kind === 'receipt') return prepared.receipt;
         try {
-          await blobs.publish(input.importId, prepared.blobId, prepared.size, input.digest, () => writer.call('valid', session, input.importId));
+          await blobs.publish(input.importId, prepared.blobId, prepared.size, input.digest, () => writer.call('valid', session, input.importId),await sinkFor?.(input.importId));
           await writer.call('published', session, input, prepared.blobId);
           const receipt = await writer.call('commit', session, input, prepared.blobId);
           await files.remove(input.importId).catch(() => undefined);

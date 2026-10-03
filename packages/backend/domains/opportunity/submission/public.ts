@@ -1,3 +1,4 @@
+import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import {Request,Result,Submission,SentResume,type SentResumeInput} from '../../../../contracts/opportunity/submission/schema';
@@ -42,6 +43,6 @@ export function createSubmissionDomain(db:Database.Database,ports:SentMaterialPo
   }catch(error){const message=error instanceof Error?error.message:'';return {kind:'failure',code:['not_found','conflict','already_exists','source_unavailable'].includes(message)?message as 'not_found':'storage_failed'};}
  }
  function describePurge(id:string){const row=db.prepare('SELECT body_json FROM opportunity_submission WHERE id=?').get(id) as {body_json:string}|undefined;if(!row)return undefined;const value=Submission.parse(JSON.parse(row.body_json));return {id:value.id,opportunityId:value.opportunityId,blobIds:value.resume.kind==='retained'?[value.resume.pdf.blobId]:[],retentionIds:[value.id]};}
- function purge(id:string){db.transaction(()=>{const item=describePurge(id);if(item)db.prepare('INSERT OR IGNORE INTO opportunity_submission_purged VALUES (?,?)').run(item.id,item.opportunityId);for(const row of db.prepare('SELECT command_id FROM opportunity_submission_commands WHERE submission_id=?').all(id) as {command_id:string}[])db.prepare("UPDATE platform_commands SET result_json=? WHERE owner='submission' AND command_id=?").run(JSON.stringify({kind:'purged',id}),row.command_id);ports.releaseRetention?.('submission',id);db.prepare('DELETE FROM opportunity_submission_commands WHERE submission_id=?').run(id);db.prepare('DELETE FROM opportunity_submission WHERE id=?').run(id);})();}
+ function purge(id:string){db.transaction(()=>{const item=describePurge(id);if(item)db.prepare('INSERT OR IGNORE INTO opportunity_submission_purged VALUES (?,?)').run(item.id,item.opportunityId);const commands=(db.prepare('SELECT command_id FROM opportunity_submission_commands WHERE submission_id=?').all(id) as {command_id:string}[]).map(row=>row.command_id);redactOwnerReceipts(db,'submission',[id,...commands],{kind:'purged',id});ports.releaseRetention?.('submission',id);db.prepare('DELETE FROM opportunity_submission_commands WHERE submission_id=?').run(id);db.prepare('DELETE FROM opportunity_submission WHERE id=?').run(id);})();}
  return {handle,hasFirstSubmission:(opportunityId:string)=>!!read(opportunityId)||!!tombstone(opportunityId),describePurge,purge};
 }

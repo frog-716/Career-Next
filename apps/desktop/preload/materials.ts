@@ -10,3 +10,5 @@ contextBridge.exposeInMainWorld('careerMaterials',bridge);
 import type { CareerBridge } from '../../../packages/contracts/common/bridge';
 const career:CareerBridge={ready:bridge.ready,reconnect:bridge.reconnect,request:(module,input)=>ipcRenderer.invoke('career:request',module,input)};
 contextBridge.exposeInMainWorld('career',career);
+
+contextBridge.exposeInMainWorld('careerSentFiles',{select:()=>ipcRenderer.invoke('career:sent-file')});

@@ -14,22 +14,29 @@ import {createResearchDomain} from '../domains/opportunity/research/public';
 import {createInterviewDomain} from '../domains/opportunity/interview/public';
 import {createOfferDomain} from '../domains/opportunity/offer/public';
 import {createLedger} from '../platform/database/ledger';
-import {verifyProtectedOriginal} from '../platform/files/protected-original';
-export function composeDomains(db:Database.Database,materials:Store){
+import {createSubmissionDomain} from '../domains/opportunity/submission/public';
+import {createCommunicationDomain} from '../domains/opportunity/communication/public';
+import {createFileCandidates} from '../platform/files/candidates';
+import {verifyArtifact,verifyProtectedOriginal} from '../platform/files/protected-original';
+export function composeDomains(db:Database.Database,materials:Store,extra:{ai:{handle(input:unknown):unknown};application:{handle(input:unknown):unknown}}){
  const employment=createEmploymentDomain(db);
  const project=createProjectDomain(db,{resolveEmployment:employment.resolveEmployment,resolvePerson:employment.resolvePerson});
  const opportunity=createOpportunityDomain(db);
  const root=path.dirname(db.name),ledger=createLedger(db);
  const artifact=(ref:Parameters<Store['resolveSourceArtifact']>[0])=>{const value=materials.resolveSourceArtifact(ref);return value&&verifyProtectedOriginal(root,value)?value:undefined;};
- const interview=createInterviewDomain(db,{core:opportunity.capabilities});
- const resolveSource=(ref:import('../../contracts/common/source-ref').SourceRef)=>ref.owner==='materials'?(artifact(ref)?materials.resolveSourceMetadata(ref):undefined):interview.resolveTranscript(ref)?.metadata;
- const wiki=createWikiDomain(db,{resolveSource,validateScope:(scope,id)=>{if(!id)return scope==='personal'||scope==='cognition';if(scope==='opportunity')return !!opportunity.capabilities.readOpportunity(id);if(scope==='employment')return !!employment.resolveEmployment(id);if(scope==='project')return project.handle({operation:'read',id}).kind==='project';if(scope==='person'){const all=employment.handle({operation:'list'});return all.kind==='list'&&all.employments.some(e=>!!employment.resolvePerson(id,e.id));}return false;}});
- const research=createResearchDomain(db,{core:opportunity.capabilities,resolveSource:ref=>{const current=resolveSource(ref);return current?{ref:current.source,status:current.revision===ref.revision?'readable':'stale',scope:ref.owner==='materials'?{kind:'personal'}:{kind:'opportunity',id:ref.opportunityId}}:undefined;}});
- const offer=createOfferDomain(db,{core:opportunity.capabilities,validateSource:ref=>{const value=artifact(ref);return value?{status:'available',name:value.name,digest:value.digest}:{status:'unavailable'};},retainSource:(ref,id)=>{const value=artifact(ref);if(!value)throw Error('source_unavailable');ledger.retainExisting(value.blobId,id,'offer');}});
  const profile=createProfileDomain(db);
  const resume=createResumeDomain(db,{resolveOpportunity:opportunity.resolveOpportunity,profile});
+ const files=createFileCandidates(db,root);
+ const sent={core:opportunity.capabilities,resolveFrozenResume:(id:string)=>{const value=resume.resolveFrozenVersion(id);return value&&verifyArtifact(root,value.pdf,16*1024*1024)?{name:value.name||'未命名导出.pdf',snapshot:value.snapshot,pdf:value.pdf}:undefined;},resolveActualArtifact:files.read,retainExisting:(blobId:string,owner:'submission'|'communication',id:string)=>ledger.retainExisting(blobId,id,owner),releaseRetention:(owner:'submission'|'communication',id:string)=>ledger.releaseRetention(owner,id)};
+ const submission=createSubmissionDomain(db,sent);
+ const communication=createCommunicationDomain(db,{...sent,hasFirstSubmission:submission.hasFirstSubmission});
+ const interview=createInterviewDomain(db,{core:opportunity.capabilities});
+ const resolveSource=(ref:import('../../contracts/common/source-ref').SourceRef)=>ref.owner==='materials'?(artifact(ref)?materials.resolveSourceMetadata(ref):undefined):ref.owner==='interview'?interview.resolveTranscript(ref)?.metadata:communication.resolveSourceMetadata(ref);
+ const wiki=createWikiDomain(db,{resolveSource,validateScope:(scope,id)=>{if(!id)return scope==='personal'||scope==='cognition';if(scope==='opportunity')return !!opportunity.capabilities.readOpportunity(id);if(scope==='employment')return !!employment.resolveEmployment(id);if(scope==='project')return project.handle({operation:'read',id}).kind==='project';if(scope==='person'){const all=employment.handle({operation:'list'});return all.kind==='list'&&all.employments.some(e=>!!employment.resolvePerson(id,e.id));}return false;}});
+ const research=createResearchDomain(db,{core:opportunity.capabilities,resolveSource:ref=>{const current=resolveSource(ref);return current?{ref:current.source,status:current.revision===ref.revision?'readable':'stale',scope:ref.owner==='materials'?{kind:'personal'}:{kind:'opportunity',id:ref.opportunityId}}:undefined;}});
+ const offer=createOfferDomain(db,{core:opportunity.capabilities,validateSource:ref=>{const value=artifact(ref);return value?{status:'available',name:value.name,digest:value.digest}:{status:'unavailable'};},releaseRetention:id=>ledger.releaseRetention('offer',id),retainSource:(ref,id)=>{const value=artifact(ref);if(!value)throw Error('source_unavailable');ledger.retainExisting(value.blobId,id,'offer');}});
  const metadata=printingMetadata();
  const printedResume={handle(input:unknown){const request=ResumeRequest.parse(input);return (request.operation==='resume.name-version'||request.operation==='resume.export')?resume.prepareVersion(request,metadata):resume.handle(request);}};
- const handle=registerDomains({wiki,employment,project,opportunity,profile,resume:printedResume,research,interview,offer});
- return {handle,resume,wiki,employment,project,opportunity,research,interview,offer,resolveSource,pendingPrint(commandId:string){const result=ResumeResult.parse(resume.handle({operation:'resume.receipt',commandId}));if(result.status!=='pending-job')return undefined;return result.job;}};
+ const handle=registerDomains({wiki,employment,project,opportunity,profile,resume:printedResume,research,interview,offer,submission,communication,...extra});
+ return {handle,resume,wiki,employment,project,opportunity,research,interview,offer,profile,submission,communication,files,resolveSource,pendingPrint(commandId:string){const result=ResumeResult.parse(resume.handle({operation:'resume.receipt',commandId}));if(result.status!=='pending-job')return undefined;return result.job;}};
 }

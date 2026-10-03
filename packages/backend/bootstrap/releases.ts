@@ -1,3 +1,9 @@
+import {persistenceMigration} from '../platform/persistence/fence';
+import {g4RetentionMigration} from '../platform/database/g4-retention';
+import {fileCandidateMigration} from '../platform/files/candidates';
+import {aiMigration} from '../ai-runtime/migration';
+import {submissionMigration} from '../domains/opportunity/submission/migration';
+import {communicationMigration} from '../domains/opportunity/communication/migration';
 import { commandMigration } from '../platform/commands/receipts';
 import { artifactMigration } from '../platform/database/ledger';
 import { employmentMigration } from '../domains/employment/public';
@@ -26,4 +32,11 @@ export const releases:readonly MigrationBatch[]=[{version:2,name:'002-g2-first-b
  {id:'research.initial.v1',dependencies:['platform.commands.v1','opportunity.initial.v1'],sql:researchMigration},
  {id:'interview.initial.v1',dependencies:['platform.commands.v1','opportunity.initial.v1'],sql:interviewMigration},
  {id:'offer.initial.v1',dependencies:['platform.commands.v1','opportunity.initial.v1','platform.offer-retention.v1'],sql:offerMigration},
+]},{version:4,name:'004-g4-seams',fragments:[
+ {id:'platform.persistence.v1',dependencies:[],sql:persistenceMigration},
+ {id:'platform.g4-retention.v1',dependencies:['platform.offer-retention.v1'],sql:g4RetentionMigration},
+ {id:'platform.file-candidates.v1',dependencies:['platform.g4-retention.v1'],sql:fileCandidateMigration},
+ {id:'submission.initial.v1',dependencies:['platform.commands.v1','opportunity.initial.v1','platform.g4-retention.v1'],sql:submissionMigration},
+ {id:'communication.initial.v1',dependencies:['platform.commands.v1','opportunity.initial.v1','platform.g4-retention.v1'],sql:communicationMigration},
+ {id:'ai.initial.v1',dependencies:['platform.commands.v1','wiki.initial.v1','platform.persistence.v1'],sql:aiMigration},
 ]}];

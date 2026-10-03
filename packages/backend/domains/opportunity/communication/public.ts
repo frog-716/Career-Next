@@ -1,3 +1,4 @@
+import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import {Request,Result,Communication,History} from '../../../../contracts/opportunity/communication/schema';
@@ -42,6 +43,6 @@ export function createCommunicationDomain(db:Database.Database,ports:SentMateria
  }
  function resolveSourceMetadata(ref:{owner:string;objectId:string;revision:number;locator:string;scope:string;opportunityId?:string}){const item=read(ref.objectId);if(!item||ref.owner!=='communication'||ref.locator!=='text'||ref.scope!=='opportunity'||ref.opportunityId!==item.opportunityId)return undefined;return {id:item.id,revision:item.source.revision,scope:'opportunity',source:item.source};}
  function describePurge(id:string){const item=read(id);return item?{id:item.id,opportunityId:item.opportunityId,blobIds:item.sentMaterial?.kind==='retained'?[item.sentMaterial.pdf.blobId]:[],retentionIds:[item.id]}:undefined;}
- function purge(id:string){db.transaction(()=>{for(const row of db.prepare('SELECT command_id FROM opportunity_communication_commands WHERE communication_id=?').all(id) as {command_id:string}[])db.prepare("UPDATE platform_commands SET result_json=? WHERE owner='communication' AND command_id=?").run(JSON.stringify({kind:'purged',id}),row.command_id);ports.releaseRetention?.('communication',id);db.prepare('DELETE FROM opportunity_communication_commands WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication_history WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication WHERE id=?').run(id);})();}
+ function purge(id:string){db.transaction(()=>{const commands=(db.prepare('SELECT command_id FROM opportunity_communication_commands WHERE communication_id=?').all(id) as {command_id:string}[]).map(row=>row.command_id);redactOwnerReceipts(db,'communication',[id,...commands],{kind:'purged',id});ports.releaseRetention?.('communication',id);db.prepare('DELETE FROM opportunity_communication_commands WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication_history WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication WHERE id=?').run(id);})();}
  return {handle,resolveSource,resolveSourceMetadata,describePurge,purge};
 }
