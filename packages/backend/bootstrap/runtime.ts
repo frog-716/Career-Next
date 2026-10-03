@@ -36,6 +36,7 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  writer=await startWriter<RuntimeStore>(root,randomUUID(),writerArtifact,{dataRoot,control:async(action,args)=>{if(action==='renewProfile'){gate.allowRenewedProfile(args[0] as number);return;}if(action==='drain'){await drain(args[0] as PersistenceReference[]);return;}if(action==='beforeActivate'){admission=false;controller?.shutdown();await drain([...tokens.values()].flatMap(t=>[...t.inputs,...t.targets]));return;}if(action==='maintenance'){maintenance=args[0]===true;return;}throw Error('invalid_request');}});
  const boundWriter=writer;gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await boundWriter.call('persistenceAssert',token);});
  const boundGate=gate;materials=await createMaterialsBackend(root,undefined,undefined,boundWriter,async id=>adapter(await boundWriter.call('producerToken',id),boundGate));
+ const establish=materials.connectHuman.bind(materials);materials.connectHuman=async()=>{const session=await establish();currentSession=session;return session;};
  blobs=createBlobBroker(root,maximumPdfBytes);await blobs.initialize();
  makeController();
  }

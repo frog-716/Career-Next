@@ -26,7 +26,7 @@ parentPort!.on('message', (message: { id: string; call?: {method: keyof typeof s
     const result = await method(...call.args);
     parentPort!.postMessage({ id: message.id, result });
   } catch (error) {
-    const allowed = ['invalid_capability','file_failed','storage_failed','conflict','not_found','workspace_busy','invalid_request','persistence_denied','maintenance_busy'];
+    const allowed = ['invalid_capability','file_failed','storage_failed','conflict','not_found','workspace_busy','invalid_request','persistence_denied','maintenance_busy','purge_incomplete'];
     const code = error instanceof Error && allowed.includes(error.message) ? error.message : 'db_failed';
     parentPort!.postMessage({ id: message.id, error: code });
   }

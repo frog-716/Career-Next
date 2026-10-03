@@ -21,6 +21,7 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  ai=createAiRuntime(db,composeAiPorts(domains,materials,root,{workspaceInstance,backendGeneration:generation},fence,()=>{try{if(!currentHuman)return false;authority.check(currentHuman);return true;}catch{return false;}}));
  const control=options?.control??{drain:async()=>{},beforeActivate:async()=>{},maintenance:async<T>(work:()=>Promise<T>)=>work(),closeWorkspace:()=>{throw Error('restore_unavailable');}};
  lifecycle=composeLifecycle(db,domains,materials,fence,ai,root,options?.dataRoot??root,control,()=>currentHuman);
+ function assertReadable(){if(lifecycle.pendingPurgeReferences().length)throw Error('purge_incomplete');}
  const producers=new Map<string,PersistenceToken>();
  function capture(id:string,inputs:PersistenceReference[],targets:PersistenceReference[]){if(producers.has(id))return assertProducer(id);const token=fence.capture({producerId:id,inputs,targets});producers.set(id,token);return token;}
  function assertProducer(id:string){const token=producers.get(id);if(!token)throw Error('invalid_capability');fence.assert(token);return token;}
@@ -29,20 +30,24 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  function recoverPending(){for(const id of domains.resume.recoverPendingVersions())ledger.fail(physicalCommand(id),'invalid_capability');}
  recoverPending();
  return {...materials,
+  list(session:HumanSession){assertReadable();return materials.list(session);},
+  read(session:HumanSession,id:string){assertReadable();return materials.read(session,id);},
+  receipt(session:HumanSession,id:string){assertReadable();return materials.receipt(session,id);},
+  prepare(session:HumanSession,input:Parameters<typeof materials.prepare>[1]){assertReadable();return materials.prepare(session,input);},
   connect(){currentHuman=materials.connect();return currentHuman;},
-  async business(session:HumanSession,module:BusinessModule,input:unknown){authority.check(session);human=true;try{if(module==='profile'&&ProfileRequest.parse(input).operation==='profile.save'){let renewal:{renewed:boolean;generation:number}|undefined;const before=domains.profile.read().revision;const result=db.transaction(()=>{const saved=domains.profile.handle(input);if(saved.status==='profile'&&saved.profile.revision>before)renewal=fence.renewProfileAfterHumanSave({actor:'human',ownerRevision:saved.profile.revision});return saved;})();if(renewal?.renewed)await control.renewProfile?.(renewal.generation);return result;}const result=await domains.handle(module,input);if(module==='resume'){const parsed=ResumeResult.parse(result);if(parsed.status==='pending-job')capture((input as {commandId:string}).commandId,[{owner:'resume',objectId:parsed.job.resumeId},{owner:'profile',objectId:'current'}],[{owner:'resume',objectId:parsed.job.resumeId}]);}return result;}finally{human=false;}},
-  begin(session:HumanSession,name:string){const id=materials.begin(session,name);capture(id,[],[{owner:'import',objectId:id}]);return id;},
-  valid(session:HumanSession,id:string){assertProducer(id);return materials.valid(session,id);},
-  preview(session:HumanSession,input:Parameters<typeof materials.preview>[1]){assertProducer(input.importId);return materials.preview(session,input);},
-  published(session:HumanSession,input:Parameters<typeof materials.published>[1],blobId:string){assertProducer(input.importId);return materials.published(session,input,blobId);},
-  commit(session:HumanSession,input:Parameters<typeof materials.commit>[1],blobId:string){assertProducer(input.importId);return materials.commit(session,input,blobId);},
+  async business(session:HumanSession,module:BusinessModule,input:unknown){authority.check(session);if(module!=='application')assertReadable();human=true;try{if(module==='profile'&&ProfileRequest.parse(input).operation==='profile.save'){let renewal:{renewed:boolean;generation:number}|undefined;const before=domains.profile.read().revision;const result=db.transaction(()=>{const saved=domains.profile.handle(input);if(saved.status==='profile'&&saved.profile.revision>before)renewal=fence.renewProfileAfterHumanSave({actor:'human',ownerRevision:saved.profile.revision});return saved;})();if(renewal?.renewed)await control.renewProfile?.(renewal.generation);return result;}const result=await domains.handle(module,input);if(module==='resume'){const parsed=ResumeResult.parse(result);if(parsed.status==='pending-job')capture((input as {commandId:string}).commandId,[{owner:'resume',objectId:parsed.job.resumeId},{owner:'profile',objectId:'current'}],[{owner:'resume',objectId:parsed.job.resumeId}]);}return result;}finally{human=false;}},
+  begin(session:HumanSession,name:string){assertReadable();const id=materials.begin(session,name);capture(id,[],[{owner:'import',objectId:id}]);return id;},
+  valid(session:HumanSession,id:string){assertReadable();assertProducer(id);return materials.valid(session,id);},
+  preview(session:HumanSession,input:Parameters<typeof materials.preview>[1]){assertReadable();assertProducer(input.importId);return materials.preview(session,input);},
+  published(session:HumanSession,input:Parameters<typeof materials.published>[1],blobId:string){assertReadable();assertProducer(input.importId);return materials.published(session,input,blobId);},
+  commit(session:HumanSession,input:Parameters<typeof materials.commit>[1],blobId:string){assertReadable();assertProducer(input.importId);return materials.commit(session,input,blobId);},
   producerToken(id:string){return assertProducer(id);},
   persistenceAssert(token:PersistenceToken){fence.assert(token);},
   persistenceReferences(){return [...producers.values()].flatMap(t=>[...t.inputs,...t.targets]);},
   aiPrepareDispatch:ai.prepareDispatch,aiMarkProcessing:ai.markProcessing,aiSettle:ai.settle,aiMarkUnknown:ai.markUnknown,aiFailOperation:ai.failOperation,aiCancelBeforeHandoff:ai.cancelBeforeHandoff,
   aiStop(taskId:string,mode:'stop'|'revoke',commandId:string){human=true;try{return ai.handle({operation:'ai.stop',commandId,taskId,mode},'human');}finally{human=false;}},
   lifecycleRecover:()=>lifecycle.recoverPendingPurges(),automaticBackup:()=>lifecycle.automaticCheck(),
-  artifactToken(session:HumanSession){authority.check(session);const id=randomUUID();return capture(id,[],[{owner:'actual-artifact',objectId:id}]);},
+  artifactToken(session:HumanSession){authority.check(session);assertReadable();const id=randomUUID();return capture(id,[],[{owner:'actual-artifact',objectId:id}]);},
   artifactPrepare(session:HumanSession,token:PersistenceToken,name:string,digest:string,size:number){authority.check(session);fence.assert(token);return domains.files.prepare(name,digest,size,token.producerId);},
   artifactComplete(session:HumanSession,token:PersistenceToken,id:string){authority.check(session);fence.assert(token);const value=domains.files.complete(id);if(!value)throw Error('file_failed');return {kind:'artifact' as const,id,name:value.name};},
   artifactFail(id:string){domains.files.purge(id);},
