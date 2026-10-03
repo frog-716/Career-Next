@@ -45,7 +45,8 @@ export function createProductTasks(db:Database.Database,authority:AiPorts,ports:
   if(!op.manifest?.product)throw Error('body_unavailable');const {manifest}=op;
   if(manifest.validity.workspaceInstance!==authority.identity.workspaceInstance||manifest.validity.backendGeneration!==authority.identity.backendGeneration||Date.parse(manifest.validity.expiresAt)<=Date.now())throw Error('authorization_expired');
   authority.fence.assert(token(op.id));assertReadable({target:manifest.product!.target,provenance:op.provenance});ports.checkDependencies(manifest.product!.dependencies);
-  if(op.provenance.some(item=>!item.restrictions.egress||['materials','interview','communication','search','wiki'].includes(item.owner)&&!authority.sources.provenanceCurrent(item)?.egress)||manifest.materials.some(item=>!authority.sources.current(item.ref)?.restrictions.egress))throw Error('egress_forbidden');
+  // Session/FinalReview are owner contexts, not Transcript sources; their live owner access and exact dependencies were checked above.
+  if(op.provenance.some(item=>!item.restrictions.egress||['materials','interview','communication','search','wiki'].includes(item.owner)&&!['real_interview_session','real_final_review'].includes(item.kind)&&!authority.sources.provenanceCurrent(item)?.egress)||manifest.materials.some(item=>!authority.sources.current(item.ref)?.restrictions.egress))throw Error('egress_forbidden');
  }
  function handle(input:unknown,actor:TrustedActor):ProductResponse{
   const parsed=ProductRequest.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};if(actor!=='human')return {kind:'failure',code:'human_required'};if(!authority.humanAllowed())return {kind:'failure',code:'permission_revoked'};const request=parsed.data;

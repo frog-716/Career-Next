@@ -48,7 +48,7 @@ function createWikiRuntime(db:Database.Database,ports:AiPorts){
   const selected=value.sources.map(ref=>{const source=ports.sources.read(ref);if(!source||!source.restrictions.read||source.ref.revision!==ref.revision)throw Error('source_unavailable');return source;});
   const currentKnowledge=ports.wiki.list(value.target).filter(item=>item.status==='active');
   const provenance=inheritProvenance([...selected.map(source=>source.provenance),...currentKnowledge.map(item=>item.provenance??[{owner:'wiki',objectId:item.id,revision:item.revision,scope:item.scope,kind:'user_record',restrictions:{read:true,egress:true}}])]);
-  if(provenance.some(item=>!item.restrictions.read))throw Error('source_unavailable');
+  if(provenance.some(item=>!item.restrictions.read||!ports.sources.provenanceCurrent(item)?.read))throw Error('source_unavailable');
   if(provenance.some(item=>item.kind==='simulation'))throw Error('simulation_selection_confirmation_required');
   const knowledge=currentKnowledge.map(({id,revision,title,body,nature})=>({id,revision,title,body,nature}));
   const manifest:Manifest={taskId:value.id,target:value.target,recipient:Recipient.parse({service:'deterministic-fake',endpoint:'local://career-wiki-fake',account:'local-no-credential',generation:'fake-v1',model:'wiki-organizer-v1'}),granularity:'fulltext',system,tools:[],materials:selected.map(source=>({ref:source.ref,body:source.body,nature:source.nature})),knowledge,budget:value.budget,validity:{...ports.identity,expiresAt:new Date(Date.now()+3600000).toISOString()},stopBoundary:'before-handoff',provenance};

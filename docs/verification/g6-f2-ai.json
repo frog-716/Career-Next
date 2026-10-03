@@ -1,0 +1,1099 @@
+{
+  "gate": "G6",
+  "line": "F2",
+  "issue": 28,
+  "baseline": "befe2437a9b260237ae5f08a2d11517437a27032",
+  "scope": "isolated local fake-provider paths; not G6 global PASS",
+  "regression": {
+    "command": "npx vitest run tests/g4-ai-controller.test.ts tests/g6-ai-control-ui.test.ts tests/g6-resume-continuity-ui.test.ts tests/g5-resume-ai-undo-ui.test.ts tests/g5-resume-ai-unknown-ui.test.ts tests/resume-session.test.ts tests/integration/g6-ai-failures.test.ts tests/integration/g6-ai-transport.test.ts tests/integration/g4-ai-runtime.test.ts tests/integration/g4-ai-real-seams.test.ts tests/integration/g5-product-controls.test.ts tests/integration/g5-product-policies.test.ts tests/integration/g5-product-resume.test.ts tests/integration/g5-product-edges.test.ts tests/integration/resume.test.ts tests/integration/resume-artifacts.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/g6-f2-final-results.json",
+    "exitCode": 0,
+    "startTime": 1791019401074,
+    "files": 16,
+    "passed": 88,
+    "failed": 0,
+    "evidence": "suites"
+  },
+  "commands": [
+    {
+      "command": "npm ci --ignore-scripts",
+      "exitCode": 0
+    },
+    {
+      "command": "npm rebuild node better-sqlite3",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidence": "/tmp/g6-f2-typecheck-final.log"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "redEvidence": [
+    {
+      "id": "pending-retry",
+      "path": "/tmp/g6-f2-red.log",
+      "sha256": "58a0224042f08af6e736b8b8e3b3f6dd408f727fce5245ac3f2685ccb643ebbc",
+      "exitCode": 1,
+      "actual": "second B produced a third operation instead of operation_pending"
+    },
+    {
+      "id": "late-generation",
+      "path": "/tmp/g6-f2-generation-red.log",
+      "sha256": "0798d3b90e2dc769d1dd9dfc298c9bd283ccaa98472622e49538a961f9c1cf57",
+      "exitCode": 1,
+      "actual": "old generation body persisted after fake adapter generation changed"
+    },
+    {
+      "id": "storage-classification",
+      "path": "/tmp/g6-f2-quota-red.log",
+      "sha256": "39286597026f1c7bf9b36a4c89186928cb6d1579ac54bdb05c13686012848351",
+      "exitCode": 1,
+      "actual": "actual SQLITE_FULL reported invalid_output instead of storage_full"
+    },
+    {
+      "id": "inherited-egress",
+      "path": "/tmp/g6-f2-egress-red.log",
+      "sha256": "1994ba5fede2cfee8f09ad68dd4ce37387822167cceb079866e74b6083d3d5b7",
+      "exitCode": 1,
+      "actual": "derived A current egress revocation did not block dispatch"
+    },
+    {
+      "id": "inherited-read",
+      "path": "/tmp/g6-f2-ai-provenance.log",
+      "sha256": "36f875ef7b04b0b4cae631ad33384d8efa6e0b0807adbd3758f0ee702b91a19c",
+      "exitCode": 1,
+      "actual": "summary-of-summary current read revocation still permitted prepare"
+    },
+    {
+      "id": "stop-control",
+      "path": "/tmp/g6-f2-control-red.log",
+      "sha256": "ad18d492608bf375f02ec49d9a09e0156700a9d24dbe997ca48c1e368d910fbd",
+      "exitCode": 1,
+      "actual": "4/4 failed: missing control variant, lost stop ID, both UIs lacked gate/persistence split"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "F2-01",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "unknown A / explicitly authorized B / independent late A; unknown spent budget remains",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 product unknown A permits exactly one explicitly prepared B awaiting its own authorization",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 unknown A, explicit operation B and late A keep independent bodies and shared spent budget",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-02",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "stop/revoke late response; stop may retain legally scoped pending output, never auto-Apply",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/g6-ai-control-ui.test.ts",
+          "test": "F2 control Contract distinguishes immediate closed admission from an uncommitted original command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-ai-control-ui.test.ts",
+          "test": "F2 wiki real UI keeps original stop identity through held persistence, receipt read failure and receipt_missing",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-ai-control-ui.test.ts",
+          "test": "F2 product real UI keeps original stop identity through held persistence, receipt read failure and receipt_missing",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 ignoring-abort late output after stop never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 ignoring-abort late output after revoke never starts another call or adopts content",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-03",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "actual input pause/purge, read-revoke and egress-revoke; cached body/current dispatch check",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 ignoring-abort late output after source-purge never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 ignoring-abort late output after source-pause never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 derived summary/cache provenance rechecks current egress of omitted sensitive A at dispatch",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 source read revocation after handoff discards actual returned output, including prepared cache and receipts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 egress revocation after handoff closes actual-input followup and discards an ignoring-abort provider late body",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-04",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "controller disable before/after handoff, unknown consumes last budget, resume/retry cannot reset",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 ignoring-abort late output after provider-disable never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 provider disable while SQLite intent is awaiting cannot hand off, and new generation cannot reuse the original grant",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 unknown operation spends the last root request; explicit retry and resume cannot reset exhausted budget",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-05",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "credential generation changes at actual controller/fake adapter, real SQLite reopen changes backend generation",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 credential generation change after handoff rejects an ignoring-abort provider late body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 actual SQLite close/reopen changes backend generation, keeps unknown budget and never resurrects grants or late old producer bodies",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-06",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "runtime trusted capability rejects 7 reality-write owners × AI/human-spoof plus self-accept; runtime denies unregistered model subtasks",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 unregistered model subtask/manual/authorization/self-accept requests cannot mint another budget or factual action",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-transport.test.ts",
+          "test": "F2 actual runtime transport rejects AI/manual/UI/human-looking/generic/self-accept across every reality write owner",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-07",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "9 output drivers: Wiki, Resume, Greeting, Preparation, FinalReview, Research, Offer, Promotion, Simulation; actual owner R1→R2 rejects final Apply atomically",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 resume output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 greeting output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 preparation output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 review output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 research output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 offer output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 promotion output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 Wiki output rejects actual Transcript R1→R2 at final Apply without owner, state or receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 Simulation return rejects corrected selected Transcript R1→R2 without manufacturing personal fact",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-08",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "unrelated Wiki item / Resume block preserve applicability",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "test": "RV-P1-03 held Apply protects its block; remote-only unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "test": "RV-P1-03 held Apply protects its block; remote-and-local unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "test": "local dependency sets keep A applicable after unrelated Y edit, while another change to A conflicts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P1-03 second-window unrelated-block changes are resolved by actual fine-grained Apply and stale full-document autosave cannot overwrite",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-09",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "selected Research group one conflict rolls all back with exact proposal ID; independent company group succeeds",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g5-product-edges.test.ts",
+          "test": "AI groups roll back with the exact conflict item, and purging Offer or its actual Raw never revives task bodies",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P0-01 one Research conflict rolls selected group back while another owner group remains applicable",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-10",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "actual context A+B, model citation B only; trusted A stays in adopted output and current permissions",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P1-04 actual A+B with citation only B survives two adopted summaries and cached read/receipt revocation",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-11",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "actual adopted summary-of-summary and cached task/receipt current-read restriction; unregistered subtask cannot expand authority/budget",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/g4-ai-controller.test.ts",
+          "test": "summary -> cached summary inherits sensitive actual A even if a provider only cites public B",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 unregistered model subtask/manual/authorization/self-accept requests cannot mint another budget or factual action",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P1-04 actual A+B with citation only B survives two adopted summaries and cached read/receipt revocation",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-12",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "actual material Raw overwrite rejected and bytes unchanged; Transcript R1→R2 allowed",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-transport.test.ts",
+          "test": "RV-P1-07 evidence Raw has no ordinary overwrite; Transcript can correct and real Review without Search produces Research while Simulation cannot",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-13",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "actual real FinalReview no Search -> pending Research; Simulation FinalReview cannot enter real Research",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-transport.test.ts",
+          "test": "RV-P1-07 evidence Raw has no ordinary overwrite; Transcript can correct and real Review without Search produces Research while Simulation cannot",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-14",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "real SQLite page quota reaches SQLITE_FULL during Proposal settle; no partial Proposal/owner success",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "F2 AI/Proposal storage reaches actual SQLITE_FULL quota and never reports success or partially stores proposals",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-15",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "held actual Apply, protected same block, unrelated live input, actual second-owner intent; stale full-document save rejected",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "test": "RV-P1-03 held Apply protects its block; remote-only unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "test": "RV-P1-03 held Apply protects its block; remote-and-local unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P1-03 second-window same-block changes are resolved by actual fine-grained Apply and stale full-document autosave cannot overwrite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "test": "RV-P1-03 second-window unrelated-block changes are resolved by actual fine-grained Apply and stale full-document autosave cannot overwrite",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-16",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "adjacent human-before/AI/human-after three Undo groups; history cancel keeps session; G5 prior bold and accepted Proposal regression",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/g5-resume-ai-undo-ui.test.ts",
+          "test": "Resume toolbar undo waits for accepted AI content to join history, retaining preceding manual bold and revision",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g5-resume-ai-undo-ui.test.ts",
+          "test": "Resume keyboard undo waits for accepted AI content to join history, retaining preceding manual bold and revision",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "test": "RV-P1-03 immediately adjacent human-before / AI / human-after have separate Undo groups and history cancel retains the session",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume-session.test.ts",
+          "test": "named version freezes and previews plain text, bold, italic and list marks after later editing",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume.test.ts",
+          "test": "autosave creates no version; named version freezes original revisions and PDF; restore never rewinds Profile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "F2-17",
+      "status": "PASS_SUPPORTED_LOCAL_PATHS",
+      "actual": "stale Resume/Profile revisions reject export; late PDF binds old frozen content and Profile; complete snapshot retains marks",
+      "commandRef": "regression",
+      "exitCode": 0,
+      "evidence": [
+        {
+          "file": "tests/resume-session.test.ts",
+          "test": "named version freezes and previews plain text, bold, italic and list marks after later editing",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-transport.test.ts",
+          "test": "RV-P1-03 frozen export rejects stale Resume/Profile and late PDF retains original two revisions and marks",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume-artifacts.test.ts",
+          "test": "a held PDF commits its original owner, exact bytes and frozen Profile; GC and restart retain it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume.test.ts",
+          "test": "autosave creates no version; named version freezes original revisions and PDF; restore never rewinds Profile",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "file": "tests/g4-ai-controller.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "stop closes utility handoff immediately even when the writer intent is still blocked",
+          "status": "passed"
+        },
+        {
+          "name": "a purge of actual A closes dispatch while its intent is still waiting, without closing unrelated B",
+          "status": "passed"
+        },
+        {
+          "name": "summary -> cached summary inherits sensitive actual A even if a provider only cites public B",
+          "status": "passed"
+        },
+        {
+          "name": "a failed purge pause requires a new operation authorization and cannot reopen a late A through B authorization",
+          "status": "passed"
+        },
+        {
+          "name": "a provider ignoring abort cannot persist its late body after synchronous source pause",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/g5-resume-ai-undo-ui.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "Resume toolbar undo waits for accepted AI content to join history, retaining preceding manual bold and revision",
+          "status": "passed"
+        },
+        {
+          "name": "Resume keyboard undo waits for accepted AI content to join history, retaining preceding manual bold and revision",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/g5-resume-ai-unknown-ui.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "real Resume UI retains unrelated live input and affected-block lock through missing receipt, then continues exactly the original decision",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/g6-ai-control-ui.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "F2 control Contract distinguishes immediate closed admission from an uncommitted original command",
+          "status": "passed"
+        },
+        {
+          "name": "F2 held writer stop synchronously closes admission and preserves the original command identity",
+          "status": "passed"
+        },
+        {
+          "name": "F2 wiki real UI keeps original stop identity through held persistence, receipt read failure and receipt_missing",
+          "status": "passed"
+        },
+        {
+          "name": "F2 product real UI keeps original stop identity through held persistence, receipt read failure and receipt_missing",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/g6-resume-continuity-ui.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "RV-P1-03 held Apply protects its block; remote-only unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P1-03 held Apply protects its block; remote-and-local unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P1-03 immediately adjacent human-before / AI / human-after have separate Undo groups and history cancel retains the session",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/resume-session.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "named version freezes and previews plain text, bold, italic and list marks after later editing",
+          "status": "passed"
+        },
+        {
+          "name": "a failed document search does not stop font layout autosave and its actual owner receipt",
+          "status": "passed"
+        },
+        {
+          "name": "restoring a frozen body keeps its success notice and later layout changes still autosave",
+          "status": "passed"
+        },
+        {
+          "name": "invalid live editor content blocks layout autosave, version freezing and leaving until corrected",
+          "status": "passed"
+        },
+        {
+          "name": "committed version remains saved when history reads fail, and explicit reread reveals the real version",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g4-ai-real-seams.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "actual Transcript owner R1 -> R2 causes final Apply to reject all Wiki / AI writes and receipts",
+          "status": "passed"
+        },
+        {
+          "name": "a synchronous purge pause closes a held real writer response before the marker and drain while unrelated B still completes",
+          "status": "passed"
+        },
+        {
+          "name": "candidate validation accepts valid pending/accepted/stale/purged history and rejects bad JSON, row links and lost actual provenance",
+          "status": "passed"
+        },
+        {
+          "name": "AI restore relation metadata exposes nonexistent closed sources and Project targets without bodies, and accepts legitimate source purge history",
+          "status": "passed"
+        },
+        {
+          "name": "explicit retry does not create another unbounded preview while the previous new request is awaiting authorization",
+          "status": "passed"
+        },
+        {
+          "name": "actual independent Task B keeps its identity and pending result when unknown Task A returns late without human Apply",
+          "status": "passed"
+        },
+        {
+          "name": "real SQLite reopening preserves pending proposals for new human Apply but does not restore old execution permission",
+          "status": "passed"
+        },
+        {
+          "name": "actual Context A survives missing citation and flows into adopted Wiki authority and the purge impact projection",
+          "status": "passed"
+        },
+        {
+          "name": "adopted actual A authority reconstructs its public Transcript locator after restart even when only B remains in citation links",
+          "status": "passed"
+        },
+        {
+          "name": "a real persistence marker rejects late output, and owner purge plus runtime purge leaves only body-free state",
+          "status": "passed"
+        },
+        {
+          "name": "an unrelated real Wiki Y edit leaves A valid through actual public owner ports and the same SQLite transaction",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g4-ai-runtime.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "Wiki first task previews exact context then requires human authorization and one atomic human acceptance",
+          "status": "passed"
+        },
+        {
+          "name": "source permission revocation also closes cached preview/proposal/receipt bodies, not just next send",
+          "status": "passed"
+        },
+        {
+          "name": "real browser/Contract/Runtime/SQLite/fake Provider shows exact preview and preserves edited proposal on failed Apply",
+          "status": "passed"
+        },
+        {
+          "name": "ignore stays pending, rejection ends only that proposal, and edit-accept writes the explicit new content",
+          "status": "passed"
+        },
+        {
+          "name": "zero changes is successful completion; malformed citation fails with no repaired proposal or extra request",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-03 purge removes all task bodies and receipts, and late output cannot resurrect sensitive A",
+          "status": "passed"
+        },
+        {
+          "name": "read permission is separate from egress, and current human permission is rechecked inside acceptance",
+          "status": "passed"
+        },
+        {
+          "name": "local dependency sets keep A applicable after unrelated Y edit, while another change to A conflicts",
+          "status": "passed"
+        },
+        {
+          "name": "pending recovery preserves proposals but no old authorization capability or automatic provider request",
+          "status": "passed"
+        },
+        {
+          "name": "outcome_unknown A retains budget; explicit B has new identity and late A never overwrites B or applies",
+          "status": "passed"
+        },
+        {
+          "name": "a Wiki mutation followed by a storage failure rolls back Wiki, proposal state and both receipts",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 real Transcript R1 -> R2 rejects the whole final Apply without a receipt or Wiki write",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g5-product-controls.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "product task stop/resume requires a new exact grant and shared remaining budget; ignore/reject/edited draft have distinct terminal effects",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g5-product-edges.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "AI groups roll back with the exact conflict item, and purging Offer or its actual Raw never revives task bodies",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g5-product-policies.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "controlled product tasks use real owners: preparation/review, atomic Research and promotion, selective simulation return and Offer analysis",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g5-product-resume.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "Resume product task uses real current owner, excludes managed identity, preserves unrelated edits and applies a proposal only once",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g6-ai-failures.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "F2 product unknown A permits exactly one explicitly prepared B awaiting its own authorization",
+          "status": "passed"
+        },
+        {
+          "name": "F2 credential generation change after handoff rejects an ignoring-abort provider late body",
+          "status": "passed"
+        },
+        {
+          "name": "F2 unknown A, explicit operation B and late A keep independent bodies and shared spent budget",
+          "status": "passed"
+        },
+        {
+          "name": "F2 ignoring-abort late output after stop never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "name": "F2 ignoring-abort late output after revoke never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "name": "F2 ignoring-abort late output after source-purge never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "name": "F2 ignoring-abort late output after source-pause never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "name": "F2 ignoring-abort late output after provider-disable never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "name": "F2 ignoring-abort late output after backend-shutdown never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "name": "F2 provider disable while SQLite intent is awaiting cannot hand off, and new generation cannot reuse the original grant",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 resume output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 greeting output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 preparation output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 review output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 research output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 offer output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 promotion output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "F2 AI/Proposal storage reaches actual SQLITE_FULL quota and never reports success or partially stores proposals",
+          "status": "passed"
+        },
+        {
+          "name": "F2 derived summary/cache provenance rechecks current egress of omitted sensitive A at dispatch",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 one Research conflict rolls selected group back while another owner group remains applicable",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P1-03 second-window same-block changes are resolved by actual fine-grained Apply and stale full-document autosave cannot overwrite",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P1-03 second-window unrelated-block changes are resolved by actual fine-grained Apply and stale full-document autosave cannot overwrite",
+          "status": "passed"
+        },
+        {
+          "name": "F2 unregistered model subtask/manual/authorization/self-accept requests cannot mint another budget or factual action",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P1-04 actual A+B with citation only B survives two adopted summaries and cached read/receipt revocation",
+          "status": "passed"
+        },
+        {
+          "name": "F2 source read revocation after handoff discards actual returned output, including prepared cache and receipts",
+          "status": "passed"
+        },
+        {
+          "name": "F2 actual SQLite close/reopen changes backend generation, keeps unknown budget and never resurrects grants or late old producer bodies",
+          "status": "passed"
+        },
+        {
+          "name": "F2 unknown operation spends the last root request; explicit retry and resume cannot reset exhausted budget",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 Wiki output rejects actual Transcript R1→R2 at final Apply without owner, state or receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P0-01 Simulation return rejects corrected selected Transcript R1→R2 without manufacturing personal fact",
+          "status": "passed"
+        },
+        {
+          "name": "F2 egress revocation after handoff closes actual-input followup and discards an ignoring-abort provider late body",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/g6-ai-transport.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "F2 actual runtime transport rejects AI/manual/UI/human-looking/generic/self-accept across every reality write owner",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P1-03 frozen export rejects stale Resume/Profile and late PDF retains original two revisions and marks",
+          "status": "passed"
+        },
+        {
+          "name": "RV-P1-07 evidence Raw has no ordinary overwrite; Transcript can correct and real Review without Search produces Research while Simulation cannot",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/resume-artifacts.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "a held PDF commits its original owner, exact bytes and frozen Profile; GC and restart retain it",
+          "status": "passed"
+        },
+        {
+          "name": "invalid PDF and explicit print failure cannot create a completed version or retained blob",
+          "status": "passed"
+        },
+        {
+          "name": "reconnect or backend restart fails pending jobs, and forged or retired sessions cannot complete a fresh job",
+          "status": "passed"
+        },
+        {
+          "name": "the same command UUID in Materials and Resume remains two isolated owner receipts",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "tests/integration/resume.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "current Resume composes sole current Profile, survives reopening and guards dirty identity",
+          "status": "passed"
+        },
+        {
+          "name": "autosave creates no version; named version freezes original revisions and PDF; restore never rewinds Profile",
+          "status": "passed"
+        },
+        {
+          "name": "failed PDF completion remains failed after recovery and cannot masquerade as named version",
+          "status": "passed"
+        },
+        {
+          "name": "foreign version is not accessible and PDF retention failure rolls back completed version and receipt",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "frozen": {
+    "docs/product-spec": {
+      "unchanged": true,
+      "count": 12,
+      "files": [
+        {
+          "file": "docs/product-spec/SHA256SUMS.txt",
+          "baselineSha256": "cc2f737350e2378801860e8b861fb9850371ef15a67764f27672697a8d364527",
+          "currentSha256": "cc2f737350e2378801860e8b861fb9850371ef15a67764f27672697a8d364527",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/audit/R1-RECONCILIATION.md",
+          "baselineSha256": "be13e01e36e2867e198b8f4e028657d413eb02bfa0fbedd27d6f788022c46597",
+          "currentSha256": "be13e01e36e2867e198b8f4e028657d413eb02bfa0fbedd27d6f788022c46597",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/audit/R2-FREEZE-REVIEW.md",
+          "baselineSha256": "77ea51ff4663afd3987cdf6f345bcb063bce1c9ffc0eb0593e16c425d3a8a26e",
+          "currentSha256": "77ea51ff4663afd3987cdf6f345bcb063bce1c9ffc0eb0593e16c425d3a8a26e",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/audit/RECONCILIATION.md",
+          "baselineSha256": "854ca619dd0541e66588e8137c6fc3b4790406a7adb857ac769d7904afa32a09",
+          "currentSha256": "854ca619dd0541e66588e8137c6fc3b4790406a7adb857ac769d7904afa32a09",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/ACCEPTANCE.md",
+          "baselineSha256": "66aae47a376b0fd62f774739d304bf91058a97ea4662c37be6602d56a47c66ee",
+          "currentSha256": "66aae47a376b0fd62f774739d304bf91058a97ea4662c37be6602d56a47c66ee",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/AI.md",
+          "baselineSha256": "3ee7fa44b1d671779b5f6f61d1a65d8b221112511823085e5348347846ef492a",
+          "currentSha256": "3ee7fa44b1d671779b5f6f61d1a65d8b221112511823085e5348347846ef492a",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/DOMAIN.md",
+          "baselineSha256": "a356182edbc9aa1a350f8ad010dc83c18a69d6e614ca492f57cdf1ab1320f463",
+          "currentSha256": "a356182edbc9aa1a350f8ad010dc83c18a69d6e614ca492f57cdf1ab1320f463",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/JOURNEYS.md",
+          "baselineSha256": "dfa9c5314403d68453e514860c309bd4bebdcb97e0978b536e614d6364eb6ace",
+          "currentSha256": "dfa9c5314403d68453e514860c309bd4bebdcb97e0978b536e614d6364eb6ace",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/MIGRATION.md",
+          "baselineSha256": "dd3191d34ac5d8ecdce5127168d0a9f1724730c1d1752cc322194dba4995f0e5",
+          "currentSha256": "dd3191d34ac5d8ecdce5127168d0a9f1724730c1d1752cc322194dba4995f0e5",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/PRODUCT.md",
+          "baselineSha256": "fd74055806a56a4375eeae4a5a1ae41e2638aebc0b1588169e3284869f4b0c46",
+          "currentSha256": "fd74055806a56a4375eeae4a5a1ae41e2638aebc0b1588169e3284869f4b0c46",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/README.md",
+          "baselineSha256": "2628c165a246c4bef2a63b74e26a8bb78a1b8a015e0aafe23a6f74d1e4eeca8b",
+          "currentSha256": "2628c165a246c4bef2a63b74e26a8bb78a1b8a015e0aafe23a6f74d1e4eeca8b",
+          "unchanged": true
+        },
+        {
+          "file": "docs/product-spec/rebuild-spec/UX.md",
+          "baselineSha256": "931410fde8726b8ef14374923856592a82e8b13122cd628a329557f22cee54be",
+          "currentSha256": "931410fde8726b8ef14374923856592a82e8b13122cd628a329557f22cee54be",
+          "unchanged": true
+        }
+      ]
+    },
+    "docs/architecture": {
+      "unchanged": true,
+      "count": 8,
+      "files": [
+        {
+          "file": "docs/architecture/ADR/001-LOCAL-TRANSACTIONS-AND-OWNERSHIP.md",
+          "baselineSha256": "e9b1b81406b556cc6b722c4b83e430ca78bd098901003207ee64746c3c2f6250",
+          "currentSha256": "e9b1b81406b556cc6b722c4b83e430ca78bd098901003207ee64746c3c2f6250",
+          "unchanged": true
+        },
+        {
+          "file": "docs/architecture/ADR/002-DOCUMENTS-SOURCES-AND-FROZEN-HISTORY.md",
+          "baselineSha256": "399a10cb0e42feba44f76f800674cb2825d5360b1a812f8e8245e1d2b50ddd9a",
+          "currentSha256": "399a10cb0e42feba44f76f800674cb2825d5360b1a812f8e8245e1d2b50ddd9a",
+          "unchanged": true
+        },
+        {
+          "file": "docs/architecture/ADR/003-AUTHORITY-IS-NOT-RECOVERED-CONTENT.md",
+          "baselineSha256": "f731ddbaab767cf1147e52351b2d112e371d392872e6a58166d84c78aaa2cfde",
+          "currentSha256": "f731ddbaab767cf1147e52351b2d112e371d392872e6a58166d84c78aaa2cfde",
+          "unchanged": true
+        },
+        {
+          "file": "docs/architecture/AI-RUNTIME.md",
+          "baselineSha256": "e6b56f05a6ae9b2fa5e5cafd41507574bbc017afc273c80bb55c5676eddb0277",
+          "currentSha256": "e6b56f05a6ae9b2fa5e5cafd41507574bbc017afc273c80bb55c5676eddb0277",
+          "unchanged": true
+        },
+        {
+          "file": "docs/architecture/ARCHITECTURE.md",
+          "baselineSha256": "ce3126f76975648d9af14389e5c01512309b7a801953579d8ef3ccd1747bdb49",
+          "currentSha256": "ce3126f76975648d9af14389e5c01512309b7a801953579d8ef3ccd1747bdb49",
+          "unchanged": true
+        },
+        {
+          "file": "docs/architecture/DATA.md",
+          "baselineSha256": "f9fa74b31f3344ace997e15b721848666d2dc5e895e33f6c9eef07c220349605",
+          "currentSha256": "f9fa74b31f3344ace997e15b721848666d2dc5e895e33f6c9eef07c220349605",
+          "unchanged": true
+        },
+        {
+          "file": "docs/architecture/DELIVERY.md",
+          "baselineSha256": "cc73f21585b44740c553ec8bf63778440ef8cad3b069e7b443732830f06ac702",
+          "currentSha256": "cc73f21585b44740c553ec8bf63778440ef8cad3b069e7b443732830f06ac702",
+          "unchanged": true
+        },
+        {
+          "file": "docs/architecture/MODULES.md",
+          "baselineSha256": "c2e0739b22ed8805b05baf09c2700175c642374148cf007017984e144109d811",
+          "currentSha256": "c2e0739b22ed8805b05baf09c2700175c642374148cf007017984e144109d811",
+          "unchanged": true
+        }
+      ]
+    }
+  },
+  "limitations": {
+    "trustedProviderConfigLifecycle": "NOT RUN HERE: root owns Main Secret/provider lifecycle bridge; controller setProviderBinding exercised with controlled fake only",
+    "realSqlBusyControlReturn": "NOT RUN HERE: root owns production runtime quick return/original receipt wiring; frontend consumes controlled transport replies over real owner fixture",
+    "subtaskScheduler": "NOT IMPLEMENTED / NOT RUN: no public scheduler capability exists; unsupported ai.subtask denied, actual supported derived-context chain and root budget tested",
+    "twoOsWindows": "NOT RUN: concurrent window B intent is a real owner command while actual browser window A Apply is held; not two native Electron windows",
+    "pdfRendering": "frozen bytes/revisions/marks and existing rendered HTML/version-preview regression tested; new late-PDF test uses synthetic bytes, not standalone packaged Chromium typography evidence",
+    "packagedApp": "NOT RUN HERE: final normal arm64/package/native rebuild belongs integration root",
+    "externalProviderSearchFeishu": "NOT TESTED",
+    "developerIdNotarizationX64": "READY / NOT RUN",
+    "oldCareer": "NOT READ"
+  }
+}
