@@ -34,4 +34,16 @@ Wiki 自己的知识表达，有范围、修订、状态及可选来源引用。
 **ResumeVersion**：
 人工命名、冻结当时内容及 PDF 的版本；自动保存不创建它。 Frozen DM-22。
 
+**ResearchItem**：
+归 CompanyResearch 或 OpportunityResearch 的稳定研究条目；陈述性质、支持证据、用户确认、独立核验与当前有效性分别表达。Frozen DM-08–10。
+
+**Promotion**：
+用户明确把机会研究条目提升到公司共享范围；公司成为通用正文唯一 owner，原机会只保留引用或不同含义的补充。Frozen DM-08。
+
+**InterviewSession**：
+一次已确认存在的真实面试轮次；排期、改期和待重约不改变身份，完成事实与日期完整度分开。Frozen DM-26–29、37。
+
+**Offer acceptance basis**：
+用户接受时的不可变条件依据，包含已知条件、未知项及真实原件或缺失说明；后来条件变化不覆盖旧依据。Frozen DM-31。
+
 定义及时间/纠错规则以 [Frozen DOMAIN](docs/product-spec/rebuild-spec/DOMAIN.md) 为准。

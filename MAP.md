@@ -4,7 +4,7 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0 技术可行性验证已 PASS，真实 macOS 中文 IME 已由用户人工验收；G1 已 PASS，G1 已建立个人独立 Raw 的本地选择、预览、确认保存和回读；G2 第一批 W/E/P/O/R/U 人工业务切片已 PASS，Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。不启动 AI Runtime、不进入 G3。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，本轮未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。当前已授权 G3 Research / Interview / Offer 人工子模块；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。不启动 AI Runtime、不进入 G4。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
 
 ## 冻结输入与阅读入口
 
