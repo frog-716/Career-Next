@@ -8,3 +8,8 @@ export function validateCandidate(db:Database.Database):void {
  for(const row of db.prepare('SELECT id,communication_id,event_json FROM opportunity_communication_history').all() as {id:string;communication_id:string;event_json:string}[]){const value=History.parse(JSON.parse(row.event_json));const current=items.get(row.communication_id);if(value.id!==row.id||value.communicationId!==row.communication_id||!current||value.revision>current.revision)throw Error('invalid_candidate');}
  for(const row of db.prepare('SELECT command_id,communication_id FROM opportunity_communication_commands').all() as {command_id:string;communication_id:string}[]){z.uuid().parse(row.command_id);z.uuid().parse(row.communication_id);if(!items.has(row.communication_id))throw Error('invalid_candidate');}
 }
+export function candidateRelations(db:Database.Database):{owner:string;objectId:string;kind:'object'|'source'}[]{
+ const relations:{owner:string;objectId:string;kind:'object'|'source'}[]=[];
+ for(const row of db.prepare('SELECT body_json FROM opportunity_communication').all() as {body_json:string}[]){const value=Communication.parse(JSON.parse(row.body_json));relations.push({owner:'opportunity',objectId:value.opportunityId,kind:'object'});if(value.sentMaterial?.kind==='retained'&&value.sentMaterial.snapshot){relations.push({owner:'resume',objectId:value.sentMaterial.snapshot.resumeId,kind:'object'},{owner:'opportunity',objectId:value.sentMaterial.snapshot.opportunityId,kind:'object'});}}
+ return relations;
+}

@@ -6,3 +6,8 @@ export function validateCandidate(db:Database.Database):void {
  for(const value of sessions.values())if(value.kind==='simulation'){const real=value.realRoundId?sessions.get(value.realRoundId):undefined;if(!real||real.kind!=='real'||real.opportunityId!==value.opportunityId)throw Error('invalid_candidate');}
  for(const row of db.prepare('SELECT id,session_id,body FROM interview_history').all() as {id:string;session_id:string;body:string}[]){const value=History.parse(JSON.parse(row.body));if(value.id!==row.id||value.sessionId!==row.session_id||!sessions.has(value.sessionId))throw Error('invalid_candidate');}
 }
+export function candidateRelations(db:Database.Database):{owner:string;objectId:string;kind:'object'|'source'}[]{
+ const relations:{owner:string;objectId:string;kind:'object'|'source'}[]=[];
+ for(const row of db.prepare('SELECT body FROM interview_sessions').all() as {body:string}[]){const value=Session.parse(JSON.parse(row.body));relations.push({owner:'opportunity',objectId:value.opportunityId,kind:'object'});if(value.kind==='simulation'&&value.realRoundId)relations.push({owner:'interview',objectId:value.realRoundId,kind:'object'});}
+ return relations;
+}

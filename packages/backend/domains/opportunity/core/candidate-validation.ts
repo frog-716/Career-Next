@@ -6,3 +6,6 @@ export function validateCandidate(db:Database.Database):void {
  for(const row of db.prepare('SELECT id,opportunity_id,revision,history_json FROM opportunity_core_history').all() as {id:string;opportunity_id:string;revision:number;history_json:string}[]){const value=History.parse(JSON.parse(row.history_json));const current=opportunities.get(row.opportunity_id);if(value.id!==row.id||value.opportunityId!==row.opportunity_id||value.revision!==row.revision||!current||row.revision>current.revision)throw Error('invalid_candidate');events.set(value.id,value);}
  for(const value of events.values())if(value.correctedEventId&&events.get(value.correctedEventId)?.opportunityId!==value.opportunityId)throw Error('invalid_candidate');
 }
+export function candidateRelations(db:Database.Database):{owner:string;objectId:string;kind:'object'|'source'}[]{
+ return (db.prepare('SELECT content_json FROM opportunity_core').all() as {content_json:string}[]).map(row=>({owner:'company',objectId:Opportunity.parse(JSON.parse(row.content_json)).companyId,kind:'object'}));
+}

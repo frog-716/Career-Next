@@ -1,9 +1,19 @@
 import type Database from 'better-sqlite3';
 import {Owner,Item,History,Reference} from '../../../../contracts/opportunity/research/schema';
+import type {SourceRef} from '../../../../contracts/common/source-ref';
 export function validateCandidate(db:Database.Database):void {
  const documents=new Set<string>();const items=new Map<string,Item>();const histories=new Map<string,History>();
  for(const row of db.prepare('SELECT owner_kind,owner_id,revision FROM research_documents').all() as {owner_kind:string;owner_id:string;revision:number}[]){const owner=Owner.parse({kind:row.owner_kind,id:row.owner_id});if(!Number.isSafeInteger(row.revision)||row.revision<1)throw Error('invalid_candidate');documents.add(`${owner.kind}:${owner.id}`);}
  for(const row of db.prepare('SELECT id,owner_kind,owner_id,revision,item_json FROM research_items').all() as {id:string;owner_kind:string;owner_id:string;revision:number;item_json:string}[]){const value=Item.parse(JSON.parse(row.item_json));if(value.id!==row.id||value.owner.kind!==row.owner_kind||value.owner.id!==row.owner_id||value.revision!==row.revision||!documents.has(`${value.owner.kind}:${value.owner.id}`))throw Error('invalid_candidate');items.set(value.id,value);}
  for(const row of db.prepare('SELECT item_id,revision,history_json FROM research_history').all() as {item_id:string;revision:number;history_json:string}[]){const value=History.parse(JSON.parse(row.history_json));const current=items.get(row.item_id);if(!current||value.item.id!==row.item_id||value.item.revision!==row.revision||row.revision>current.revision)throw Error('invalid_candidate');histories.set(`${row.item_id}:${row.revision}`,value);}
  for(const row of db.prepare('SELECT opportunity_id,item_id,origin_revision,company_id FROM research_references').all() as {opportunity_id:string;item_id:string;origin_revision:number;company_id:string}[]){const value=Reference.parse({itemId:row.item_id,originRevision:row.origin_revision,owner:{kind:'company',id:row.company_id},originOwner:{kind:'opportunity',id:row.opportunity_id}});const current=items.get(value.itemId);const origin=histories.get(`${value.itemId}:${value.originRevision}`);if(!current||current.owner.kind!=='company'||current.owner.id!==value.owner.id||origin?.item.owner.kind!=='opportunity'||origin.item.owner.id!==value.originOwner.id)throw Error('invalid_candidate');}
+}
+export function candidateRelations(db:Database.Database):{owner:string;objectId:string;kind:'object'|'source';source?:SourceRef}[]{
+ const relations:{owner:string;objectId:string;kind:'object'|'source';source?:SourceRef}[]=[];
+ const append=(value:Item)=>{relations.push({owner:value.owner.kind,objectId:value.owner.id,kind:'object'});for(const link of value.sources)relations.push({owner:link.ref.owner,objectId:link.ref.objectId,kind:'source',source:link.ref});};
+ for(const row of db.prepare('SELECT owner_kind,owner_id FROM research_documents').all() as {owner_kind:string;owner_id:string}[]){const value=Owner.parse({kind:row.owner_kind,id:row.owner_id});relations.push({owner:value.kind,objectId:value.id,kind:'object'});}
+ for(const row of db.prepare('SELECT item_json FROM research_items').all() as {item_json:string}[])append(Item.parse(JSON.parse(row.item_json)));
+ for(const row of db.prepare('SELECT history_json FROM research_history').all() as {history_json:string}[])append(History.parse(JSON.parse(row.history_json)).item);
+ for(const row of db.prepare('SELECT opportunity_id,company_id FROM research_references').all() as {opportunity_id:string;company_id:string}[])relations.push({owner:'opportunity',objectId:row.opportunity_id,kind:'object'},{owner:'company',objectId:row.company_id,kind:'object'});
+ return relations;
 }

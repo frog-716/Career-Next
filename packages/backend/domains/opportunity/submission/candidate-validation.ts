@@ -9,3 +9,9 @@ export function validateCandidate(db:Database.Database):void {
  for(const row of db.prepare('SELECT id,opportunity_id FROM opportunity_submission_purged').all() as {id:string;opportunity_id:string}[]){z.uuid().parse(row.id);z.uuid().parse(row.opportunity_id);if(items.has(row.id)||opportunities.has(row.opportunity_id)||tombstones.has(row.id))throw Error('invalid_candidate');tombstones.add(row.id);opportunities.add(row.opportunity_id);}
  for(const row of db.prepare('SELECT command_id,submission_id FROM opportunity_submission_commands').all() as {command_id:string;submission_id:string}[]){z.uuid().parse(row.command_id);z.uuid().parse(row.submission_id);if(!items.has(row.submission_id))throw Error('invalid_candidate');}
 }
+export function candidateRelations(db:Database.Database):{owner:string;objectId:string;kind:'object'|'source'}[]{
+ const relations:{owner:string;objectId:string;kind:'object'|'source'}[]=[];
+ for(const row of db.prepare('SELECT body_json FROM opportunity_submission').all() as {body_json:string}[]){const value=Submission.parse(JSON.parse(row.body_json));relations.push({owner:'opportunity',objectId:value.opportunityId,kind:'object'});if(value.resume.kind==='retained'&&value.resume.snapshot){relations.push({owner:'resume',objectId:value.resume.snapshot.resumeId,kind:'object'},{owner:'opportunity',objectId:value.resume.snapshot.opportunityId,kind:'object'});}}
+ for(const row of db.prepare('SELECT opportunity_id FROM opportunity_submission_purged').all() as {opportunity_id:string}[])relations.push({owner:'opportunity',objectId:row.opportunity_id,kind:'object'});
+ return relations;
+}
