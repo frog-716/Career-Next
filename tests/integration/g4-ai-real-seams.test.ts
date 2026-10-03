@@ -1,6 +1,7 @@
 import {afterEach,expect,it} from 'vitest';
+import Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {openWorkspace} from '../../packages/backend/platform/database/database';
@@ -10,7 +11,7 @@ import {createMaterialsStore} from '../../packages/backend/domains/materials/sto
 import {composeDomains} from '../../packages/backend/bootstrap/domain-registry';
 import {composeAiPorts} from '../../packages/backend/bootstrap/ai-composition';
 import {createPersistenceFence} from '../../packages/backend/platform/persistence/fence';
-import {createAiRuntime} from '../../packages/backend/ai-runtime/public';
+import {createAiRuntime,validateAiCandidate,sanitizeAiCandidate} from '../../packages/backend/ai-runtime/public';
 import type {SourceRef} from '../../packages/contracts/common/source-ref';
 import type {Task,ProviderOutput} from '../../packages/contracts/ai/schema';
 const resources:{close():void;root:string}[]=[];
@@ -37,6 +38,25 @@ it('actual Transcript owner R1 -> R2 causes final Apply to reject all Wiki / AI 
  const commandId=randomUUID();expect(f.runtime.handle({operation:'ai.decide',commandId,proposalId:proposal.id,action:'accept'},'human')).toEqual({kind:'failure',code:'stale'});
  expect(f.domains.wiki.read(a.id)).toMatchObject({body:'旧认识',revision:1});expect(f.domains.wiki.handle({operation:'receipt',commandId})).toEqual({kind:'receipt_missing'});expect(f.runtime.handle({operation:'ai.receipt',commandId},'human')).toEqual({kind:'receipt_missing'});
  const remaining=f.runtime.handle({operation:'ai.read',taskId:task.id},'human');expect(remaining.kind==='task'&&remaining.task.proposals[0]).toMatchObject({state:'pending',validity:'stale'});
+});
+it('candidate validation accepts valid pending/accepted/stale/purged history and rejects bad JSON, row links and lost actual provenance',async()=>{
+ const f=await fixture(),a=f.add('候选检查','旧内容'),task=f.prepare();const generated=f.generate(task,{proposals:[{kind:'edit',itemId:a.id,content:{title:'候选检查',body:'合法待审正文',nature:'observation'},reason:'候选恢复必须能复核闭合历史',citations:[f.source.objectId],unknowns:[]}]});
+ expect(()=>validateAiCandidate(f.db)).not.toThrow();const good=f.db.serialize();
+ const openCandidate=()=>{const file=path.join(f.root,`candidate-${randomUUID()}.sqlite`);writeFileSync(file,good);return new Database(file);};
+ const invalid=(mutate:(candidate:Database.Database)=>void)=>{const candidate=openCandidate();try{candidate.pragma('foreign_keys=OFF');mutate(candidate);expect(()=>validateAiCandidate(candidate)).toThrow('backup_ai_invalid');}finally{candidate.close();}};
+ invalid(candidate=>candidate.prepare('UPDATE ai_tasks SET data_json=? WHERE id=?').run('{',task.id));
+ invalid(candidate=>candidate.prepare('UPDATE ai_operations SET task_id=? WHERE id=?').run(randomUUID(),task.operations[0]!.id));
+ invalid(candidate=>{const proposal=structuredClone(generated.proposals[0]!);proposal.provenance=[];candidate.prepare('UPDATE ai_proposals SET data_json=? WHERE id=?').run(JSON.stringify(proposal),proposal.id);});
+ invalid(candidate=>{const proposal=structuredClone(generated.proposals[0]!);proposal.dependencies=[];candidate.prepare('UPDATE ai_proposals SET data_json=? WHERE id=?').run(JSON.stringify(proposal),proposal.id);});
+ const candidate=openCandidate();try{sanitizeAiCandidate(candidate);expect(()=>validateAiCandidate(candidate)).not.toThrow();}finally{candidate.close();}
+ const proposal=generated.proposals[0]!;expect(f.runtime.handle({operation:'ai.decide',commandId:randomUUID(),proposalId:proposal.id,action:'accept'},'human').kind).toBe('decided');expect(()=>validateAiCandidate(f.db)).not.toThrow();
+ const stale=f.prepare();f.generate(stale,{proposals:[{kind:'create',content:{title:'后来陈述','body':'R1旧建议',nature:'hypothesis'},reason:'当前来源变了但历史记录合法',citations:[f.source.objectId],unknowns:[]}]});
+ f.domains.interview.handle({operation:'interview.save-document',commandId:randomUUID(),id:f.source.objectId,expectedRevision:2,document:'transcript',text:'参与部分工作'});expect(()=>validateAiCandidate(f.db)).not.toThrow();
+ f.db.transaction(()=>{f.fence.markPurge([{owner:'interview',objectId:f.source.objectId}]);f.domains.interview.purge(f.source.objectId);f.runtime.purgeByReferences([f.source.objectId]);})();expect(()=>validateAiCandidate(f.db)).not.toThrow();
+});
+it('explicit retry does not create another unbounded preview while the previous new request is awaiting authorization',async()=>{
+ const f=await fixture(),task=f.prepare(),op=task.operations[0]!;f.runtime.handle({operation:'ai.authorize',commandId:randomUUID(),operationId:op.id,manifestDigest:op.manifestDigest},'human');f.runtime.prepareDispatch(op.id);f.runtime.markUnknown(op.id);
+ const retry=()=>f.runtime.handle({operation:'ai.retry-explicit',commandId:randomUUID(),taskId:task.id,acknowledgeUnknown:true},'human');expect(retry().kind).toBe('task');expect(retry()).toEqual({kind:'failure',code:'operation_pending'});
 });
 it('real SQLite reopening preserves pending proposals for new human Apply but does not restore old execution permission',async()=>{
  const f=await fixture(),a=f.add('持久当前认识','保存前正文'),task=f.prepare();
