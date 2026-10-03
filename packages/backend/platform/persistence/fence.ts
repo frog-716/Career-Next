@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
-import {open,type FileHandle} from 'node:fs/promises';
+import {open,rm,stat,type FileHandle} from 'node:fs/promises';
 import {z} from 'zod';
 export const persistenceMigration=`CREATE TABLE platform_purge_fences(owner TEXT NOT NULL,object_id TEXT NOT NULL,generation INTEGER NOT NULL DEFAULT 0,purged INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(owner,object_id));`;
 export interface PersistenceReference {owner:string;objectId:string;revision?:number}
@@ -23,18 +23,24 @@ export function createPersistenceFence(db:Database.Database,binding:{workspaceIn
 }
 /** Utility-side gate accepts a bounded writer RPC assertion. No DB handle crosses workers. */
 export function createPersistenceSinkGate(check:(token:PersistenceToken)=>void|Promise<void>) {
- type SinkState={token:PersistenceToken;tail:Promise<void>;closed:boolean;handle?:FileHandle;closing?:Promise<void>};const active=new Set<SinkState>(),revoked=new Set<string>(),blockedRefs=new Map<string,{floor:number;blocked:boolean}>();
+ type SinkState={token:PersistenceToken;tail:Promise<void>;closed:boolean;handle?:FileHandle;closing?:Promise<void>};const paths=new Map<string,PersistenceToken>(),active=new Set<SinkState>(),revoked=new Set<string>(),blockedRefs=new Map<string,{floor:number;blocked:boolean}>();
  const refKey=(ref:PersistenceReference)=>JSON.stringify([ref.owner,ref.objectId]);
  const tokenDenied=(token:PersistenceToken)=>revoked.has(token.producerId)||[...token.inputs,...token.targets].some(ref=>{const block=blockedRefs.get(refKey(ref));return block&&(block.blocked||ref.generation<block.floor);});
  const denied=(state:SinkState)=>state.closed||tokenDenied(state.token);
  function closeState(state:SinkState){state.closed=true;if(!state.closing)state.closing=(async()=>{await state.tail;const handle=state.handle;state.handle=undefined;try{if(handle){try{await handle.sync();}finally{await handle.close();}}}finally{active.delete(state);}})();return state.closing;}
- async function controlledSink(token:PersistenceToken,internalPath:string){PersistenceTokenSchema.parse(token);if(tokenDenied(token))throw Error('persistence_denied');await check(token);if(tokenDenied(token))throw Error('persistence_denied');const state:SinkState={token,tail:Promise.resolve(),closed:false};active.add(state);
- const opening=(async()=>{state.handle=await open(internalPath,'wx',0o600);await check(token);if(denied(state))throw Error('persistence_denied');})();state.tail=opening.catch(()=>{});
+ async function controlledSink(token:PersistenceToken,internalPath:string){PersistenceTokenSchema.parse(token);if(tokenDenied(token))throw Error('persistence_denied');await check(token);if(tokenDenied(token))throw Error('persistence_denied');
+ // Retain only existing controlled candidates; published paths have been renamed away.
+ if(paths.size>=1000){for(const filename of paths.keys())try{await stat(filename);}catch(error){if((error as {code?:string}).code==='ENOENT')paths.delete(filename);else throw error;}if(paths.size>=10000)throw Error('sink_capacity_exceeded');}
+ if(tokenDenied(token))throw Error('persistence_denied');
+ const state:SinkState={token,tail:Promise.resolve(),closed:false};active.add(state);
+ const opening=(async()=>{state.handle=await open(internalPath,'wx',0o600);paths.set(internalPath,token);await check(token);if(denied(state))throw Error('persistence_denied');})();state.tail=opening.catch(()=>{});
  try{await opening;}catch(error){await closeState(state);throw error;}
  async function close(){await closeState(state);}
  return {append(bytes:Uint8Array){if(bytes.byteLength>65536)return Promise.reject(Error('sink_chunk_exceeded'));const copy=Buffer.from(bytes);const operation=state.tail.then(async()=>{if(denied(state))throw Error('persistence_denied');await check(token);if(denied(state))throw Error('persistence_denied');await state.handle!.write(copy);await state.handle!.sync();});state.tail=operation.catch(()=>{});return operation;},close};}
  async function withLease<T>(token:PersistenceToken,work:()=>Promise<T>):Promise<T>{PersistenceTokenSchema.parse(token);const state:SinkState={token,tail:Promise.resolve(),closed:false};active.add(state);let finish!:()=>void;state.tail=new Promise<void>(resolve=>{finish=resolve;});try{await check(token);if(denied(state))throw Error('persistence_denied');return await work();}finally{state.closed=true;finish();active.delete(state);}}
+ async function drainAndDiscard(refs:readonly PersistenceReference[]){await drain(refs);for(const [filename,token] of paths)if(touches(token,refs)){await rm(filename,{force:true});paths.delete(filename);}}
  function allowRenewedProfile(generation:number){if(!Number.isSafeInteger(generation)||generation<2)throw Error('renewal_invalid');const key=refKey({owner:'profile',objectId:'current'}),block=blockedRefs.get(key);if(!block)return;if(!block.blocked&&generation===block.floor)return;if(generation<=block.floor)throw Error('renewal_stale');blockedRefs.set(key,{floor:generation,blocked:false});}
- return {controlledSink,withLease,allowRenewedProfile,revoke(producerId:string){revoked.add(producerId);for(const s of active)if(s.token.producerId===producerId)s.closed=true;},async drain(refs:readonly PersistenceReference[]){for(const ref of refs){const key=refKey(ref),previous=blockedRefs.get(key);const generations=[...active].flatMap(s=>[...s.token.inputs,...s.token.targets].filter(r=>r.owner===ref.owner&&r.objectId===ref.objectId).map(r=>r.generation));const floor=Math.max(previous?.blocked?previous.floor:(previous?.floor??0)+1,...generations.map(g=>g+1));blockedRefs.set(key,{floor,blocked:true});}const targets=[...active].filter(s=>touches(s.token,refs));for(const s of targets)s.closed=true;await Promise.all(targets.map(closeState));}};
+ return {controlledSink,withLease,allowRenewedProfile,drainAndDiscard,revoke(producerId:string){revoked.add(producerId);for(const s of active)if(s.token.producerId===producerId)s.closed=true;},drain};
+ async function drain(refs:readonly PersistenceReference[]){for(const ref of refs){const key=refKey(ref),previous=blockedRefs.get(key);const generations=[...active].flatMap(s=>[...s.token.inputs,...s.token.targets].filter(r=>r.owner===ref.owner&&r.objectId===ref.objectId).map(r=>r.generation));const floor=Math.max(previous?.blocked?previous.floor:(previous?.floor??0)+1,...generations.map(g=>g+1));blockedRefs.set(key,{floor,blocked:true});}const targets=[...active].filter(s=>touches(s.token,refs));for(const s of targets)s.closed=true;await Promise.all(targets.map(closeState));}
 }
 export type PersistenceFence=ReturnType<typeof createPersistenceFence>;

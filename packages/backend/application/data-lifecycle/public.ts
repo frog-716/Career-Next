@@ -5,6 +5,7 @@ import {durableJson,safeManagedPath,type ManagedCopy} from '../../platform/backu
 import type {PersistenceReference} from '../../platform/persistence/fence';
 const externalLimit='只能清除本应用受管理的本地副本；不能承诺撤回已发给 Provider、用户下载/发送、系统快照或其他机器副本。';
 export interface LifecyclePorts extends BackupPorts {
+ knownBlobIds?():readonly string[];
  targets?():Promise<{owner:string;objectId:string;label:string}[]>;
  impact(refs:readonly PersistenceReference[]):Promise<PurgeImpact>;
  markPurge(refs:readonly PersistenceReference[]):Promise<void>;
@@ -17,10 +18,18 @@ export interface LifecyclePorts extends BackupPorts {
 }
 export function createDataLifecycle(ports:LifecyclePorts){const backups=createBackupManager(ports),registry=backups.registry;const settingsFile=path.join(ports.root,'backup-settings.json');let settings=BackupSettings.parse(existsSync(settingsFile)?JSON.parse(readFileSync(settingsFile,'utf8')):{enabled:false,periodHours:24,retainCount:14});let running=false;
  const activeCopy=()=>registry.register({relativePath:path.relative(ports.root,ports.getActiveRoot())||'.',kind:'current_workspace',state:'ready'});
- function registerActive(){const active=activeCopy();for(const [directory,kind] of Object.entries({staging:'staging',blobs:'blobs',quarantine:'quarantine',cache:'cache',proposals:'proposals',summaries:'summaries'} as const))registry.register({relativePath:path.posix.join(active.relativePath,directory),kind,state:'ready',sourceCopyId:active.id});}
+ function registerActive(){const active=activeCopy();
+ // getActiveRoot is supplied only after Main validates the committed pointer.
+ // A crash after pointer replacement can leave the auxiliary copy kinds behind.
+ for(const other of registry.list())if(other.id!==active.id&&other.kind==='current_workspace')registry.update(other.id,{kind:'old_workspace'});
+ if(active.kind!=='current_workspace')registry.update(active.id,{kind:'current_workspace',state:'ready'});
+ for(const [directory,kind] of Object.entries({staging:'staging',blobs:'blobs',quarantine:'quarantine',cache:'cache',proposals:'proposals',summaries:'summaries'} as const))registry.register({relativePath:path.posix.join(active.relativePath,directory),kind,state:'ready',sourceCopyId:active.id});}
  registerActive();
  // Unknown residual directories are quarantined in the maintenance manifest before any access.
- for(const top of ['backups','workspaces',path.posix.join(activeCopy().relativePath,'recovery')]){const folder=path.join(ports.root,top);if(existsSync(folder))for(const child of readdirSync(folder)){const rel=top+'/'+child;if(!registry.list().some(c=>c.relativePath===rel)&&lstatSync(path.join(folder,child)).isDirectory())registry.register({relativePath:rel,kind:'quarantine',state:'failed'});}}
+ const startupStaging=path.posix.join(activeCopy().relativePath,'staging');
+ for(const top of ['backups','workspaces',path.posix.join(activeCopy().relativePath,'recovery'),startupStaging]){const folder=path.join(ports.root,top);if(existsSync(folder))for(const child of readdirSync(folder)){const rel=top+'/'+child;if(!registry.list().some(c=>c.relativePath===rel)&&(top===startupStaging||lstatSync(path.join(folder,child)).isDirectory()))registry.register({relativePath:rel,kind:'quarantine',state:'failed',...top===startupStaging?{sourceCopyId:activeCopy().id}:{}});}}
+ // Only the writer owner can identify protected blob incarnations; never guess from a filename.
+ if(ports.knownBlobIds){const known=new Set(ports.knownBlobIds()),top=path.posix.join(activeCopy().relativePath,'blobs'),folder=path.join(ports.root,top);if(existsSync(folder))for(const child of readdirSync(folder)){const relativePath=top+'/'+child;if(!known.has(child)&&!registry.list().some(copy=>copy.relativePath===relativePath))registry.register({relativePath,kind:'quarantine',state:'failed',sourceCopyId:activeCopy().id});}}
  function status(){const complete=registry.list().filter(c=>c.kind==='backup'&&c.state==='ready').sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),last=complete[0]?.createdAt;return Result.parse({kind:'data_status',settings,copies:registry.list(),activeWorkspace:activeCopy().relativePath,dataLocation:ports.getActiveRoot(),lastCompleteAt:last,pendingPurgeCount:pendingPurges().length,automaticDue:settings.enabled&&(!last||Date.now()-Date.parse(last)>=settings.periodHours*3600000),provider:'deterministic fake only; real provider not configured'});}
  async function locked<T>(work:()=>Promise<T>){if(running)throw Error('maintenance_busy');running=true;try{return await ports.maintenance(work);}finally{running=false;}}
  const planPath=(id:string)=>safeManagedPath(ports.root,'purge-control/'+id+'.json');
