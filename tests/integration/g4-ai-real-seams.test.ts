@@ -77,6 +77,23 @@ it('actual Context A survives missing citation and flows into adopted Wiki autho
  const list=f.domains.wiki.handle({operation:'list'});if(list.kind!=='list')throw Error();const adopted=list.items.find(item=>item.title==='混合输入的整理Z');expect(adopted?.trustedProvenance?.some(ref=>ref.owner==='interview'&&ref.objectId===a.objectId)).toBe(true);expect(adopted?.verification).toBe('not_verified');
  expect(f.domains.wiki.referencing({owner:'interview',objectId:a.objectId}).map(item=>item.id)).toContain(adopted!.id);
 });
+it('adopted actual A authority reconstructs its public Transcript locator after restart even when only B remains in citation links',async()=>{
+ const f=await fixture(),a=f.source,b=f.transcript('实际B的补充文字稿',2),y=f.add('最初上下文Y','来自A的用户认识',[a]);
+ const initial=f.generate(f.prepare([b]),{proposals:[{kind:'create',content:{title:'持久来源链Z',body:'实际消费了A与B',nature:'observation'},reason:'解释引用只写B',citations:[b.objectId],unknowns:[]}]});
+ expect(f.runtime.handle({operation:'ai.decide',commandId:randomUUID(),proposalId:initial.proposals[0]!.id,action:'accept'},'human').kind).toBe('decided');
+ expect(f.domains.wiki.handle({operation:'edit',commandId:randomUUID(),id:y.id,expectedRevision:1,title:y.title,body:'用户改为无来源的新独立认识',scope:'personal',nature:'observation',sources:[],reason:'移除最初直接A支持链接',businessTime:{kind:'unknown'},change:'edited'}).kind).toBe('knowledge');
+ const entry=resources.find(item=>item.root===f.root)!;entry.close();const workspace=await openWorkspace(f.root,materialsMigration,releases);entry.close=workspace.close;
+ const identity={workspaceInstance:workspace.workspaceInstance,backendGeneration:randomUUID()},materials=createMaterialsStore(workspace.database,identity.workspaceInstance,identity.backendGeneration),domains=composeDomains(workspace.database,materials,{ai:{handle:()=>undefined},application:{handle:()=>undefined}}),fence=createPersistenceFence(workspace.database,identity),ports=composeAiPorts(domains,materials,f.root,identity,fence,()=>true),runtime=createAiRuntime(workspace.database,ports);
+ const listed=domains.wiki.handle({operation:'list'});if(listed.kind!=='list')throw Error();const z=listed.items.find(item=>item.title==='持久来源链Z')!;
+ expect(z.sources.map(link=>link.ref.objectId)).toEqual([b.objectId]);const inherited=z.trustedProvenance!.find(ref=>ref.objectId===a.objectId)!;expect(inherited).toMatchObject({owner:'interview',revision:1,scopeId:f.opportunity.opportunity.id});
+ // No source/task/Wiki snapshot has primed this new composition's in-memory locator cache for A.
+ expect(ports.sources.provenanceCurrent(inherited)).toMatchObject({revision:1,read:true,egress:true});
+ const prepared=runtime.handle({operation:'ai.prepare',commandId:randomUUID(),sources:[b],target:{scope:'personal'},budget:{requests:1,inputBytes:100000,outputBytes:10000}},'human');if(prepared.kind!=='task')throw Error(JSON.stringify(prepared));const op=prepared.task.operations[0]!;
+ expect(op.provenance.some(ref=>ref.objectId===a.objectId&&ref.scopeId===inherited.scopeId)).toBe(true);expect(runtime.handle({operation:'ai.authorize',commandId:randomUUID(),operationId:op.id,manifestDigest:op.manifestDigest},'human').kind).toBe('task');runtime.prepareDispatch(op.id);
+ runtime.settle(op.id,{proposals:[{kind:'create',content:{title:'再次整理Z2',body:'继承实际A来源的二次建议',nature:'hypothesis'},reason:'模型仍只说明B',citations:[b.objectId],unknowns:[]}]});const generated=runtime.handle({operation:'ai.read',taskId:prepared.task.id},'human');if(generated.kind!=='task')throw Error();expect(generated.task.proposals).toHaveLength(1);
+ expect(domains.interview.handle({operation:'interview.save-document',commandId:randomUUID(),id:a.objectId,expectedRevision:2,document:'transcript',text:'更正A原始事实'}).kind).toBe('saved');
+ expect(runtime.handle({operation:'ai.decide',commandId:randomUUID(),proposalId:generated.task.proposals[0]!.id,action:'accept'},'human')).toEqual({kind:'failure',code:'stale'});expect(domains.wiki.handle({operation:'list'})).toMatchObject({kind:'list',items:expect.not.arrayContaining([expect.objectContaining({title:'再次整理Z2'})])});
+});
 it('a real persistence marker rejects late output, and owner purge plus runtime purge leaves only body-free state',async()=>{
  const f=await fixture(),task=f.prepare(),operation=task.operations[0]!;expect(f.runtime.handle({operation:'ai.authorize',commandId:randomUUID(),operationId:operation.id,manifestDigest:operation.manifestDigest},'human').kind).toBe('task');f.runtime.prepareDispatch(operation.id);f.runtime.markProcessing(operation.id);
  f.db.transaction(()=>f.fence.markPurge([{owner:'interview',objectId:f.source.objectId}]))();
