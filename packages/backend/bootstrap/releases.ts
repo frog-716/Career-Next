@@ -1,3 +1,5 @@
+import {localSearchMigration} from '../platform/search/public';
+import {localSearchNotifications} from './local-search-migration';
 import {searchMigration} from '../ai-runtime/search/public';
 import {importTargetMigration} from '../domains/materials/public';
 import {draftMigration} from '../domains/opportunity/communication/public';
@@ -55,4 +57,7 @@ export const releases:readonly MigrationBatch[]=[{version:2,name:'002-g2-first-b
  {id:'ai.search.v1',dependencies:['ai.initial.v1'],sql:searchMigration},
  {id:'resume.provenance.v1',dependencies:['resume.initial.v1'],sql:resumeProvenanceMigration},
  {id:'ai.product.v1',dependencies:['ai.initial.v1'],sql:productMigration},
+]},{version:6,name:'006-g6-failure-gates',fragments:[
+ {id:'platform.local-search.v1',dependencies:['wiki.initial.v1','project.initial.v1','opportunity.initial.v1'],sql:localSearchMigration},
+ {id:'platform.local-search-notifications.v1',dependencies:['platform.local-search.v1'],sql:localSearchNotifications},
 ]}];

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol, utilityProcess, MessageChannelMain, dialog, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, utilityProcess, MessageChannelMain, dialog, Menu, safeStorage } from 'electron';
 import type { UtilityProcess, MessagePortMain, IpcMainInvokeEvent } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { readFile, mkdir, writeFile, rename, open } from 'node:fs/promises';
@@ -14,6 +14,9 @@ import {createManagedCopies,durableJson} from '../../../packages/backend/platfor
 import {Result as DataResult,PurgeNotification} from '../../../packages/contracts/application/schema';
 import {SentFileCandidate} from '../../../packages/contracts/opportunity/submission/file-selection';
 import { selectMaterial } from '../capabilities/select-material';
+import {createSecretVault} from '../capabilities/secret-vault';
+import {SecretInput} from '../../../packages/contracts/ai/secret-input';
+import {LocalSearchRequest,LocalSearchResult} from '../../../packages/contracts/application/local-search';
 app.setName('Career Next');
 // Standard Electron profile switch permits isolated data directories; never enables test capabilities.
 if(app.commandLine.hasSwitch('user-data-dir')) app.setPath('userData',path.resolve(app.commandLine.getSwitchValue('user-data-dir')));
@@ -32,15 +35,28 @@ function disconnect() {
 }
 function trusted(event:IpcMainInvokeEvent,handshake=false){const owner=BrowserWindow.fromWebContents(event.sender);if(!owner||!appWindows.has(owner)||event.senderFrame!==owner.webContents.mainFrame||event.senderFrame.url.split('#')[0]!==url||!handshake&&windowWorkspaces.get(owner.id)!==identity?.workspaceInstance)throw Error('invalid_capability');return owner;}
 function createAppWindow(){const owner=new BrowserWindow({width:850,height:720,webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true,devTools:false}});appWindows.add(owner);window=owner;owner.on('closed',()=>{appWindows.delete(owner);windowWorkspaces.delete(owner.id);if(!appWindows.size)void shutdown();else window=[...appWindows].at(-1)!;});owner.webContents.on('will-prevent-unload',event=>{const choice=dialog.showMessageBoxSync(owner,{type:'question',message:'还有未保存或待核对的输入',detail:'继续编辑可以保留当前输入；关闭或重新载入会丢弃尚未提交的内容。',buttons:['继续编辑','丢弃未保存输入并关闭或重新载入'],defaultId:0,cancelId:0,noLink:true});if(choice===1)event.preventDefault();else quitRequested=false;});owner.webContents.on('did-navigate',()=>{windowWorkspaces.delete(owner.id);});owner.webContents.setWindowOpenHandler(()=>({action:'deny'}));owner.webContents.on('will-navigate',event=>event.preventDefault());owner.webContents.on('will-frame-navigate',event=>event.preventDefault());owner.webContents.session.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));return owner;}
+async function validateActive(root:string,expected:string){
+ const check=utilityProcess.fork(path.join(__dirname,'workspace-check.cjs'),[root,expected],{serviceName:'Career Readonly Workspace Check',stdio:'ignore',allowLoadingUnsignedLibraries:false});
+ await new Promise<void>((resolve,reject)=>{let settled=false;const finish=(valid:boolean)=>{if(settled)return;settled=true;clearTimeout(timer);if(check.pid)try{process.kill(check.pid,'SIGKILL');}catch{};valid?resolve():reject(Error('active_pointer_invalid'));};const timer=setTimeout(()=>finish(false),1500);check.on('message',value=>finish(value?.valid===true));check.once('exit',()=>finish(false));});
+}
 async function connect(): Promise<RuntimeIdentity> {
   if(connecting) return connecting;
   connecting=(async()=>{
     disconnect();
-    const dataRoot=app.getPath('userData'),active=await activeWorkspace(dataRoot),root=active.root;
+    const dataRoot=app.getPath('userData');let recoveryBackup:string|undefined;let active:Awaited<ReturnType<typeof activeWorkspace>>;
+    try{active=await activeWorkspace(dataRoot);if(active.expected)await validateActive(active.root,active.expected);}catch{
+      // No business connection or egress is admitted until an explicit verified recovery choice.
+      const choices=createManagedCopies(dataRoot).list().filter(copy=>copy.kind==='backup'&&copy.state==='ready');
+      if(!choices.length)throw Error('recovery_selection_required');
+      const selected=await dialog.showMessageBox(window,{type:'warning',message:'资料指针不可用：当前处于恢复只读模式',detail:'尚未打开任何业务资料写连接。请选择一个完整备份，验证通过后才切换；不会按目录时间猜测资料库。',buttons:['保持只读',...choices.map(copy=>'验证并恢复备份 '+copy.createdAt)],defaultId:0,cancelId:0,noLink:true});
+      if(selected.response===0||!choices[selected.response-1])throw Error('recovery_selection_required');
+      recoveryBackup=choices[selected.response-1]!.id;active={root:path.join(dataRoot,'recovery',randomUUID()),initial:false};
+    }
+    const root=active.root;
     const copies=createManagedCopies(dataRoot),copy=copies.register({relativePath:path.relative(dataRoot,root),kind:'current_workspace',state:'candidate'});
     await mkdir(root,{recursive:true,mode:0o700});
     if(!backend?.pid) {
-      const child=utilityProcess.fork(path.join(__dirname,'utility.cjs'),[root,dataRoot],{serviceName:'Career Materials Backend',stdio:'pipe',allowLoadingUnsignedLibraries:false});
+      const child=utilityProcess.fork(path.join(__dirname,'utility.cjs'),[root,dataRoot,...recoveryBackup?[recoveryBackup]:[]],{serviceName:'Career Materials Backend',stdio:'pipe',allowLoadingUnsignedLibraries:false});
       backend=child;
       child.on('exit',()=>{ if(backend===child){ backend=undefined; disconnect(); } });
     }
@@ -60,7 +76,7 @@ async function connect(): Promise<RuntimeIdentity> {
     activePort.start();backend.postMessage({connect:true},[channel.port2]);
     const current=await ready;
     if(active.expected&&active.expected!==current.workspaceInstance)throw Error('active_pointer_identity_mismatch');
-    copies.update(copy.id,{state:'ready'});
+    if(!recoveryBackup)copies.update(copy.id,{state:'ready'});
     if(active.initial)durableJson(path.join(dataRoot,'active-workspace-pointer.json'),{copyId:copy.id,relativePath:path.relative(dataRoot,root),workspaceInstance:current.workspaceInstance});
     return current;
   })();
@@ -121,7 +137,7 @@ if(locked) app.whenReady().then(async()=>{
   const root=path.join(__dirname,'../materials-renderer');
   protocol.handle('career',async request=>{
     try{
-      const resource=new URL(request.url),filename=path.resolve(root,`.${decodeURIComponent(resource.pathname)}`);
+      const resource=new URL(request.url);if(resource.pathname==='/recovery.html')return new Response('<!doctype html><meta charset="utf-8"><title>Career 恢复只读模式</title><h1>资料尚未打开</h1><p>当前资料指针不可用，业务写入和外发均已关闭。</p><p>重新启动后可明确选择完整备份；验证通过才会切换。原资料和备份仍保留。</p>',{headers:{'content-type':'text/html','Content-Security-Policy':"default-src 'none'; script-src 'none'; connect-src 'none'"}});const filename=path.resolve(root,`.${decodeURIComponent(resource.pathname)}`);
       if(resource.host!=='app'||!filename.startsWith(root+path.sep)) return new Response('Denied',{status:403});
       const type=filename.endsWith('.js')?'text/javascript':filename.endsWith('.css')?'text/css':'text/html';
       return new Response(new Uint8Array(await readFile(filename)),{headers:{'content-type':type,'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'"}});
@@ -129,6 +145,12 @@ if(locked) app.whenReady().then(async()=>{
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([{role:'appMenu'},{role:'editMenu'},{label:'视图',submenu:[{role:'resetZoom'},{role:'zoomIn'},{role:'zoomOut'},{role:'togglefullscreen'}]},{label:'文件',submenu:[{label:'新建窗口',accelerator:'CmdOrCtrl+Shift+N',click:()=>{if(identity&&!quitting)void createAppWindow().loadURL(url);}},{role:'close'}]},{role:'windowMenu'}]));
   window=createAppWindow();
+  const secrets=createSecretVault(path.join(app.getPath('userData'),'security'),{available:()=>safeStorage.isAsyncEncryptionAvailable(),encrypt:input=>safeStorage.encryptStringAsync(input)});
+  ipcMain.handle('career:secret-input',async(event,input:unknown)=>{trusted(event);const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};return secrets.request(parsed.data);});
+  ipcMain.handle('career:local-search',async(event,input:unknown)=>{
+   trusted(event);const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');const request=LocalSearchRequest.parse(input),requestId=randomUUID();
+   return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:value=>{try{resolve(LocalSearchResult.parse(value));}catch{reject(Error('invalid_request'));}},reject,timer});port!.postMessage({requestId,identity:bound,searchAction:'query',request});});
+  });
   ipcMain.handle('materials:ready',event=>{const owner=trusted(event,true);if(identity&&windowWorkspaces.has(owner.id)&&windowWorkspaces.get(owner.id)!==identity.workspaceInstance)throw Error('workspace_changed_reload_required');if(!identity)throw new Error('disconnected');windowWorkspaces.set(owner.id,identity.workspaceInstance);return identity;});
   ipcMain.handle('materials:reconnect',async event=>{const owner=trusted(event,true);if(identity&&windowWorkspaces.has(owner.id)&&windowWorkspaces.get(owner.id)!==identity.workspaceInstance)throw Error('workspace_changed_reload_required');const previous=windowWorkspaces.get(owner.id),next=await connect();if(previous&&previous!==next.workspaceInstance)throw Error('workspace_changed_reload_required');windowWorkspaces.set(owner.id,next.workspaceInstance);return next;});
   ipcMain.handle('materials:request',(event,input)=>{const owner=trusted(event);if(JSON.stringify(input).length>2048)throw new Error('invalid_request');return send(Request.parse(input),owner);});
@@ -138,7 +160,7 @@ if(locked) app.whenReady().then(async()=>{
     if(data.kind==='restored'||data.kind==='failure'&&data.code==='restore_failed_reconnected'&&identity?.workspaceInstance!==workspaceBefore){if(identity)windowWorkspaces.set(owner.id,identity.workspaceInstance);for(const other of appWindows)if(other!==owner)other.webContents.reload();}
    }return result;});
   await connect();await window.loadURL(url);
-}).catch(()=>{ console.error('CAREER_STARTUP_FAILED');app.exit(1); });
+}).catch(async()=>{ disconnect();backend?.kill();backend=undefined;console.error('CAREER_STARTUP_FAILED');if(window&&!window.isDestroyed())await window.loadURL('career://app/recovery.html');else app.exit(1); });
 app.on('window-all-closed',()=>app.quit());
 async function shutdown(){
  if(quitting)return;quitting=true;

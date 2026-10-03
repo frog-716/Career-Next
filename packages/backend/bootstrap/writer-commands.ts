@@ -1,3 +1,4 @@
+import {composeLocalSearch} from './local-search-composition';
 import {FeedbackRequest} from '../../contracts/application/feedback';
 import {createPreferences} from '../application/preferences/public';
 import {PreferencesRequest} from '../../contracts/application/preferences';
@@ -23,6 +24,7 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  const preferences=createPreferences(db);
  let human=false;let currentHuman:HumanSession|undefined;let ai!:ReturnType<typeof createAiRuntime>;let lifecycle!:ReturnType<typeof composeLifecycle>;
  const domains=composeDomains(db,materials,{ai:{handle:input=>(input as {operation:string}).operation.startsWith('search.')?domains.search.handle(input):ai.handle(input,'human')},application:{handle:input=>PreferencesRequest.safeParse(input).success?preferences.handle(input):FeedbackRequest.safeParse(input).success?domains.feedback.handle(input):lifecycle.handle(input,'human')}});
+ const localSearch=composeLocalSearch(db,domains);
  const aiPorts=composeAiPorts(domains,materials,root,{workspaceInstance,backendGeneration:generation},fence,()=>{try{if(!currentHuman)return false;authority.check(currentHuman);return true;}catch{return false;}});
  aiPorts.product=composeProductPorts(domains,aiPorts,root);ai=createAiRuntime(db,aiPorts);
  const control=options?.control??{drain:async()=>{},beforeActivate:async()=>{},maintenance:async<T>(work:()=>Promise<T>)=>work(),closeWorkspace:()=>{throw Error('restore_unavailable');}};
@@ -41,6 +43,8 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
   receipt(session:HumanSession,id:string){assertReadable();return materials.receipt(session,id);},
   prepare(session:HumanSession,input:Parameters<typeof materials.prepare>[1]){assertReadable();return materials.prepare(session,input);},
   connect(){currentHuman=materials.connect();return currentHuman;},
+  searchMaintenance(session:HumanSession){authority.check(session);assertReadable();return localSearch.maintenance();},
+  searchReadable(session:HumanSession,input:unknown,items:Parameters<typeof localSearch.readable>[1]){authority.check(session);assertReadable();return localSearch.readable(input,items);},
   async business(session:HumanSession,module:BusinessModule,input:unknown){authority.check(session);if(module!=='application'||FeedbackRequest.safeParse(input).success)assertReadable();human=true;try{if(module==='profile'&&ProfileRequest.parse(input).operation==='profile.save'){let renewal:{renewed:boolean;generation:number}|undefined;const before=domains.profile.read().revision;const result=db.transaction(()=>{const saved=domains.profile.handle(input);if(saved.status==='profile'&&saved.profile.revision>before)renewal=fence.renewProfileAfterHumanSave({actor:'human',ownerRevision:saved.profile.revision});return saved;})();if(renewal?.renewed)await control.renewProfile?.(renewal.generation);return result;}const result=await domains.handle(module,input);if(module==='resume'){const parsed=ResumeResult.parse(result);if(parsed.status==='pending-job')capture((input as {commandId:string}).commandId,[{owner:'resume',objectId:parsed.job.resumeId},{owner:'profile',objectId:'current'}],[{owner:'resume',objectId:parsed.job.resumeId}]);}return result;}finally{human=false;}},
   begin(session:HumanSession,name:string,target?:import('../../contracts/materials/schema').ImportTarget){assertReadable();if(target&&target.kind!=='personal'){const valid=target.kind==='company'?!!domains.opportunity.capabilities.readCompany(target.id):target.kind==='opportunity'?!!domains.opportunity.capabilities.readOpportunity(target.id):target.kind==='project'?domains.project.handle({operation:'read',id:target.id}).kind==='project':target.kind==='employment'?!!domains.employment.resolveEmployment(target.id):(()=>{const all=domains.employment.handle({operation:'list'});return all.kind==='list'&&all.employments.some(e=>!!domains.employment.resolvePerson(target.id,e.id));})();if(!valid)throw Error('invalid_capability');}const id=materials.begin(session,name,target);capture(id,[],[{owner:'import',objectId:id},...target&&target.kind!=='personal'?[{owner:target.kind,objectId:target.id}]:[]]);return id;},
   valid(session:HumanSession,id:string){assertReadable();assertProducer(id);return materials.valid(session,id);},
