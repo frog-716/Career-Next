@@ -1,0 +1,129 @@
+{
+  "packagedExecutable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+  "physicalSleepWake": "NOT RUN",
+  "humanNativeChoice": "NOT RUN",
+  "pendingPdfClose": {
+    "status": "PASS",
+    "commandId": "e05e9977-a9db-46fa-b7bb-b9df4bfabd3f",
+    "actualChromiumPdf": {
+      "header": "%PDF-",
+      "size": 23485,
+      "eof": true
+    },
+    "receipt": {
+      "status": "failure",
+      "code": "pdf-failed"
+    },
+    "versionCount": 0
+  },
+  "pendingBackupClose": {
+    "status": "PASS",
+    "observedBeforeClose": {
+      "id": "e2e0aaad-a9ce-4183-a5a6-ff25e9964617",
+      "relativePath": "backups/21541ffe-f249-4dd9-9ad8-355bf08a3be0",
+      "kind": "backup",
+      "state": "candidate",
+      "sourceCopyId": "9c7b79cb-65eb-4166-9f62-15b0c472c1fa",
+      "createdAt": "2026-10-03T09:53:58.379Z"
+    },
+    "resolved": {
+      "id": "e2e0aaad-a9ce-4183-a5a6-ff25e9964617",
+      "relativePath": "backups/21541ffe-f249-4dd9-9ad8-355bf08a3be0",
+      "kind": "backup",
+      "state": "ready",
+      "sourceCopyId": "9c7b79cb-65eb-4166-9f62-15b0c472c1fa",
+      "createdAt": "2026-10-03T09:53:58.379Z"
+    },
+    "lastCompleteVerified": "27002f46-06d6-455b-86a6-1d3aca26e773"
+  },
+  "stopFailureMaintenance": {
+    "status": "PASS",
+    "realBackupCandidate": "e6c0482b-1a4d-43b6-9cc7-958cb3d97a3f",
+    "reply": {
+      "kind": "execution_blocked",
+      "taskId": "53865954-204b-4823-83b8-596be1f45723",
+      "commandId": "790d22c8-105a-4168-b15f-f6d3e4b7343e",
+      "mode": "revoke",
+      "dispatchBlocked": true,
+      "persistencePending": true
+    },
+    "elapsedMs": 3,
+    "originalReceipt": {
+      "kind": "receipt_missing"
+    },
+    "originalCommandRetried": "790d22c8-105a-4168-b15f-f6d3e4b7343e",
+    "externalRequests": 0
+  },
+  "restoreAndExplicitRecovery": {
+    "status": "PASS",
+    "candidateId": "b17f0f09-11ea-486a-9859-bde29fa926e9",
+    "candidateDidNotAutoActivate": true,
+    "originalIdentity": {
+      "protocolVersion": 1,
+      "workspaceInstance": "4b767e51-cd42-4455-ae09-d79c26af50a1",
+      "backendGeneration": "66248e6f-bead-490a-a42d-e7b8594886a0",
+      "connectionGeneration": "072fa149-fa9c-4f8d-a2ce-eefa05fabac3"
+    },
+    "activated": {
+      "protocolVersion": 1,
+      "workspaceInstance": "94b25a0c-56c3-46b7-af00-686694041566",
+      "backendGeneration": "4ebd94c4-5a68-4bc0-8f09-e80b1904b598",
+      "connectionGeneration": "ffa73d3b-5619-4eda-a996-f1e22e396e1d"
+    },
+    "recoveredIdentity": {
+      "protocolVersion": 1,
+      "workspaceInstance": "a02ccd5e-1cf1-4147-9930-4f1e7339453d",
+      "backendGeneration": "1687405a-f2cd-47bf-a4dc-fec18a65b022",
+      "connectionGeneration": "557accbb-f46c-4528-93ce-9d98b110c876"
+    },
+    "nativeDialogChoice": {
+      "message": "资料指针不可用：当前处于恢复只读模式",
+      "buttons": [
+        "保持只读",
+        "验证并恢复备份 2026-10-03T09:54:05.380Z"
+      ],
+      "response": 1
+    },
+    "choicePerformedBy": "test adapter; not human",
+    "realVerificationAndActivation": true,
+    "restartPointerPreserved": true
+  },
+  "tests": {
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "exit": 0,
+    "durationMs": 20493
+  },
+  "typecheckExit": 0,
+  "evidence": [
+    {
+      "path": "/tmp/g6-continuity-final.log",
+      "sha256": "072df1ebcc2dcdba6b1b123f66b5e7982e9e1c1907a265282eb1b5e2df67fd65"
+    },
+    {
+      "path": "/tmp/career-g6-continuity/final-results.json",
+      "sha256": "3faf9c0da33c8db9666261886cfb74a1eda14a56ae92e6f78432c373c3f555d1"
+    },
+    {
+      "path": "/tmp/g6-continuity-typecheck.log",
+      "sha256": "ce31c06d44db372d7ffaac4fd8fb58dd89015c5ebc06e7293a3f5f882e13d1e9"
+    },
+    {
+      "path": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+      "sha256": "4fa92d2cfcad0c11c5320e7c2562ee516fec6538bce70d9113c059eab9ec02e1"
+    },
+    {
+      "path": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/Resources/app.asar",
+      "sha256": "365f9b00a32d7b03bee1dd34173b9c8bb41e8d0901435a3df5ad1b81e11393ca"
+    }
+  ],
+  "limitations": [
+    "PDF is real Chromium output held after rendering before delivery; not an earlier print-stage failure.",
+    "Graceful backup close waited until actual candidate became ready; both points verified by actual prepareRestore.",
+    "Native dialog choice is installed before real reconnect; not a human choice or startup timing race.",
+    "physicalSleepWake NOT RUN",
+    "No system safeStorage test in this suite; separate owner.",
+    "Root will rebuild/repack newer final patches separately."
+  ]
+}
