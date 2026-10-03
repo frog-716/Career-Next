@@ -1,0 +1,505 @@
+{
+  "verification": "G6 controlled local search",
+  "date": "2026-10-03",
+  "status": "MODULE_TESTS_PASS; NORMAL_PACKAGED_APP_INTEGRATION_OWNED_BY_ROOT",
+  "isolated_synthetic_only": true,
+  "red_evidence": [
+    {
+      "case": "native SQL thread termination",
+      "exit_code": 1,
+      "close_ms": 943.579959,
+      "command": "npx vitest run tests/integration/g6-search-control.test.ts --maxWorkers=1 (pre-fix Worker implementation)",
+      "output": "\n RUN  v5.0.3 /Users/frog/.codex/worktrees/g6-f4-desktop/Career-Next\n\n ❯ tests/integration/g6-search-control.test.ts (1 test | 1 failed) 1300ms\n   × a timed-out actual native SQL reader is really terminated; closing search does not wait for the SQL to finish 1259ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  tests/integration/g6-search-control.test.ts > a timed-out actual native SQL reader is really terminated; closing search does not wait for the SQL to finish\nAssertionError: expected 943.579959 to be less than 500\n ❯ tests/integration/g6-search-control.test.ts:23:39\n     21|   expect(await readFile(path.join(root, 'career.sqlite.query-started')…\n     22|   const started = performance.now(); await search.close();\n     23|   expect(performance.now() - started).toBeLessThan(500);\n       |                                       ^\n     24| }, 10000);\n     25|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed (1)\n   Start at  17:19:40\n   Duration  1.58s (tests 88%, import 9%, transform 3%)\n\n"
+    },
+    {
+      "case": "between-document cursor",
+      "exit_code": 1,
+      "command": "npx vitest run tests/integration/g6-search-query.test.ts --maxWorkers=1 (pre-fix cursor implementation)",
+      "output": "\n RUN  v5.0.3 /Users/frog/.codex/worktrees/g6-f4-desktop/Career-Next\n\n ❯ tests/integration/g6-search-query.test.ts (5 tests | 1 failed) 1017ms\n   × a row-budget boundary between documents gives a usable continuation instead of restarting at the same first results 67ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  tests/integration/g6-search-query.test.ts > a row-budget boundary between documents gives a usable continuation instead of restarting at the same first results\nAssertionError: expected undefined to be defined\n ❯ tests/integration/g6-search-query.test.ts:100:29\n     98|       for (const item of result.items) found.add(item.id);\n     99|       if (!result.partial) break;\n    100|       expect(result.cursor).toBeDefined(); cursor = result.cursor;\n       |                             ^\n    101|     }\n    102|     expect([...found].sort()).toEqual(ids);\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 4 passed (5)\n   Start at  17:30:38\n   Duration  1.30s (tests 84%, import 12%, transform 4%)\n\n"
+    }
+  ],
+  "final_tests": {
+    "command": "CAREER_SEARCH_PROBE_ELECTRON=/Users/frog/Projects/Career-Next/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron npx vitest run tests/g6-search.test.ts tests/integration/g6-search-query.test.ts tests/integration/g6-search-control.test.ts tests/integration/g6-search-electron-process.test.ts --maxWorkers=1",
+    "exit_code": 0,
+    "files": 4,
+    "passed": 11,
+    "output": "\n RUN  v5.0.3 /Users/frog/.codex/worktrees/g6-f4-desktop/Career-Next\n\n\n Test Files  4 passed (4)\n      Tests  11 passed (11)\n   Start at  17:33:00\n   Duration  4.07s (tests 88%, import 10%, transform 2%)\n\n    Isolate  4 workers spawned · ~88ms startup each (spawn + environment, per file)\n             at least ~264ms faster with isolate: false — reuses workers across files instead of one per file\n\n"
+  },
+  "query": [
+    {
+      "query": "蛙",
+      "scope": "personal",
+      "result": {
+        "kind": "local-search.results",
+        "items": [
+          {
+            "owner": "wiki",
+            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "revision": 1,
+            "title": "中文经验",
+            "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
+          }
+        ],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 2,
+          "bytes": 102,
+          "comparisons": 8,
+          "elapsedMs": 2.3416659999999965
+        }
+      }
+    },
+    {
+      "query": "牛蛙",
+      "scope": "personal",
+      "result": {
+        "kind": "local-search.results",
+        "items": [
+          {
+            "owner": "wiki",
+            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "revision": 1,
+            "title": "中文经验",
+            "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
+          }
+        ],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 2,
+          "bytes": 102,
+          "comparisons": 8,
+          "elapsedMs": 2.3346659999999986
+        }
+      }
+    },
+    {
+      "query": "蒸牛蛙",
+      "scope": "personal",
+      "result": {
+        "kind": "local-search.results",
+        "items": [
+          {
+            "owner": "wiki",
+            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "revision": 1,
+            "title": "中文经验",
+            "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
+          }
+        ],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 2,
+          "bytes": 102,
+          "comparisons": 8,
+          "elapsedMs": 3.199458
+        }
+      }
+    },
+    {
+      "query": "ABC123",
+      "scope": "personal",
+      "result": {
+        "kind": "local-search.results",
+        "items": [
+          {
+            "owner": "wiki",
+            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "revision": 1,
+            "title": "中文经验",
+            "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
+          }
+        ],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 2,
+          "bytes": 102,
+          "comparisons": 20,
+          "elapsedMs": 3.1456249999999955
+        }
+      }
+    },
+    {
+      "query": "没有匹配",
+      "scope": "personal",
+      "result": {
+        "kind": "local-search.results",
+        "items": [],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 1,
+          "bytes": 56,
+          "comparisons": 0,
+          "elapsedMs": 9.382291999999993
+        }
+      }
+    },
+    {
+      "scenario": "registered scope id",
+      "scoped": {
+        "kind": "local-search.results",
+        "items": [
+          {
+            "owner": "wiki",
+            "id": "1b2ae22a-301c-4dce-9b7d-8ed757460a1a",
+            "revision": 1,
+            "title": "另一个范围",
+            "snippet": "另一个范围\n蒸牛蛙 unrelated scoped body"
+          }
+        ],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 2,
+          "bytes": 106,
+          "comparisons": 9,
+          "elapsedMs": 3.5431659999999994
+        }
+      }
+    },
+    {
+      "scenario": "large body partial",
+      "budget": {
+        "rows": 20,
+        "bytes": 65536,
+        "comparisons": 50000
+      },
+      "result": {
+        "kind": "local-search.results",
+        "items": [],
+        "partial": true,
+        "notice": "结果未完整检索",
+        "cursor": {
+          "objectId": "5000bcde-c33c-45d6-af5d-ff52fadbf142",
+          "ordinal": 15
+        },
+        "observed": {
+          "rows": 16,
+          "bytes": 61478,
+          "comparisons": 20476,
+          "elapsedMs": 4.2386669999999995
+        }
+      }
+    },
+    {
+      "scenario": "large body partial",
+      "budget": {
+        "rows": 100,
+        "bytes": 8192,
+        "comparisons": 50000
+      },
+      "result": {
+        "kind": "local-search.results",
+        "items": [],
+        "partial": true,
+        "notice": "结果未完整检索",
+        "cursor": {
+          "objectId": "5000bcde-c33c-45d6-af5d-ff52fadbf142",
+          "ordinal": 1
+        },
+        "observed": {
+          "rows": 2,
+          "bytes": 4148,
+          "comparisons": 1366,
+          "elapsedMs": 2.611791999999994
+        }
+      }
+    },
+    {
+      "scenario": "large body partial",
+      "budget": {
+        "rows": 100,
+        "bytes": 65536,
+        "comparisons": 100
+      },
+      "result": {
+        "kind": "local-search.results",
+        "items": [],
+        "partial": true,
+        "notice": "结果未完整检索",
+        "cursor": {
+          "objectId": "5000bcde-c33c-45d6-af5d-ff52fadbf142",
+          "ordinal": 0
+        },
+        "observed": {
+          "rows": 2,
+          "bytes": 4148,
+          "comparisons": 100,
+          "elapsedMs": 3.3177909999999997
+        }
+      }
+    },
+    {
+      "scenario": "boundary/edit/purge",
+      "before": {
+        "kind": "local-search.results",
+        "items": [
+          {
+            "owner": "project",
+            "id": "718b4f44-cfea-4da6-b5fd-4d4d77dadaac",
+            "revision": 1,
+            "title": "X",
+            "snippet": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa蒸牛蛙 abc123"
+          }
+        ],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 2,
+          "bytes": 124,
+          "comparisons": 66,
+          "elapsedMs": 3.664041999999995
+        }
+      },
+      "old": {
+        "kind": "local-search.results",
+        "items": [],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 1,
+          "bytes": 47,
+          "comparisons": 0,
+          "elapsedMs": 2.8743750000000006
+        }
+      },
+      "removed": {
+        "kind": "local-search.results",
+        "items": [],
+        "partial": false,
+        "notice": "检索完成",
+        "observed": {
+          "rows": 0,
+          "bytes": 0,
+          "comparisons": 0,
+          "elapsedMs": 2.1840839999999986
+        }
+      }
+    },
+    {
+      "scenario": "range plans",
+      "docPlan": [
+        {
+          "id": 5,
+          "parent": 0,
+          "notused": 50,
+          "detail": "SEARCH platform_local_search_documents USING INDEX platform_local_search_active (owner=? AND active=? AND object_id>?)"
+        }
+      ],
+      "chunkPlan": [
+        {
+          "id": 5,
+          "parent": 0,
+          "notused": 50,
+          "detail": "SEARCH platform_local_search_chunks USING INDEX sqlite_autoindex_platform_local_search_chunks_1 (owner=? AND object_id=? AND ordinal>?)"
+        }
+      ]
+    },
+    {
+      "scenario": "document boundary cursor",
+      "expectedIds": [
+        "121f3d45-3af1-4fc0-bca2-5733eb866a46",
+        "5597d9aa-a3c2-4e42-a4cf-554b1627a9bd",
+        "5731f4f8-be6e-42f0-a180-0ee4f8e3f10b",
+        "912db082-890e-4e9d-b6bc-ea4917eca7e7",
+        "dcbe0c26-60b0-44de-85f1-61be8a050f59"
+      ],
+      "pages": [
+        {
+          "kind": "local-search.results",
+          "items": [
+            {
+              "owner": "project",
+              "id": "121f3d45-3af1-4fc0-bca2-5733eb866a46",
+              "revision": 1,
+              "title": "中",
+              "snippet": "中\n中"
+            },
+            {
+              "owner": "project",
+              "id": "5597d9aa-a3c2-4e42-a4cf-554b1627a9bd",
+              "revision": 1,
+              "title": "中",
+              "snippet": "中\n中"
+            }
+          ],
+          "partial": true,
+          "notice": "结果未完整检索",
+          "cursor": {
+            "objectId": "5597d9aa-a3c2-4e42-a4cf-554b1627a9bd",
+            "ordinal": 9007199254740991
+          },
+          "observed": {
+            "rows": 4,
+            "bytes": 108,
+            "comparisons": 2,
+            "elapsedMs": 2.7473750000000052
+          }
+        },
+        {
+          "kind": "local-search.results",
+          "items": [
+            {
+              "owner": "project",
+              "id": "5731f4f8-be6e-42f0-a180-0ee4f8e3f10b",
+              "revision": 1,
+              "title": "中",
+              "snippet": "中\n中"
+            }
+          ],
+          "partial": true,
+          "notice": "结果未完整检索",
+          "cursor": {
+            "objectId": "912db082-890e-4e9d-b6bc-ea4917eca7e7",
+            "ordinal": 0
+          },
+          "observed": {
+            "rows": 4,
+            "bytes": 148,
+            "comparisons": 1,
+            "elapsedMs": 3.484250000000003
+          }
+        },
+        {
+          "kind": "local-search.results",
+          "items": [
+            {
+              "owner": "project",
+              "id": "912db082-890e-4e9d-b6bc-ea4917eca7e7",
+              "revision": 1,
+              "title": "中",
+              "snippet": "中\n中"
+            },
+            {
+              "owner": "project",
+              "id": "dcbe0c26-60b0-44de-85f1-61be8a050f59",
+              "revision": 1,
+              "title": "中",
+              "snippet": "中\n中"
+            }
+          ],
+          "partial": true,
+          "notice": "结果未完整检索",
+          "cursor": {
+            "objectId": "dcbe0c26-60b0-44de-85f1-61be8a050f59",
+            "ordinal": 9007199254740991
+          },
+          "observed": {
+            "rows": 4,
+            "bytes": 108,
+            "comparisons": 2,
+            "elapsedMs": 6.483499999999992
+          }
+        },
+        {
+          "kind": "local-search.results",
+          "items": [],
+          "partial": false,
+          "notice": "检索完成",
+          "observed": {
+            "rows": 1,
+            "bytes": 47,
+            "comparisons": 0,
+            "elapsedMs": 2.4770420000000044
+          }
+        }
+      ]
+    }
+  ],
+  "native_sql_timeout": {
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-control-M2YTM2",
+    "timeoutMs": 300,
+    "closeMs": 0.028208000000063294,
+    "result": {
+      "kind": "local-search.failure",
+      "code": "index_unavailable",
+      "partial": true,
+      "notice": "结果未完整检索"
+    }
+  },
+  "sqlite_busy": {
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-busy-8gFUYj",
+    "journalMode": "DELETE (controlled read-lock fault)",
+    "localControlMs": 1.0069580000000542,
+    "result": {
+      "kind": "local-search.failure",
+      "code": "index_unavailable",
+      "partial": true,
+      "notice": "结果未完整检索"
+    },
+    "recovered": {
+      "kind": "local-search.results",
+      "items": [
+        {
+          "owner": "wiki",
+          "id": "048ed617-bcf1-4d5c-9ca8-ad6fd252ab60",
+          "revision": 1,
+          "title": "中文",
+          "snippet": "中文\n蒸牛蛙"
+        }
+      ],
+      "partial": false,
+      "notice": "检索完成",
+      "observed": {
+        "rows": 2,
+        "bytes": 66,
+        "comparisons": 6,
+        "elapsedMs": 2.302166999999997
+      }
+    }
+  },
+  "backup_fts_cancel": {
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-concurrent-DkK9pm",
+    "backupPendingAtRevoke": true,
+    "progressCalls": 1411,
+    "maintenance": {
+      "processed": 8,
+      "failed": 0,
+      "pending": true
+    },
+    "revokeToExitMs": 1.6946249999999736,
+    "result": {
+      "kind": "local-search.failure",
+      "code": "cancelled",
+      "partial": true,
+      "notice": "结果未完整检索"
+    },
+    "backupIntegrity": "ok"
+  },
+  "electron_utility_helper": {
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-electron-RIe0h3",
+    "result": {
+      "utilityExecPath": "/Users/frog/Projects/Career-Next/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper",
+      "helper": {
+        "alive": true,
+        "execPath": "/Users/frog/Projects/Career-Next/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper",
+        "electron": "44.5.1"
+      }
+    }
+  },
+  "metric_semantics": {
+    "rows": "actual returned bounded projection rows",
+    "bytes": "actual returned metadata / chunk UTF-8 payload",
+    "comparisons": "actual JS precise character comparisons",
+    "not_measured": [
+      "SQLite internal B-tree visits",
+      "physical disk I/O",
+      "native FTS instruction count"
+    ]
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exit_code": 0,
+    "output": "\n> career-next@0.0.0 pretypecheck\n> npm run generate\n\n\n> career-next@0.0.0 generate\n> node scripts/generate-modules.mjs\n\n\n> career-next@0.0.0 typecheck\n> tsc --noEmit\n\n"
+  },
+  "verification_owned_by_root_or_f3": [
+    "normal packaged App search",
+    "normal App stop/revoke while search/FTS/backup active",
+    "release6 owner dirty notifications",
+    "purge / filtered backup / restore rebuild"
+  ]
+}
