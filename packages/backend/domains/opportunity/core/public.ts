@@ -37,7 +37,7 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
       type='stage_corrected';break;
      }
      case 'end':previousResult=old.result;if(old.result===request.outcome)throw Error('invalid_transition');opportunity.result=request.outcome;type='ended';break;
-     case 'correct-end':{if(old.result==='active')throw Error('invalid_transition');const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision DESC').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));const corrected=new Set(history.map(item=>item.correctedEventId));const target=history.find(item=>item.type==='ended'&&item.result===old.result&&!corrected.has(item.id));if(!target?.previousResult)throw Error('invalid_transition');if(history.some(item=>item.revision>target.revision&&isResultDecision(item)&&!item.historical))throw Error('invalid_transition');opportunity.result=target.previousResult;if(opportunity.result==='accepted'&&history.some(item=>item.revision>target.revision&&item.type==='offer_conditions_replaced'&&!item.historical))opportunity.result='active';correctedEventId=target.id;type='end_corrected';break;}
+     case 'correct-end':{if(old.result==='active')throw Error('invalid_transition');const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision DESC').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));const corrected=new Set(history.map(item=>item.correctedEventId));const target=history.find(item=>item.type==='ended'&&item.result===old.result&&!corrected.has(item.id));if(!target?.previousResult)throw Error('invalid_transition');opportunity.result=effectiveResult([...history].reverse(),target.id);correctedEventId=target.id;type='end_corrected';break;}
      case 'recontinue':if(old.result==='active')throw Error('invalid_transition');opportunity.result='active';type='continued';break;
     }
    }
@@ -60,8 +60,7 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
     const rows=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));
     const target=rows.find(row=>row.id===request.correctedEventId&&(request.action==='acceptance_corrected'?row.type==='offer_accepted':['offer_recruiter_withdrew','offer_user_withdrew'].includes(row.type)));
     if(!target||rows.some(row=>row.correctedEventId===target.id))throw Error('invalid_transition');
-    const laterResult=rows.some(row=>row.revision>target.revision&&isResultDecision(row)&&!row.historical);
-    if(!laterResult&&!request.historical&&!target.historical){opportunity.result=target.previousResult??'active';if(opportunity.result==='accepted'&&rows.some(row=>row.revision>target.revision&&row.type==='offer_conditions_replaced'&&!row.historical))opportunity.result='active';}
+    if(!request.historical)opportunity.result=effectiveResult(rows,target.id);
    }else if(!request.historical){
     switch(request.action){
      case 'accepted':opportunity.result='accepted';break;
@@ -86,5 +85,18 @@ function earliest(prior:BusinessTime,next:BusinessTime):BusinessTime {
  return nextDate<priorDate||nextDate===priorDate&&next.kind==='date'?next:prior;
 }
 
-// Old G2 continued events have no previousResult; their explicit meaning still wins.
-function isResultDecision(event:History){return ['ended','continued','offer_accepted','offer_recruiter_withdrew','offer_user_withdrew'].includes(event.type)||event.previousResult!==undefined&&event.result!==event.previousResult;}
+/** Replay only core-owned result meanings; correction records remove their original event,
+ * never create a competing real fact or restore a polluted previous snapshot. */
+function effectiveResult(events:History[],newCorrection:string):Opportunity['result']{
+ const corrected=new Set(events.filter(event=>['end_corrected','offer_acceptance_corrected','offer_withdrawal_corrected'].includes(event.type)).map(event=>event.correctedEventId));corrected.add(newCorrection);
+ let result:Opportunity['result']='active';
+ for(const event of events){if(event.historical||corrected.has(event.id))continue;
+  if(event.type==='ended')result=event.result;
+  if(event.type==='continued')result='active';
+  if(event.type==='offer_accepted')result='accepted';
+  if(event.type==='offer_recruiter_withdrew')result='recruiter_ended';
+  if(event.type==='offer_user_withdrew')result='withdrawn';
+  if(event.type==='offer_conditions_replaced'&&result==='accepted')result='active';
+ }
+ return result;
+}

@@ -58,8 +58,9 @@ export function createOfferDomain(db:Database.Database,dependencies:OfferDepende
      }else if(request.operation==='offer.correct-withdrawal'){
       const events=(db.prepare('SELECT event_json FROM opportunity_offer_history WHERE offer_id=? ORDER BY rowid').all(offer.id) as {event_json:string}[]).map(row=>Event.parse(JSON.parse(row.event_json)));
       const target=events.find(event=>event.coreEventId===request.coreEventId&&['recruiter_withdrew','user_withdrew'].includes(event.type));if(!target)throw Error('not_found');if(events.some(event=>event.correctedEventId===request.coreEventId))throw Error('invalid_transition');
-      const later=events.slice(events.indexOf(target)+1).some(event=>!event.historical&&['conditions_replaced','recruiter_withdrew','user_withdrew','withdrawal_corrected'].includes(event.type));
-      if(!target.historical&&!later)offer={...offer,valid:target.previousValid??true};coreEvent('withdrawal_corrected',{correctedEventId:request.coreEventId});type='withdrawal_corrected';
+      const corrected=new Set(events.filter(event=>event.type==='withdrawal_corrected').map(event=>event.correctedEventId));corrected.add(request.coreEventId);let valid=true;
+      for(const event of events){if(event.historical||event.coreEventId&&corrected.has(event.coreEventId))continue;if(['received','conditions_replaced'].includes(event.type))valid=true;if(['recruiter_withdrew','user_withdrew'].includes(event.type))valid=false;}
+      offer={...offer,valid};coreEvent('withdrawal_corrected',{correctedEventId:request.coreEventId});type='withdrawal_corrected';
      }else if(request.operation==='offer.correct-acceptance'){
       const basis=(db.prepare('SELECT basis_json FROM opportunity_offer_acceptance WHERE offer_id=?').all(offer.id) as {basis_json:string}[]).map(row=>AcceptanceBasis.parse(JSON.parse(row.basis_json))).find(basis=>basis.coreEventId===request.coreEventId);
       if(!basis)throw Error('not_found');coreEvent('acceptance_corrected',{correctedEventId:request.coreEventId});type='acceptance_corrected';

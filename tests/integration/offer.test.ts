@@ -114,3 +114,14 @@ it('correcting a generic mistaken end after formal replacement cannot restore ac
   expect(opportunity.handle({operation:'correct-end',commandId:randomUUID(),id,expectedRevision:5,businessTime:unknown,reason:'Correct the false withdrawal'})).toMatchObject({kind:'opportunity',opportunity:{result:'active'}});
  }finally{db.close();}
 });
+for(const reverse of [true,false])it('correcting two mistaken withdrawals in either order restores the same accepted basis and validity: '+reverse,()=>{
+ const {db,offer,id}=fixture();try{
+  const send=(operation:string,extras:Record<string,unknown>={})=>{const state=offer.handle({operation:'offer.read',opportunityId:id});if(state.kind!=='offer')throw Error();return offer.handle({operation,commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:state.opportunity.revision,expectedRevision:state.offer.revision,businessTime:unknown,reason:'Explicit event and correction',...extras});};
+  offer.handle({operation:'offer.receive',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:1,conditions,original:{kind:'never_existed',explanation:'Verbal reality'},businessTime:unknown,reason:'Actual offer'});
+  send('offer.accept',{historical:false});send('offer.withdraw',{by:'recruiter',historical:false});send('offer.withdraw',{by:'user',historical:false});
+  const history=offer.handle({operation:'offer.history',opportunityId:id});if(history.kind!=='history')throw Error();const targets=history.events.filter(event=>['recruiter_withdrew','user_withdrew'].includes(event.type));if(!reverse)targets.reverse();
+  for(const target of targets)expect(send('offer.correct-withdrawal',{coreEventId:target.coreEventId}).kind).toBe('offer');
+  expect(offer.handle({operation:'offer.read',opportunityId:id})).toMatchObject({kind:'offer',offer:{valid:true},opportunity:{result:'accepted'}});
+  expect(offer.handle({operation:'offer.history',opportunityId:id})).toMatchObject({kind:'history',acceptances:history.acceptances});
+ }finally{db.close();}
+});
