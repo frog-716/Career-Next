@@ -1,3 +1,4 @@
+import type {Recipient} from '../../contracts/ai/schema';
 import type {ProviderAdapter} from '../../contracts/ai/provider';
 import type {DispatchIntent} from './ports';
 export interface AiWriterControllerPort {
@@ -11,7 +12,8 @@ export interface AiWriterControllerPort {
 }
 /** Lives on utility control loop. Never owns SQLite or exposes a manual user session. */
 export function createAiController(writer:AiWriterControllerPort,adapter:ProviderAdapter){
- const closed=new Set<string>(),purged=new Set<string>(),paused=new Map<string,number>(),pauseLeases=new Map<object,string[]>(),activePauses=new Map<string,number>(),authorized=new Map<string,Map<string,number>>(),running=new Map<string,{taskId:string;abort:AbortController;intent?:DispatchIntent}>();let shutDown=false;
+ const closed=new Set<string>(),purged=new Set<string>(),paused=new Map<string,number>(),pauseLeases=new Map<object,string[]>(),activePauses=new Map<string,number>(),authorized=new Map<string,Map<string,number>>(),running=new Map<string,{taskId:string;abort:AbortController;intent?:DispatchIntent}>();let shutDown=false,binding:Recipient|undefined=structuredClone(adapter.recipient);
+ const bindingMatches=(intent:DispatchIntent)=>!!binding&&JSON.stringify(intent.manifest.recipient)===JSON.stringify(binding)&&JSON.stringify(intent.manifest.recipient)===JSON.stringify(adapter.recipient);
  const references=(intent:DispatchIntent)=>[...intent.manifest.provenance.map(ref=>ref.owner+'/'+ref.objectId),...intent.manifest.product?.dependencies.map(ref=>ref.owner+'/'+ref.objectId)??[],'wiki/'+(intent.manifest.target.scopeId??`scope:${intent.manifest.target.scope}`),...(intent.manifest.target.scopeId?[intent.manifest.target.scope+'/'+intent.manifest.target.scopeId]:[])];
  const touches=(intent:DispatchIntent,operationId:string)=>references(intent).some(key=>purged.has(key)||(activePauses.get(key)??0)>0||(paused.get(key)??0)>(authorized.get(operationId)?.get(key)??0));
  function stop(taskId:string,mode:'stop'|'revoke'){
@@ -24,18 +26,20 @@ export function createAiController(writer:AiWriterControllerPort,adapter:Provide
   try{
    const intent=await writer.prepareDispatch(operationId);
    entry.intent=intent;if(shutDown||closed.has(taskId)||entry.abort.signal.aborted||touches(intent,operationId)){await writer.cancelBeforeHandoff(operationId);return;}
-   if(intent.taskId!==taskId||JSON.stringify(intent.manifest.recipient)!==JSON.stringify(adapter.recipient)||adapter.network!=='none'){await writer.cancelBeforeHandoff(operationId);throw Error('provider_binding_mismatch');}
+   if(intent.taskId!==taskId||!bindingMatches(intent)||adapter.network!=='none'){await writer.cancelBeforeHandoff(operationId);throw Error('provider_binding_mismatch');}
    // No await between final live-gate check and transport handoff.
    const response=adapter.send({operationId,manifest:intent.manifest,manifestDigest:intent.manifestDigest},entry.abort.signal);
    // A fast rejection is handled while a slow writer records processing.
    void response.catch(()=>{});
    await writer.markProcessing(operationId);
-   try{const output=await response;if(shutDown||touches(intent,operationId)){await writer.markUnknown(operationId,'remote_outcome_unconfirmed');return;}await writer.settle(operationId,output);}catch(error){const reason=error instanceof Error?error.message:'provider_failure';if(['timeout','outcome_unknown','aborted'].includes(reason)||entry.abort.signal.aborted)await writer.markUnknown(operationId,'remote_outcome_unconfirmed');else await writer.failOperation(operationId,'provider_failure');}
+   try{const output=await response;if(shutDown||touches(intent,operationId)||!bindingMatches(intent)){await writer.markUnknown(operationId,'remote_outcome_unconfirmed');return;}await writer.settle(operationId,output);}catch(error){const reason=error instanceof Error?error.message:'provider_failure';if(['timeout','outcome_unknown','aborted'].includes(reason)||entry.abort.signal.aborted)await writer.markUnknown(operationId,'remote_outcome_unconfirmed');else await writer.failOperation(operationId,'provider_failure');}
   }finally{running.delete(operationId);authorized.delete(operationId);}
  }
  // Called only after a new, trusted human authorization has committed in the writer.
  function closeAffected(){for(const [id,entry] of running)if(entry.intent&&touches(entry.intent,id)){closed.add(entry.taskId);entry.abort.abort();}}
  return {start,stop,
+  /** Main's trusted configuration bridge narrows admission synchronously; never accepts model payloads. */
+  setProviderBinding(recipient:Recipient|undefined){binding=recipient?structuredClone(recipient):undefined;for(const entry of running.values())if(!entry.intent||!bindingMatches(entry.intent)){closed.add(entry.taskId);entry.abort.abort();}},
   /** Capture on the utility loop when the live human authorization request enters, before awaiting the writer. */
   captureAuthorization:():ReadonlyMap<string,number>=>new Map([...paused].filter(([key])=>!activePauses.has(key))),
   openAfterAuthorization:(taskId:string,operationId?:string,snapshot?:ReadonlyMap<string,number>)=>{if(operationId&&running.has(operationId))return;closed.delete(taskId);if(operationId)authorized.set(operationId,new Map(snapshot??[]));},isClosed:(taskId:string)=>shutDown||closed.has(taskId),
