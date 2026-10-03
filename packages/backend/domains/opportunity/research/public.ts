@@ -1,3 +1,4 @@
+import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import {Request,Result,ErrorCode,Item,Owner,Resolution,History,type Source} from '../../../../contracts/opportunity/research/schema';
@@ -41,5 +42,5 @@ export function createResearchDomain(db:Database.Database,dependencies:ResearchD
    db.prepare('INSERT INTO research_references VALUES(?,?,?,?)').run(r.owner.id,item.id,old.revision,r.companyId);return save(item,'promoted',r.reason,r.businessTime);
   });
  }catch(error){const parsed=ErrorCode.safeParse(error instanceof Error?error.message:'storage_failed');return {kind:'failure',code:parsed.success?parsed.data:'storage_failed'};}}
- return {handle,resolveItem};
+ return {handle,resolveItem,purgeImpact(id:string){const item=current(id);return item?{id,revision:item.revision,name:item.title,blobIds:[],retentions:[]}:undefined;},referencing(ref:{owner:string;objectId:string}){return (db.prepare('SELECT item_json FROM research_items').all() as {item_json:string}[]).map(row=>Item.parse(JSON.parse(row.item_json))).filter(item=>item.sources.some(source=>source.ref.owner===ref.owner&&source.ref.objectId===ref.objectId)).map(item=>({id:item.id,title:item.title,revision:item.revision}));},purge(id:string){const item=current(id);db.prepare('DELETE FROM research_references WHERE item_id=?').run(id);db.prepare('DELETE FROM research_history WHERE item_id=?').run(id);db.prepare('DELETE FROM research_items WHERE id=?').run(id);if(item)touch(item.owner);redactOwnerReceipts(db,'research',[id],{kind:'failure',code:'content_purged'});}};
 }

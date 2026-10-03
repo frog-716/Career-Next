@@ -9,7 +9,7 @@ export const Knowledge=Content.extend({id:z.uuid(),revision:z.number().int().pos
 export type Knowledge=z.infer<typeof Knowledge>;
 export const History=z.object({knowledge:Knowledge,change:z.enum(['created','edited','retired','restored','corrected']),reason:z.string(),businessTime:BusinessTime,recordedAt:z.string()}).strict();
 export type History=z.infer<typeof History>;
-export const ErrorCode=z.enum(['invalid_request','not_found','source_unavailable','scope_unavailable','conflict','storage_failed']);
+export const ErrorCode=z.enum(['invalid_request','content_purged','not_found','source_unavailable','scope_unavailable','conflict','storage_failed']);
 export const Request=z.discriminatedUnion('operation',[
  Content.extend({operation:z.literal('create'),commandId:z.uuid()}).strict(),
  Content.extend({operation:z.literal('edit'),commandId:z.uuid(),id:z.uuid(),expectedRevision:z.number().int().positive(),reason:z.string().trim().min(1).max(1000),businessTime:BusinessTime,change:z.enum(['edited','corrected'])}).strict(),

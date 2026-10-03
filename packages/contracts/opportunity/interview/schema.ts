@@ -22,7 +22,7 @@ export const Request=z.discriminatedUnion('operation',[
  z.strictObject({operation:z.literal('interview.receipt'),commandId:Id}),
 ]);
 export type Request=z.infer<typeof Request>;
-export const ErrorCode=z.enum(['invalid_request','not_found','conflict','invalid_transition','invalid_relation','storage_failed']);
+export const ErrorCode=z.enum(['invalid_request','content_purged','not_found','conflict','invalid_transition','invalid_relation','storage_failed']);
 export const Result=z.discriminatedUnion('kind',[
  z.strictObject({kind:z.literal('session'),session:Session}),
  z.strictObject({kind:z.literal('sessions'),items:z.array(Session),opportunityRevision:Revision}),

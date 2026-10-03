@@ -24,7 +24,7 @@ export const Request=z.discriminatedUnion('operation',[
  z.object({operation:z.literal('history'),id:z.uuid(),owner:Owner}).strict(),
  z.object({operation:z.literal('receipt'),commandId:z.uuid()}).strict(),
 ]);export type Request=z.infer<typeof Request>;
-export const ErrorCode=z.enum(['invalid_request','not_found','conflict','source_unavailable','scope_mismatch','invalid_transition','storage_failed']);
+export const ErrorCode=z.enum(['invalid_request','content_purged','not_found','conflict','source_unavailable','scope_mismatch','invalid_transition','storage_failed']);
 export const Result=z.discriminatedUnion('kind',[
  z.object({kind:z.literal('item'),item:Item}).strict(),
  z.object({kind:z.literal('document'),owner:Owner,revision:z.number().int().nonnegative(),items:z.array(Resolution),references:z.array(Reference)}).strict(),

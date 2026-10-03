@@ -23,3 +23,9 @@ export function executeCommand<T>(db: Database.Database, owner: string, commandI
   return result;
  })();
 }
+
+/** A caller may redact only its selected namespace; retain immutable intent digests. */
+export function redactedCommandResults(db:Database.Database,owner:string,select:(result:unknown)=>boolean,replacement:unknown):void{
+ const rows=db.prepare('SELECT command_id,result_json FROM platform_commands WHERE owner=?').all(owner) as {command_id:string;result_json:string}[];
+ for(const row of rows)if(select(JSON.parse(row.result_json)))db.prepare('UPDATE platform_commands SET result_json=? WHERE owner=? AND command_id=?').run(JSON.stringify(replacement),owner,row.command_id);
+}

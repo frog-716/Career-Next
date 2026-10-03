@@ -47,12 +47,14 @@ export function createLedger(db: Database.Database) {
       db.prepare(`DELETE FROM ${holds} WHERE blob_id=? AND command_id=?`).run(blobId,commandId);
       db.prepare(`UPDATE ${receipts} SET status='committed',${objectColumn}=? WHERE command_id=?`).run(materialId,commandId);
     },
-    retainExisting(blobId: string, objectId: string, owner: 'offer') {
+    retainExisting(blobId: string, objectId: string, owner: 'offer'|'submission'|'communication'|'actual-artifact') {
       if(!upgraded||!db.prepare("SELECT 1 FROM platform_blobs WHERE id=? AND state='published'").get(blobId))throw Error('invalid_capability');
       const existing=db.prepare(`SELECT blob_id FROM ${retention} WHERE owner=? AND object_id=?`).get(owner,objectId) as {blob_id:string}|undefined;
       if(existing){if(existing.blob_id!==blobId)throw Error('conflict');return;}
       db.prepare(`INSERT INTO ${retention} VALUES (?,?,?)`).run(blobId,owner,objectId);
     },
+    retentionReasons(blobId:string){return db.prepare(`SELECT owner,object_id AS objectId FROM ${retention} WHERE blob_id=?`).all(blobId) as {owner:string;objectId:string}[];},
+    releaseRetention(owner:string,objectId:string){db.prepare(`DELETE FROM ${retention} WHERE owner=? AND object_id=?`).run(owner,objectId);},
     fail(commandId: string, code: string) {
       db.prepare(`UPDATE ${receipts} SET status='failed',error=? WHERE command_id=? AND status='pending'`).run(code,commandId);
       db.prepare(`DELETE FROM ${holds} WHERE command_id=? AND NOT EXISTS(SELECT 1 FROM ${receipts} WHERE command_id=? AND status='committed')`).run(commandId,commandId);

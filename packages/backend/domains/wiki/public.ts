@@ -1,3 +1,4 @@
+import {redactOwnerReceipts} from '../../platform/commands/purge-receipts';
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import { Request,Result,Knowledge,History,ErrorCode } from '../../../contracts/wiki/schema';
@@ -31,5 +32,5 @@ export function createWikiDomain(db:Database.Database,dependencies:WikiDependenc
    }
   }catch(error){const code=ErrorCode.safeParse(error instanceof Error?error.message:'storage_failed');return {kind:'failure',code:code.success?code.data:'storage_failed'};}
  }
- return {handle,read(id:string){try{return read(id);}catch{return undefined;}},applyProposal(input:unknown){const result=handle(input,'ai_accepted');if(result.kind!=='knowledge')throw Error(result.kind==='failure'?result.code:'storage_failed');return result.knowledge;}};
+ return {handle,purgeImpact(id:string){const item=(()=>{try{return read(id);}catch{return undefined;}})();return item?{id,revision:item.revision,name:item.title,blobIds:[],retentions:[]}:undefined;},referencing(ref:{owner:string;objectId:string}){const rows=db.prepare('SELECT content_json FROM wiki_knowledge').all() as {content_json:string}[];return rows.map(row=>Knowledge.parse(JSON.parse(row.content_json))).filter(item=>item.sources.some(source=>source.ref.owner===ref.owner&&source.ref.objectId===ref.objectId)).map(item=>({id:item.id,title:item.title,revision:item.revision}));},purge(id:string){db.prepare('DELETE FROM wiki_revisions WHERE knowledge_id=?').run(id);db.prepare('DELETE FROM wiki_knowledge WHERE id=?').run(id);redactOwnerReceipts(db,'wiki',[id],{kind:'failure',code:'content_purged'});},read(id:string){try{return read(id);}catch{return undefined;}},applyProposal(input:unknown){const result=handle(input,'ai_accepted');if(result.kind!=='knowledge')throw Error(result.kind==='failure'?result.code:'storage_failed');return result.knowledge;}};
 }

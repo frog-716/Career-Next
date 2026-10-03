@@ -1,6 +1,7 @@
+import {redactOwnerReceipts} from '../../platform/commands/purge-receipts';
 import type Database from 'better-sqlite3';
 import {createHash,randomUUID} from 'node:crypto';
-import {Request,Result,Profile,Document,CareerDocument,NameVersion,Snapshot,PdfArtifact,Version,type OpportunityResolver} from '../../../contracts/resume/schema';
+import {Request,Result,Profile,Document,CareerDocument,NameVersion,Export,Snapshot,PdfArtifact,Version,type OpportunityResolver} from '../../../contracts/resume/schema';
 import {executeCommand,commandReceipt} from '../../platform/commands/receipts';
 
 export const resumeMigration=`
@@ -16,7 +17,7 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
  function read(id:string):Result {const doc=document(id);if(!doc)return {status:'not-found'};const opportunity=dependencies.resolveOpportunity(doc.opportunityId);return opportunity?{status:'document',document:doc,profile:profile(),opportunity}:{status:'failure',code:'opportunity-unavailable'};}
  function check(id:string,expectedRevision:number,expectedProfileRevision:number):Result|undefined{const doc=document(id);if(!doc)return {status:'not-found'};const current=profile();if(doc.revision!==expectedRevision||current.revision!==expectedProfileRevision)return {status:'conflict',document:doc,profile:current};}
  function prepareVersion(input:unknown,printMetadata={fontVersion:'macos-system-cjk',engineVersion:'electron-44.5.1'}):Result {
-  const parsed=NameVersion.safeParse(input);if(!parsed.success)return {status:'failure',code:'invalid-request'};const request=parsed.data;
+  const parsed=NameVersion.or(Export).safeParse(input);if(!parsed.success)return {status:'failure',code:'invalid-request'};const request=parsed.data;
   try{return Result.parse(db.transaction(()=>{
    const receipt=commandReceipt(db,'resume',request.commandId);if(receipt){const old=db.prepare('SELECT payload_json FROM resume_render_jobs WHERE command_id=?').get(request.commandId) as {payload_json:string}|undefined;if(!old||old.payload_json!==JSON.stringify(request))return {status:'conflict',profile:profile(),document:document(request.resumeId)};return receipt;}
    const old=db.prepare('SELECT payload_json,snapshot_json,name FROM resume_render_jobs WHERE command_id=?').get(request.commandId) as {payload_json:string;snapshot_json:string;name:string}|undefined;
@@ -24,8 +25,8 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
    const conflict=check(request.resumeId,request.expectedRevision,request.expectedProfileRevision);if(conflict)return conflict;
    const doc=document(request.resumeId)!;const current=profile();
    const snapshot=Snapshot.parse({id:request.commandId,resumeId:doc.id,opportunityId:doc.opportunityId,resumeRevision:doc.revision,profileRevision:current.revision,content:doc.content,profile:current,contentHash:createHash('sha256').update(JSON.stringify({content:doc.content,profile:current})).digest('hex'),templateVersion:'a4-basic-1',fontVersion:printMetadata.fontVersion,engineVersion:printMetadata.engineVersion,rendererVersion:'career-print-1',recordedAt:new Date().toISOString()});
-   db.prepare('INSERT INTO resume_render_jobs VALUES(?,?,?,?)').run(request.commandId,JSON.stringify(request),JSON.stringify(snapshot),request.name);
-   return {status:'pending-job',job:snapshot,name:request.name};
+   db.prepare('INSERT INTO resume_render_jobs VALUES(?,?,?,?)').run(request.commandId,JSON.stringify(request),JSON.stringify(snapshot),'name' in request?request.name:'');
+   return {status:'pending-job',job:snapshot,name:'name' in request?request.name:''};
   })());}catch{return {status:'failure',code:'storage-failed'};}
  }
  /** Trusted writer-only completion. The retained PDF must be verified and held by the platform before this call. */
@@ -36,7 +37,7 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
   if(!row)return {status:'not-found'};
   try{return Result.parse(executeCommand(db,'resume',commandId,JSON.parse(row.payload_json),()=>{
    const snapshot=Snapshot.parse(JSON.parse(row.snapshot_json));if(!document(snapshot.resumeId))return {status:'not-found'};
-   const version=Version.parse({id:commandId,resumeId:snapshot.resumeId,name:row.name,snapshot,pdf:parsed.data,recordedAt:new Date().toISOString()});
+   const version=Version.parse({id:commandId,resumeId:snapshot.resumeId,name:row.name,kind:JSON.parse(row.payload_json).operation==='resume.export'?'export':'named',snapshot,pdf:parsed.data,recordedAt:new Date().toISOString()});
    retain(version.id);
    db.prepare('INSERT INTO resume_versions VALUES(?,?,?)').run(version.id,version.resumeId,JSON.stringify(version));
    return {status:'version',version};
@@ -45,7 +46,7 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
  function handle(input:unknown):Result {
   const parsed=Request.safeParse(input);if(!parsed.success)return {status:'failure',code:'invalid-request'};const request=parsed.data;
   try {
-   if(request.operation==='resume.name-version')return prepareVersion(request);
+   if(request.operation==='resume.name-version'||request.operation==='resume.export')return prepareVersion(request);
    if(request.operation==='resume.read')return Result.parse(read(request.resumeId));
    if(request.operation==='resume.receipt'){const receipt=commandReceipt(db,'resume',request.commandId);if(receipt)return Result.parse(receipt);const job=db.prepare('SELECT snapshot_json,name FROM resume_render_jobs WHERE command_id=?').get(request.commandId) as {snapshot_json:string;name:string}|undefined;return job?{status:'pending-job',job:Snapshot.parse(JSON.parse(job.snapshot_json)),name:job.name}:{status:'not-found'};}
    if(request.operation==='resume.versions'){if(!document(request.resumeId))return {status:'not-found'};return Result.parse({status:'versions',versions:(db.prepare('SELECT body FROM resume_versions WHERE resume_id=? ORDER BY rowid DESC').all(request.resumeId) as {body:string}[]).map(row=>JSON.parse(row.body))});}
@@ -73,6 +74,10 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
   for(const {command_id} of jobs)if(!commandReceipt(db,'resume',command_id)){failVersion(command_id);failed.push(command_id);}
   return failed;
  }
- return {handle,prepareVersion,completeVersion,failVersion,recoverPendingVersions};
+ return {handle,prepareVersion,completeVersion,failVersion,recoverPendingVersions,
+ resolveFrozenVersion(id:string){const row=db.prepare('SELECT body FROM resume_versions WHERE id=?').get(id) as {body:string}|undefined;return row?Version.parse(JSON.parse(row.body)):undefined;},
+ purgeImpact(id:string){const doc=document(id);if(!doc)return undefined;const versions=(db.prepare('SELECT body FROM resume_versions WHERE resume_id=?').all(id) as {body:string}[]).map(row=>Version.parse(JSON.parse(row.body)));return {id,revision:doc.revision,name:'当前简历及其历史',blobIds:versions.map(v=>v.pdf.blobId),retentions:versions.map(v=>({owner:'resume',objectId:v.id})),producerIds:(db.prepare("SELECT command_id FROM resume_render_jobs WHERE json_extract(snapshot_json,'$.resumeId')=?").all(id) as {command_id:string}[]).map(r=>r.command_id)};},
+ purge(id:string){const versions=(db.prepare('SELECT id FROM resume_versions WHERE resume_id=?').all(id) as {id:string}[]).map(v=>v.id);const jobs=(db.prepare("SELECT command_id FROM resume_render_jobs WHERE json_extract(snapshot_json,'$.resumeId')=?").all(id) as {command_id:string}[]).map(j=>j.command_id);db.prepare('DELETE FROM resume_versions WHERE resume_id=?').run(id);for(const job of jobs)db.prepare('DELETE FROM resume_render_jobs WHERE command_id=?').run(job);db.prepare('DELETE FROM resume_documents WHERE id=?').run(id);redactOwnerReceipts(db,'resume',[id,...versions,...jobs],{status:'failure',code:'content-purged'});}
+ };
 }
 export {renderSnapshot} from './render';

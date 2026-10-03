@@ -97,7 +97,7 @@ async function businessWithPrint(module:BusinessModule,input:unknown){
  const result=await sendBusiness(module,input);
  if(module!=='resume')return result;
  const request=ResumeRequest.parse(input),parsed=ResumeResult.parse(result);
- if(request.operation!=='resume.name-version'||parsed.status!=='pending-job')return parsed;
+ if((request.operation!=='resume.name-version'&&request.operation!=='resume.export')||parsed.status!=='pending-job')return parsed;
  const bound=identity;if(!bound)throw Error('disconnected');
  const key=bound.connectionGeneration+'/'+request.commandId;
  const previous=printing.get(key);if(previous)return previous;

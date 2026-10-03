@@ -22,13 +22,14 @@ export type CareerDocument=z.infer<typeof CareerDocument>;
 export const Document=z.strictObject({id:Id,opportunityId:Id,revision:Revision,content:CareerDocument,recordedAt:z.string().datetime()});
 export const Snapshot=z.strictObject({id:Id,resumeId:Id,opportunityId:Id,resumeRevision:Revision,profileRevision:Revision,content:CareerDocument,profile:Profile,contentHash:z.string().regex(/^[a-f0-9]{64}$/),templateVersion:z.literal('a4-basic-1'),fontVersion:z.string().min(1).max(120),engineVersion:z.string().min(1).max(120),rendererVersion:z.literal('career-print-1'),recordedAt:z.string().datetime()});
 export const PdfArtifact=z.strictObject({blobId:Id,digest:z.string().regex(/^[a-f0-9]{64}$/),size:z.number().int().positive().max(16*1024*1024)});
-export const Version=z.strictObject({id:Id,resumeId:Id,name:z.string().trim().min(1).max(120),snapshot:Snapshot,pdf:PdfArtifact,recordedAt:z.string().datetime()});
+export const Version=z.strictObject({id:Id,resumeId:Id,name:z.string().trim().max(120),kind:z.enum(['named','export']).optional(),snapshot:Snapshot,pdf:PdfArtifact,recordedAt:z.string().datetime()});
 export const NameVersion=z.strictObject({operation:z.literal('resume.name-version'),commandId:Id,resumeId:Id,expectedRevision:Revision,expectedProfileRevision:Revision,name:z.string().trim().min(1).max(120)});
+export const Export=z.strictObject({operation:z.literal('resume.export'),commandId:Id,resumeId:Id,expectedRevision:Revision,expectedProfileRevision:Revision});
 export const Request=z.discriminatedUnion('operation',[
  z.strictObject({operation:z.literal('resume.open'),commandId:Id,opportunityId:Id}),
  z.strictObject({operation:z.literal('resume.read'),resumeId:Id}),
  z.strictObject({operation:z.literal('resume.save'),commandId:Id,resumeId:Id,expectedRevision:Revision,expectedProfileRevision:Revision,content:CareerDocument}),
- NameVersion,
+ NameVersion,Export,
  z.strictObject({operation:z.literal('resume.versions'),resumeId:Id}),
  z.strictObject({operation:z.literal('resume.version'),resumeId:Id,versionId:Id}),
  z.strictObject({operation:z.literal('resume.restore'),commandId:Id,resumeId:Id,versionId:Id,expectedRevision:Revision,expectedProfileRevision:Revision}),
@@ -41,7 +42,7 @@ export const Result=z.discriminatedUnion('status',[
  z.strictObject({status:z.literal('versions'),versions:z.array(Version)}),
  z.strictObject({status:z.literal('conflict'),profile:Profile,document:Document.optional()}),
  z.strictObject({status:z.literal('not-found')}),
- z.strictObject({status:z.literal('failure'),code:z.enum(['invalid-request','storage-failed','opportunity-unavailable','pdf-failed'])})
+ z.strictObject({status:z.literal('failure'),code:z.enum(['invalid-request','content-purged','storage-failed','opportunity-unavailable','pdf-failed'])})
 ]);
 export type Request=z.infer<typeof Request>;
 export type Result=z.infer<typeof Result>;

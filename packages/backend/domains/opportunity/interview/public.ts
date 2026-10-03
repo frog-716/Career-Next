@@ -1,3 +1,4 @@
+import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import {TranscriptSourceRef,type SourceRef} from '../../../../contracts/common/source-ref';
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
@@ -60,7 +61,7 @@ export function createInterviewDomain(db:Database.Database,dependencies:{core:Op
    }));
   }catch(error){const code=ErrorCode.safeParse(error instanceof Error?error.message:'storage_failed');return {kind:'failure',code:code.success?code.data:'storage_failed'};}
  }
- return {handle,resolveTranscript(input:SourceRef){
+ return {handle,purgeImpact(id:string){const session=read(id);return session?{id,revision:session.revision,name:session.title,blobIds:[],retentions:[]}:undefined;},purge(id:string){const old=read(id);if(!old)return;const cleared={...old,title:'已清除的面试记录',revision:old.revision+1};delete cleared.transcript;delete cleared.preparation;delete cleared.finalReview;db.prepare('UPDATE interview_sessions SET revision=?,body=? WHERE id=?').run(cleared.revision,JSON.stringify(cleared),id);db.prepare('DELETE FROM interview_history WHERE session_id=?').run(id);redactOwnerReceipts(db,'interview',[id],{kind:'failure',code:'content_purged'});},resolveTranscript(input:SourceRef){
   const parsed=TranscriptSourceRef.safeParse(input);if(!parsed.success)return undefined;const ref=parsed.data,session=read(ref.objectId);
   if(!session?.transcript||session.opportunityId!==ref.opportunityId)return undefined;
   const source=TranscriptSourceRef.parse({...ref,revision:session.transcript.version});
