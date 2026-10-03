@@ -4,7 +4,7 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。当前已授权 G4 跨域接缝集成，见 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，不进入 G5/G6。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，不进入 G5/G6。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
 
 ## 冻结输入与阅读入口
 
@@ -69,3 +69,12 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `frontend/app/opportunity-submodules.tsx` 在机会内接入三个入口，保留编辑会话；Wiki 的 `features/wiki/research.tsx` 仅经公开查询显示同一研究正文及所属机会导航。
 - 版本 3 迁移批次追加研究、面试、Offer 与 Offer 原件独立保留原因，已发布 G1/G2 SQL 不变；真实原件在 writer 中有界校验后才可绑定。
 - [G3 umbrella #10](https://github.com/frog-716/Career-Next/issues/10) 与子 Issue #11 / #12 / #13 保存任务和验收状态；实际证据见 [G3 人工子模块验收](docs/verification/g3-manual-submodules.md)。
+
+## G4 入口
+
+- `contracts/opportunity/{submission,communication}/` 与对应 backend / frontend 子模块：首次投递唯一、后续发送独立，记录实际发送材料；Resume 只提供已冻结候选，文件选择由 Desktop 窄能力提供。
+- `backend/ai-runtime/` 管 Wiki 整理任务、逐次授权、实际来源、ExternalOperation、Proposal 与回执；`backend/platform/providers/` 提供本地 fake。人工采纳在唯一 writer 同事务经 Wiki public 生效。无真实外发，不恢复旧执行权。
+- `backend/application/data-lifecycle/` 组合 owner 的公开维护能力；`platform/backup/` 管一致恢复点、受管理副本和唯一 active pointer，`platform/persistence/` 拒绝已清除对象的迟到生产者。
+- `backend/bootstrap/{ai-composition,lifecycle-composition,candidate-validation}.ts` 是真实跨 owner 接缝与候选恢复校验入口；迁移发布版本为 4，已发布 G1–G3 SQL 不变。
+- `frontend/support/{ai,data-lifecycle}/` 是 Wiki 辅助与设置入口，`frontend/app/g4-support.tsx` 装配。清除通知关闭受影响正文/缓存并拒绝旧响应，保留无关草稿；恢复先卸载旧编辑会话再建立新资料身份。
+- [G4 umbrella #14](https://github.com/frog-716/Career-Next/issues/14) 和 #15–19 管任务；正常开发与 arm64 打包证据见 [G4 验收](docs/verification/g4-cross-domain.md)。下一门 G5 尚未授权。

@@ -47,3 +47,12 @@ Wiki 自己的知识表达，有范围、修订、状态及可选来源引用。
 用户接受时的不可变条件依据，包含已知条件、未知项及真实原件或缺失说明；后来条件变化不覆盖旧依据。Frozen DM-31。
 
 定义及时间/纠错规则以 [Frozen DOMAIN](docs/product-spec/rebuild-spec/DOMAIN.md) 为准。
+
+## G4 协作术语
+
+- **Submission**：一个 Opportunity 的真实首次正式投递记录；简历和 Greeting 的未使用、未知、文件缺失、实际材料保留分别表达。Frozen DM-23–25。
+- **Communication**：真实沟通及后续再次发送，由本子模块拥有；再次发送不创建第二次首次 Submission。Frozen DM-06/07/25。
+- **Frozen export**：无需命名的实际导出快照和 PDF，可作发送候选，不代表当前稿或后来重生文件。Frozen DM-22/24。
+- **ExternalOperation**：一次有独立身份和明确授权的外部操作；unknown 之后的新操作与迟到旧结果分别归属。Frozen AI-12、AI-RUNTIME。
+- **Trusted provenance**：Runtime 记录的真正使用来源链；模型 citation 不能缩小它。Frozen AI-15/16。
+- **Managed copies**：应用管理的当前资料、恢复候选、旧库、备份和衍生临时副本；永久清除按用户确认范围执行。Frozen DM-38、DATA §7。
