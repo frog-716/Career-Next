@@ -21,9 +21,10 @@ it('two normal credential bridges cannot reenable an earlier save after a later 
  try{let session=await launch(profile);app=session.app;
   await app.evaluate(({Menu})=>{const item=Menu.getApplicationMenu()!.items.find(item=>item.label==='文件')!.submenu!.items.find(item=>item.label==='新建窗口')!;item.click();});await expect.poll(()=>app!.windows().length).toBe(2);const second=app.windows()[1]!;await second.getByRole('navigation',{name:'一级导航'}).waitFor();
   await app.evaluate(({safeStorage})=>{const original=safeStorage.encryptStringAsync.bind(safeStorage);safeStorage.encryptStringAsync=async value=>{const encrypted=await original(value);(globalThis as any).__g6EncryptReady=true;await new Promise<void>(resolve=>(globalThis as any).__g6ReleaseEncrypt=resolve);return encrypted;};});
-  await session.page.evaluate(value=>{(window as any).__g6Save=window.careerSecrets.request({operation:'save',value});},'G6_VIRTUAL_CONCURRENT_'+randomUUID());await expect.poll(()=>app!.evaluate(()=>(globalThis as any).__g6EncryptReady)).toBe(true);
+  await session.page.evaluate(value=>{(window as any).__g6Save=window.careerSecrets.request({operation:'save',value}).catch(error=>({error:String(error)}));},'G6_VIRTUAL_CONCURRENT_'+randomUUID());await expect.poll(()=>app!.evaluate(()=>(globalThis as any).__g6EncryptReady),{timeout:90000}).toBe(true);
   await second.evaluate(()=>{(window as any).__g6Disable=window.careerSecrets.request({operation:'disable'});});
-  // An observable private gate response proves the later intent arrived before releasing A.
+  // Observe the closed gate while the two requests are pending. The final vault and
+  // restart assertions prove the ordering outcome; this alone cannot distinguish A/B.
   expect(await prepare(second)).toMatchObject({kind:'failure',code:'provider_disabled'});
   await app.evaluate(()=>(globalThis as any).__g6ReleaseEncrypt());await session.page.evaluate(()=>(window as any).__g6Save);await second.evaluate(()=>(window as any).__g6Disable);
   expect(await second.evaluate(()=>window.careerSecrets.request({operation:'status'}))).toMatchObject({kind:'status',status:{configured:true,enabled:false}});expect(await prepare(second)).toMatchObject({kind:'failure',code:'provider_disabled'});

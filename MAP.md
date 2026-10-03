@@ -4,7 +4,7 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，G5 本轮普通产品链和真人桌面已 PASS，总状态 PARTIAL 仅因 J-07 真实外部未测；见 [G5 最终证据](docs/verification/g5-complete-journeys.md)，不进入 G6。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，G5 本轮普通产品链和真人桌面已 PASS，总状态 PARTIAL 仅因 J-07 真实外部未测；见 [G5 最终证据](docs/verification/g5-complete-journeys.md)，当前已获 G6 独立授权。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
 
 ## 冻结输入与阅读入口
 
@@ -87,7 +87,18 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `backend/ai-runtime/{product,search}/` 复用同一 Runtime/权限/预算/回执，接入业务 owner 的 `ai-policy.ts`；`bootstrap/product-composition.ts` 只组合公开能力。Resume 单条、Research 同 owner 原子组、Greeting/面试/Offer 可编辑草稿由用户处理后立即写对应 owner；不自动推进现实状态。
 - `frontend/support/ai/{product-launcher,product-task}.tsx` 是明确目标、Context/外发分离、最终预览与人工处理入口；Resume editor 只把本条实际修改加入独立撤销历史，无关本地/远端输入保留。
 - `materials/targets.ts` 与 `platform/imports/` 接明确对象的本地文件/受控 Feishu-shaped 导入；SearchRun 仅受控 fixture，不调用真实网络。普通恢复隔离旧窗口写回，精确 purge 通知各窗口受影响编辑缓存。
-- 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程使用本地受控资料与 fake adapter；真实 Provider/Search/Feishu 不测，M 正式迁移与 G6 不授权。
-- [G5 连续旅程与真人门](docs/verification/g5-complete-journeys.md) 和 `tests/desktop/g5*.electron.test.ts` 是本轮证据入口；[真人最终证据](docs/verification/g5-manual-desktop-final.md) 已 PASS；两次缺陷原现场及复测保留，104 最终分类见矩阵。G5 总状态 PARTIAL，仅真实外部 J-07 待验；开发 Issues 按本轮授权关闭。后续体验改进仅记录在 [UX backlog](docs/backlog/g5-ux-polish.md)，不进入 G6。
+- 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程使用本地受控资料与 fake adapter；真实 Provider/Search/Feishu 不测，M 正式迁移不授权；G6 见下方当前入口。
+- [G5 连续旅程与真人门](docs/verification/g5-complete-journeys.md) 和 `tests/desktop/g5*.electron.test.ts` 是本轮证据入口；[真人最终证据](docs/verification/g5-manual-desktop-final.md) 已 PASS；两次缺陷原现场及复测保留，104 最终分类见矩阵。G5 总状态 PARTIAL，仅真实外部 J-07 待验；开发 Issues 按本轮授权关闭。后续体验改进仅记录在 [UX backlog](docs/backlog/g5-ux-polish.md)，后续 G6 见下方当前入口。
 
-- [G5 post-blackbox 收口](docs/verification/g5-post-blackbox.md)：核对 OLD MAIN 已含 Resume 两个修复，保留独立 Luna / 真人 / 自动证据，重新回归并创建新的证据 checkpoint；不进入 G6。
+- [G5 post-blackbox 收口](docs/verification/g5-post-blackbox.md)：历史 G5 checkpoint 证据；G5 总状态仍 PARTIAL，仅真实外部 J-07 待验。
+
+## G6 入口（本地门 PASS）
+
+- 本地 G6 故障/恢复门已 PASS：63 个矩阵场景，117 unit / 382 integration / 23 正常包案例，以及用户真实系统睡眠 + Computer Use 唤醒验收；见 [最终证据](docs/verification/g6-final.md)。发布条件仍 READY / NOT RUN，不代表完整发布验收。
+- [G6 umbrella #26](https://github.com/frog-716/Career-Next/issues/26) 与 F1–F4 #27–30；[故障矩阵](docs/verification/g6-failure-matrix.md) 映射 28 个 DEFER_G6 和全部 RV 项，记录真实执行与缺口。
+- [G6 并行边界](docs/agents/g6-integration.md)：四个隔离 worktree，root 串行负责根依赖、迁移排序、打包及最终集成。
+- 真实 Provider/Search/Feishu 继续 NOT TESTED；Developer ID/Notarization/x64 只按真实环境结算。旧 Career/Migration M 不授权。
+
+- G6 新增 `platform/search/` 为有界、可重建的人类本地搜索投影；`bootstrap/local-search-composition.ts` 仅组合公开 owner，v6 追加内容无关 dirty 通知。备份排除投影正文，清除后重建。
+- Main 的专用 write-only Secret 桥位于 `capabilities/secret-vault.ts`，系统加密存储与业务备份分离；凭据与真实 Provider 的联动仍不声称已完成真实外部验收。
+- Main 打开业务 writer 前由固定只读 `workspace-check` 核对资料身份；无效指针关闭业务/外发，用户明确选择完整备份后才经隔离候选验证激活。

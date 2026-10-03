@@ -4,7 +4,7 @@
 - Product Spec Frozen R3 位于 `docs/product-spec/`，是产品规则唯一正本；未经明确授权不得修改。
 - Architecture V2 Frozen 位于 `docs/architecture/`，是冻结架构唯一正本；未经明确授权不得修改。
 - 旧 Career 不得作为新实现参考；只有未来明确授权的独立审计任务可以按其范围读取，不能据此导入旧实现。
-- G0、G1、G2 第一批已 PASS；G3 Research / Interview / Offer 人工子模块已 PASS。G4 跨域事务、Wiki 整理 AI 首任务和备份/恢复/清除已 PASS；Provider 只用 deterministic fake，不调用真实 AI / Search / Feishu，G5 本轮普通产品链和真人桌面已 PASS，总状态 PARTIAL 仅因真实外部 J-07 未测；最终证据见 `docs/verification/g5-complete-journeys.md`，不进入 G6。`probe/` 仅为 G0 实验。G4 协作边界见 `docs/agents/g4-integration.md`。
+- G0–G4 已 PASS；G5 本地产品与真人桌面 PASS，总状态 PARTIAL，仅真实外部 J-07 待验。G6 本地故障/恢复门已 PASS，发布环境项仍 READY / NOT RUN；入口见 `docs/verification/g6-failure-matrix.md`，并行边界见 `docs/agents/g6-integration.md`。只用隔离夹具和 deterministic fake，不调用真实 AI / Search / Feishu，不进入 Migration M。`probe/` 仅为 G0 实验。
 
 ## Agent skills
 

@@ -1,0 +1,119 @@
+{
+  "status": "PASS: final normal packaged arm64 two-window boundary only",
+  "boundary": "G6 packaged arm64 two-window Resume conflict and Proposal concurrency; no full G6 claim",
+  "preRun": {
+    "command": "CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' CAREER_G6_TWO_WINDOWS_EVIDENCE=/tmp/career-g6-two-windows-pre npx vitest run tests/desktop/g6-two-windows.electron.test.ts --maxWorkers=1",
+    "exitCode": 0,
+    "testFiles": 1,
+    "tests": 2,
+    "log": "/tmp/g6-two-windows-pre3.log",
+    "logSha256": "d0c28c58dd2770f52a8b85210752f1809aab476f1758c317879a328d079e9ed3",
+    "appAsarSha256ObservedAfterRun": "365f9b00a32d7b03bee1dd34173b9c8bb41e8d0901435a3df5ad1b81e11393ca",
+    "sameRevision": {
+      "executable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+      "realMacOSIME": "NOT RUN by automation",
+      "status": "PASS",
+      "baselineRevision": 2,
+      "committedRevision": 3,
+      "winner": "A",
+      "loserLocalDraft": "个人简介Controlled shared baseline.技能经历项目教育 Window B actual draft.",
+      "formalComparison": "个人简介\nControlled shared baseline.\n\n技能\n\n\n经历\n\n\n项目\n\n\n教育\n Window A actual draft.",
+      "explicitChoices": 2
+    },
+    "proposalConcurrency": {
+      "executable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+      "realMacOSIME": "NOT RUN by automation",
+      "status": "PASS",
+      "remoteUnrelatedRetainedThroughApplyUndo": true,
+      "acceptedAfterUndo": true,
+      "staleProposalDisabled": true,
+      "rejected": {
+        "kind": "product_conflict",
+        "code": "conflict",
+        "proposalIds": [
+          "6a348b4c-2c79-433c-8f05-228603fa88d5"
+        ]
+      },
+      "formalRevisionUnchanged": 6,
+      "remoteSelectedAndUnrelatedBody": "Controlled shared baseline. Remote selected block now changed.\n Remote window separately committed contribution.",
+      "pendingProposalState": "pending"
+    }
+  },
+  "harnessCorrections": [
+    {
+      "log": "/tmp/g6-two-windows-pre.log",
+      "exitCode": 1,
+      "reason": "Public seed bypassed list UI cache; changed fixture to real keyboard/menu UI creation."
+    },
+    {
+      "log": "/tmp/g6-two-windows-pre2.log",
+      "exitCode": 1,
+      "reason": "Vitest matcher lacked toBeDisabled; replaced with expect.poll(locator.isDisabled). Same-revision case passed."
+    }
+  ],
+  "finalRebuiltPackage": {
+    "command": "CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' CAREER_G6_TWO_WINDOWS_EVIDENCE=/tmp/career-g6-two-windows-final npx vitest run tests/desktop/g6-two-windows.electron.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/g6-two-windows-final-results.json",
+    "exitCode": 0,
+    "testFiles": 1,
+    "tests": 2,
+    "productionSourceCommit": "e70f4de6574604a27ea94111af99cedb5d80e172",
+    "appAsarSha256": "7ef33f0ea02a44fb48bac9199539cfd0865010d224b301384b252640f7b9a996",
+    "log": "/tmp/g6-two-windows-final.log",
+    "logSha256": "150eb44d655250c9b36fad47157aacedf64d4babff97ffd7d6a467d9f54601b2",
+    "vitestJson": "/tmp/g6-two-windows-final-results.json",
+    "vitestJsonSha256": "d179bc35a7fd117708e58730b5f9da9e345b29e7b121bc706cc4fcc696f221a4",
+    "testSourceSha256": "3f39f96af91f5c01fa5ac22280603a316687dff4562a3a7251bb357d7e7fcd93",
+    "sameRevision": {
+      "executable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+      "verifiedProcessArchitecture": "arm64",
+      "realMacOSIME": "NOT RUN by automation",
+      "status": "PASS",
+      "baselineRevision": 2,
+      "committedRevision": 3,
+      "winner": "A",
+      "loserLocalDraft": "个人简介Controlled shared baseline.技能经历项目教育 Window B actual draft.",
+      "formalComparison": "个人简介\nControlled shared baseline.\n\n技能\n\n\n经历\n\n\n项目\n\n\n教育\n Window A actual draft.",
+      "explicitChoices": 2
+    },
+    "proposalConcurrency": {
+      "executable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+      "verifiedProcessArchitecture": "arm64",
+      "realMacOSIME": "NOT RUN by automation",
+      "status": "PASS",
+      "remoteUnrelatedRetainedThroughApplyUndo": true,
+      "acceptedAfterUndo": true,
+      "staleProposalDisabled": true,
+      "rejected": {
+        "kind": "product_conflict",
+        "code": "conflict",
+        "proposalIds": [
+          "5f8dfd65-6e05-43bb-a94f-c07199f5cdeb"
+        ]
+      },
+      "formalRevisionUnchanged": 6,
+      "remoteSelectedAndUnrelatedBody": "Controlled shared baseline. Remote selected block now changed.\n Remote window separately committed contribution.",
+      "pendingProposalState": "pending"
+    }
+  },
+  "notRun": [
+    "Real macOS Chinese IME (automation uses ASCII keyboard.type)",
+    "Real provider/search/Feishu",
+    "Physical power-loss",
+    "Developer ID / Notarization / x64"
+  ],
+  "productionFilesChanged": [],
+  "frozen": {
+    "docs/product-spec": {
+      "baseline": "befe2437a9b260237ae5f08a2d11517437a27032",
+      "unchanged": 12,
+      "total": 12
+    },
+    "docs/architecture": {
+      "baseline": "befe2437a9b260237ae5f08a2d11517437a27032",
+      "unchanged": 8,
+      "total": 8
+    }
+  },
+  "scopedDiffCheckExitCode": 0,
+  "gitIndexActions": "NONE: root serial final submission"
+}

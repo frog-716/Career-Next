@@ -56,3 +56,7 @@ git diff --check
 - corrupt/missing pointer、正常 packaged desktop、sleep/wake/close/restart 属 root/F4；没有以这些单元/集成证据代替桌面证据。
 
 REAL PROVIDER / SEARCH / FEISHU = NOT TESTED。Developer ID / Notarization / x64 未执行。没有关 Issue、push main 或进入 Migration M。
+
+## Root 最终集成结算
+
+本工作线记录保留当时的边界；后续正式接线、最终正常包和真人系统 sleep/wake 的补验已完成，当前结算以 [G6 最终证据](g6-final.md) 和 [逐场景矩阵](g6-failure-matrix.md) 为准。LOCAL G6 PASS；发布条件仍 READY / NOT RUN、真实服务 NOT TESTED。

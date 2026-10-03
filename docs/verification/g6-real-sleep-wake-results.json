@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "normalExecutable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+  "appAsarSha256": "7ef33f0ea02a44fb48bac9199539cfd0865010d224b301384b252640f7b9a996",
+  "directLaunchAt": "2026-10-03T12:27:32.425Z",
+  "directPid": 95333,
+  "samePidAliveAfterWake": true,
+  "noPlaywrightOrDebugFlags": true,
+  "systemPowerEvents": [
+    {
+      "time": "2026-10-03 20:29:59 +0800",
+      "event": "Sleep",
+      "reason": "Software Sleep"
+    },
+    {
+      "time": "2026-10-03 20:32:19 +0800",
+      "event": "Wake",
+      "reason": "Wake from Deep Idle / HID Activity"
+    }
+  ],
+  "user": "User explicitly confirmed second real sleep/wake.",
+  "computerUse": {
+    "window": "Career Next",
+    "url": "career://app/index.html#/wiki",
+    "title": "G6 睡眠唤醒验收（隔离测试）",
+    "body": "Saved G6 sleep/wake fixture. Synthetic data only.",
+    "savedState": "已保存",
+    "afterWakeReadOnlyHistory": {
+      "revision": 1,
+      "nature": "created",
+      "body": "Saved G6 sleep/wake fixture. Synthetic data only."
+    },
+    "evidence": "Current native AX tree and screenshot captured in this chat; real native history button click/read, no DOM injection."
+  },
+  "firstAttempt": {
+    "systemSleepConfirmed": true,
+    "continuity": "NOT VERIFIED: Playwright target closed; observer script exception exited. App was directly reopened, and second actual sleep was required rather than treating reopen as wake."
+  },
+  "limitations": [
+    "No caret/selection/undo-stack across sleep promise",
+    "No real services",
+    "No physical power cut"
+  ],
+  "commands": [
+    {
+      "command": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext --user-data-dir=/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-human-sleep-GG6yew",
+      "pid": 95333,
+      "exitCode": 0,
+      "debugFlags": false
+    },
+    {
+      "command": "pmset -g log (only timestamp/type captured)",
+      "exitCode": 0
+    },
+    {
+      "command": "ps -p 95333 -o pid=,lstart=,command=",
+      "exitCode": 0
+    },
+    {
+      "command": "Computer Use native AX/screenshot and read-only history button",
+      "result": "complete"
+    }
+  ],
+  "actualSleepSeconds": 140.0,
+  "systemEventFilter": "Actual Entering Sleep / Wake from records only; Wake Requests is not a wake event.",
+  "normalCloseExitCode": 0
+}

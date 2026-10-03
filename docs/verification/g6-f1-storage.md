@@ -56,3 +56,7 @@ PDF 故障覆盖被冻结的 owner job、publish hold、候选写入失败、原
 ## 边界
 
 Frozen Product Spec / Architecture、根依赖、lockfile、发布迁移、bootstrap、packaging 和其他工作线均未修改。真实 AI / Search / Feishu 未测试。Developer ID / Notarization / x64 状态由 integration owner 保持诚实结算。本线不关闭 Issue、不 push main、不进入 Migration M。
+
+## Root 最终集成结算
+
+本工作线记录保留当时的边界；后续正式接线、最终正常包和真人系统 sleep/wake 的补验已完成，当前结算以 [G6 最终证据](g6-final.md) 和 [逐场景矩阵](g6-failure-matrix.md) 为准。LOCAL G6 PASS；发布条件仍 READY / NOT RUN、真实服务 NOT TESTED。

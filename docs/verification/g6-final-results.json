@@ -1,0 +1,2958 @@
+{
+  "baseline": "befe2437a9b260237ae5f08a2d11517437a27032",
+  "productionSource": "e70f4de6574604a27ea94111af99cedb5d80e172",
+  "unit": 117,
+  "integration": 382,
+  "effectiveDesktop": {
+    "files": 16,
+    "tests": 23,
+    "allPassed": true,
+    "initialBatchExit": 1,
+    "corrections": "G5 test now explicitly queries original stop receipt; native encrypted hold observation uses native-operation timeout, not 5-second default. No production changes after packaged build."
+  },
+  "runs": [
+    {
+      "name": "unit",
+      "command": "npm test -- --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/career-g6/final-unit-results.json",
+      "exitCode": 0,
+      "tests": 117,
+      "passed": 117,
+      "failed": 0,
+      "sourceLogSha256": "044d91130f4951f202843daeed63dc1eab3c355124019c32639f1a24cd046b55",
+      "cases": [
+        {
+          "file": "tests/artifacts.test.ts",
+          "title": "upgrades existing Raw protection and protects a frozen PDF until owner retention commits",
+          "status": "passed"
+        },
+        {
+          "file": "tests/commands.test.ts",
+          "title": "commits one owner result and remembers the exact command across retries",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-boundaries.test.ts",
+          "title": "employment command boundary rejects actor claims, arbitrary storage input, invalid dates and person reassignment",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-boundaries.test.ts",
+          "title": "employment frontend uses contracts and public backend exposes no foreign SQL or repositories",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-session.test.ts",
+          "title": "pending employment creation locks draft fields until its delayed response completes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-session.test.ts",
+          "title": "pending person creation locks its own draft and never resets the employment draft",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-session.test.ts",
+          "title": "lifecycle action refuses to clear an unsaved role or goal",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-session.test.ts",
+          "title": "ordinary current-employment save cannot discard a drafted actual end date",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-state.test.ts",
+          "title": "lost response retains original command and explicit receipt verification never resends it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/employment-state.test.ts",
+          "title": "invalid calendar input stays visible as a known validation error without dispatch",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g3-module-boundaries.test.ts",
+          "title": "RV-MODULE research imports contracts/platform/design-system or its own files, never a sibling private owner or opposite side",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g3-module-boundaries.test.ts",
+          "title": "RV-MODULE interview imports contracts/platform/design-system or its own files, never a sibling private owner or opposite side",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g3-module-boundaries.test.ts",
+          "title": "RV-MODULE offer imports contracts/platform/design-system or its own files, never a sibling private owner or opposite side",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-ai-controller.test.ts",
+          "title": "stop closes utility handoff immediately even when the writer intent is still blocked",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-ai-controller.test.ts",
+          "title": "a purge of actual A closes dispatch while its intent is still waiting, without closing unrelated B",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-ai-controller.test.ts",
+          "title": "summary -> cached summary inherits sensitive actual A even if a provider only cites public B",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-ai-controller.test.ts",
+          "title": "a failed purge pause requires a new operation authorization and cannot reopen a late A through B authorization",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-ai-controller.test.ts",
+          "title": "a provider ignoring abort cannot persist its late body after synchronous source pause",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-data-contract.test.ts",
+          "title": "purge file scope cannot accidentally target the active database, credentials or shared producer directories",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-data-ui.test.ts",
+          "title": "settings UI drives real complete backup, isolated restore preview and explicit scoped purge through its public contract",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-research-purge-ui.test.ts",
+          "title": "the real Research UI clears research bodies (delayed read: false)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-research-purge-ui.test.ts",
+          "title": "the real Research UI clears research bodies (delayed read: true)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-research-purge-ui.test.ts",
+          "title": "the real Research UI clears opportunity bodies (delayed read: false)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-research-purge-ui.test.ts",
+          "title": "the real Research UI clears opportunity bodies (delayed read: true)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-research-purge-ui.test.ts",
+          "title": "the real Research UI clears company bodies (delayed read: false)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-research-purge-ui.test.ts",
+          "title": "the real Research UI clears company bodies (delayed read: true)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g4-s-ui.test.ts",
+          "title": "real functional UI retains scoped drafts, verifies lost-response receipts, records one first send and later correctable communication",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g5-feedback-ui.test.ts",
+          "title": "UX-11: actual overlay preserves underlying dirty form, traps focus, restores it and recovers the same unknown receipt once",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g5-resume-ai-undo-ui.test.ts",
+          "title": "Resume toolbar undo waits for accepted AI content to join history, retaining preceding manual bold and revision",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g5-resume-ai-undo-ui.test.ts",
+          "title": "Resume keyboard undo waits for accepted AI content to join history, retaining preceding manual bold and revision",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g5-resume-ai-unknown-ui.test.ts",
+          "title": "real Resume UI retains unrelated live input and affected-block lock through missing receipt, then continues exactly the original decision",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-active-pointer.test.ts",
+          "title": "a committed active pointer whose target is missing cannot silently create a new empty workspace",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-active-pointer.test.ts",
+          "title": "corrupt pointer and pointer traversal fail closed even when another newer workspace exists",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-active-pointer.test.ts",
+          "title": "readonly preflight rejects wrong identity before migrations and leaves database bytes unchanged",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-active-pointer.test.ts",
+          "title": "missing pointer with existing managed or workspace evidence cannot guess local or create a replacement",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-active-pointer.test.ts",
+          "title": "a fresh profile may contain browser cache and device security but no business workspace",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-active-pointer.test.ts",
+          "title": "a lost post-restore pointer preserves both registered old local and restored database bytes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-active-pointer.test.ts",
+          "title": "missing pointer never follows a symlink local workspace, workspace parent, or profile root",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-ai-control-ui.test.ts",
+          "title": "F2 control Contract distinguishes immediate closed admission from an uncommitted original command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-ai-control-ui.test.ts",
+          "title": "F2 held writer stop synchronously closes admission and preserves the original command identity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-ai-control-ui.test.ts",
+          "title": "F2 wiki real UI keeps original stop identity through held persistence, receipt read failure and receipt_missing",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-ai-control-ui.test.ts",
+          "title": "F2 product real UI keeps original stop identity through held persistence, receipt read failure and receipt_missing",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "a first interrupted encrypted save without binding stays disabled when Main resolves a new runtime",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "an inaccessible security directory is never treated as an unconfigured profile",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "a genuinely fresh or empty security directory retains the controlled fake baseline",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "security evidence pending-generation.json without a valid binding remains disabled",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "security evidence 3a779679-81df-4b6c-bcb0-1b2a9e485733.encrypted without a valid binding remains disabled",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "security evidence unexpected-state.json without a valid binding remains disabled",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "valid enabled generation, explicit disable and delete keep their persisted meanings",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "malformed binding or a status read rejection does not fall back to fake enabled",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-provider-startup.test.ts",
+          "title": "a security directory symlink or binding symlink is rejected without reading outside the profile",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "title": "RV-P1-03 held Apply protects its block; remote-only unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "title": "RV-P1-03 held Apply protects its block; remote-and-local unrelated input never overwrites another window",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-resume-continuity-ui.test.ts",
+          "title": "RV-P1-03 immediately adjacent human-before / AI / human-after have separate Undo groups and history cancel retains the session",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-scale-ui.test.ts",
+          "title": "100 real Opportunities and Projects remain navigable with Chinese short queries, ended filters and retained list position",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-search.test.ts",
+          "title": "derived local search chunks are UTF8 bounded and edits/purge replace the projection without duplicate stale text",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-search.test.ts",
+          "title": "maintenance uses at most eight exact owner projections, pauses between batches and leaves failed/unknown IDs visibly pending",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret-ui.test.ts",
+          "title": "real SecretSettings clears detached input on unmount without publishing its value to ordinary state or errors",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret-ui.test.ts",
+          "title": "real credential UI saves/replaces/cancels/disables/fails/deletes through the actual encrypted vault, with no fallback or ordinary-state leakage",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret-ui.test.ts",
+          "title": "the actual business backup excludes the actual encrypted vault and all fake credential bytes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret.test.ts",
+          "title": "new, replacement, disabled, failed replacement and deleted credentials never return or fall back to secret text",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret.test.ts",
+          "title": "metadata rename followed by directory durability failure cannot leave an enabled dangling binding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret.test.ts",
+          "title": "published credential metadata with persistent compensating write failure stays disabled across vault restart",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret.test.ts",
+          "title": "pending-marker unlink failure leaves durable cipher and binding disabled across restart",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-secret.test.ts",
+          "title": "successful pending-marker unlink followed by directory-sync failure never removes a committed cipher",
+          "status": "passed"
+        },
+        {
+          "file": "tests/g6-wiki-late-read.test.ts",
+          "title": "Wiki late reopen cannot erase input typed while the actual owner read is in flight",
+          "status": "passed"
+        },
+        {
+          "file": "tests/interview-contract.test.ts",
+          "title": "confirmation accepts date unknown without inventing a preceding submission or midnight",
+          "status": "passed"
+        },
+        {
+          "file": "tests/interview-contract.test.ts",
+          "title": "date-only and explicit-offset instants remain distinct and invalid dates are rejected",
+          "status": "passed"
+        },
+        {
+          "file": "tests/interview-contract.test.ts",
+          "title": "a write receipt has only identity and revision, not a retained transcript snapshot or competing phase",
+          "status": "passed"
+        },
+        {
+          "file": "tests/interview-contract.test.ts",
+          "title": "terminal corrections need an actual explanation and a confirmed round needs a nonblank title",
+          "status": "passed"
+        },
+        {
+          "file": "tests/interview-save.test.ts",
+          "title": "a lost response queries the original intent receipt without issuing a second command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/interview-save.test.ts",
+          "title": "an unavailable receipt remains unknown and never invents failure or success",
+          "status": "passed"
+        },
+        {
+          "file": "tests/interview-ui.test.ts",
+          "title": "a real browser confirms a pending round, saves manual preparation/transcript/review, corrects it and guards unknown saves",
+          "status": "passed"
+        },
+        {
+          "file": "tests/materials-boundaries.test.ts",
+          "title": "renderer contract cannot choose arbitrary paths, actor, SQL or another source owner",
+          "status": "passed"
+        },
+        {
+          "file": "tests/materials-boundaries.test.ts",
+          "title": "all formal frontend and preload sources exclude Node/database/backend imports; Materials owns table writes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/materials-state.test.ts",
+          "title": "lost response keeps the original command unknown, then receipt converges without resaving",
+          "status": "passed"
+        },
+        {
+          "file": "tests/materials-state.test.ts",
+          "title": "a readable committed receipt gives the actual saved Raw; explicit conflict preserves the command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/materials-state.test.ts",
+          "title": "a lost undispatched request can be continued explicitly with the original immutable command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/module-discovery.test.ts",
+          "title": "mechanical discovery includes independently owned nested Opportunity fragments in stable order",
+          "status": "passed"
+        },
+        {
+          "file": "tests/offer-boundaries.test.ts",
+          "title": "renderer cannot assert accepted/result, inject source text, guess dates or mutate another module",
+          "status": "passed"
+        },
+        {
+          "file": "tests/offer-boundaries.test.ts",
+          "title": "both axes import only contracts/platform or injected public capabilities, never private siblings, core SQL or second accepted truth",
+          "status": "passed"
+        },
+        {
+          "file": "tests/offer-ui.test.ts",
+          "title": "real UI preserves conflicts and pending intents and accepts immutable conditions through the SQLite public owner",
+          "status": "passed"
+        },
+        {
+          "file": "tests/offer-ui.test.ts",
+          "title": "switching owners retains independent drafts and a late A save result never writes B",
+          "status": "passed"
+        },
+        {
+          "file": "tests/opportunity-boundaries.test.ts",
+          "title": "core contract rejects arbitrary phase/result setters, accepted without Offer basis, actor spoofing and invalid business dates",
+          "status": "passed"
+        },
+        {
+          "file": "tests/opportunity-state.test.ts",
+          "title": "UX-04 unknown transmission cannot turn into saved success or implicit replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/opportunity-ui.test.ts",
+          "title": "Company conflict keeps the draft through public read/revision retry and dirty or unknown UI protects leaving",
+          "status": "passed"
+        },
+        {
+          "file": "tests/opportunity-ui.test.ts",
+          "title": "keeps unrelated event drafts during identity saves and follows only new explicit owner-navigation requests",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-boundaries.test.ts",
+          "title": "project contracts reject supplied owner facts, arbitrary SQL and renderer actor claims",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-boundaries.test.ts",
+          "title": "project only imports employment public DTOs and owns its SQL",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-session.test.ts",
+          "title": "delayed project creation locks all draft fields until the saved result is known",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-session.test.ts",
+          "title": "state, association and collaboration actions cannot silently save or clear unrelated content drafts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-session.test.ts",
+          "title": "employment relation epoch refreshes live projection while preserving project content drafts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-session.test.ts",
+          "title": "delayed lifecycle result locks project fields instead of accepting input that is not in its command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-session.test.ts",
+          "title": "unsaved collaboration role cannot lose its protection through a lifecycle or association save",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-session.test.ts",
+          "title": "switching participation requires explicit consent to discard an unsaved role and cancellation keeps its protection",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-state.test.ts",
+          "title": "lost save response retains one command for receipt verification and never blindly retries",
+          "status": "passed"
+        },
+        {
+          "file": "tests/project-state.test.ts",
+          "title": "invalid business date is a visible validation failure without dispatching a command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/research-contract.test.ts",
+          "title": "a title and URL do not turn into support evidence and claimed support needs an actual excerpt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/research-contract.test.ts",
+          "title": "lead links cannot expose executable or local-file URLs",
+          "status": "passed"
+        },
+        {
+          "file": "tests/research-ui.test.ts",
+          "title": "Research public Contract → actual owner SQLite → page preserves conflicts, unknown receipts and dirty input",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume-boundaries.test.ts",
+          "title": "renderer cannot claim actor, attach a PDF artifact, or persist identity in current Resume content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume-session.test.ts",
+          "title": "named version freezes and previews plain text, bold, italic and list marks after later editing",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume-session.test.ts",
+          "title": "a failed document search does not stop font layout autosave and its actual owner receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume-session.test.ts",
+          "title": "restoring a frozen body keeps its success notice and later layout changes still autosave",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume-session.test.ts",
+          "title": "invalid live editor content blocks layout autosave, version freezing and leaving until corrected",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume-session.test.ts",
+          "title": "committed version remains saved when history reads fail, and explicit reread reveals the real version",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume.test.ts",
+          "title": "Career document round-trip preserves section identity and supported rich text; rejects unknown editor structures",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume.test.ts",
+          "title": "composition never autosaves unfinished text; successful earlier response cannot mark later input saved",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume.test.ts",
+          "title": "lost receipt preserves original command and checks committed body before further saves",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume.test.ts",
+          "title": "frozen PDF rendering escapes user HTML and disallows resource/script links",
+          "status": "passed"
+        },
+        {
+          "file": "tests/resume.test.ts",
+          "title": "keeping local text at a newer conflict baseline submits it before claiming saved",
+          "status": "passed"
+        },
+        {
+          "file": "tests/shell-boundaries.test.ts",
+          "title": "Shell and primitives use supplied views and never own database or business facts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/shell.test.ts",
+          "title": "a direct Resume route belongs to Opportunity without adding a top-level entry",
+          "status": "passed"
+        },
+        {
+          "file": "tests/shell.test.ts",
+          "title": "an unsupported object link is visible instead of silently becoming the homepage",
+          "status": "passed"
+        },
+        {
+          "file": "tests/wiki-boundaries.test.ts",
+          "title": "Wiki request boundary cannot claim verified truth, spoof actor, accept paths or unsupported source versions",
+          "status": "passed"
+        },
+        {
+          "file": "tests/wiki-research-ui.test.ts",
+          "title": "Wiki reads the same stable Research item before and after promotion, provides owner navigation and no competing body editor",
+          "status": "passed"
+        },
+        {
+          "file": "tests/wiki-state.test.ts",
+          "title": "UX-04 an interrupted write stays unknown and receipt checking does not replay it",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "integration",
+      "command": "npm run test:integration -- --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/career-g6/final-integration-results.json",
+      "exitCode": 0,
+      "tests": 382,
+      "passed": 382,
+      "failed": 0,
+      "sourceLogSha256": "ab3df7180de60912a78898803e6fb549fcf8754eb2bc6ae65fa26193d1d8cfcf",
+      "cases": [
+        {
+          "file": "tests/integration/artifact-files.test.ts",
+          "title": "publishes immutable bounded PDF bytes with cancellation checks and exact digest",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/employment.test.ts",
+          "title": "actual employment persists unknown start and future planned end without ending employment",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/employment.test.ts",
+          "title": "ending, correcting and reopening preserve one identity and distinguish real change from correction",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/employment.test.ts",
+          "title": "actual future endings and edits that invent a future actual start are rejected",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/employment.test.ts",
+          "title": "same-name people are separate employment-scoped identities with independent role history",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/employment.test.ts",
+          "title": "reopening the on-disk database reads persisted employment and rejects stale writes without altering it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/employment.test.ts",
+          "title": "receipt persistence failure rolls back the owner change instead of reporting a saved employment",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g1-upgrade.test.ts",
+          "title": "upgrades a genuine released G1 Raw/receipt workspace, retains its registered recovery copy and survives another G2 restart",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g2-business.test.ts",
+          "title": "one real writer resolves Employment and Person for Project without copying current role facts or migrating collaborators",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g2-business.test.ts",
+          "title": "Company, Opportunity and Profile compose independent Resume drafts with durable receipts, conflicts and restart recovery",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g2-runtime.test.ts",
+          "title": "the one writer connects true Materials provenance and rejects retired sessions across domains",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g2-upgrade.test.ts",
+          "title": "upgrades the actual released G2 writer workspace once while retaining original bytes, public owner identities and receipts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-core-capabilities.test.ts",
+          "title": "renderer stage correction cannot void a real submodule-owned stage behind its owner",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-core-capabilities.test.ts",
+          "title": "correcting an old acceptance preserves a later real continuation even when acceptance had restored a withdrawn opportunity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-core-capabilities.test.ts",
+          "title": "DM-05/27 real unknown-date round advances through public capability without false predecessor dates",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-core-capabilities.test.ts",
+          "title": "Offer acceptance capability refuses a basis claim before any real Offer stage",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-core-capabilities.test.ts",
+          "title": "DM-31/35 Offer result events preserve acceptance basis and later true results through replacement and correction",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-core-capabilities.test.ts",
+          "title": "DM-06/39 late records preserve current termination; nested owner failure rolls core and receipt back",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-migration-release.test.ts",
+          "title": "G3 real release failure rolls every new owner back while keeping the released G2 manifest and retryable upgrade",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-module-boundaries.test.ts",
+          "title": "RV-MODULE actual SQLite mutations stay inside the executing owner; core writes occur only inside its public capability",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-original-race.test.ts",
+          "title": "real file growth after stat cannot cause an unbounded read inside the SQLite writer",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-original.test.ts",
+          "title": "an already retained Offer original must have exact bounded physical bytes; absent, changed or redirected originals fail",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g3-retention.test.ts",
+          "title": "Offer acceptance independently retains already published original bytes after the Raw retention is removed",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "actual Transcript owner R1 -> R2 causes final Apply to reject all Wiki / AI writes and receipts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "a synchronous purge pause closes a held real writer response before the marker and drain while unrelated B still completes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "candidate validation accepts valid pending/accepted/stale/purged history and rejects bad JSON, row links and lost actual provenance",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "AI restore relation metadata exposes nonexistent closed sources and Project targets without bodies, and accepts legitimate source purge history",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "explicit retry does not create another unbounded preview while the previous new request is awaiting authorization",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "actual independent Task B keeps its identity and pending result when unknown Task A returns late without human Apply",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "real SQLite reopening preserves pending proposals for new human Apply but does not restore old execution permission",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "actual Context A survives missing citation and flows into adopted Wiki authority and the purge impact projection",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "adopted actual A authority reconstructs its public Transcript locator after restart even when only B remains in citation links",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "a real persistence marker rejects late output, and owner purge plus runtime purge leaves only body-free state",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-real-seams.test.ts",
+          "title": "an unrelated real Wiki Y edit leaves A valid through actual public owner ports and the same SQLite transaction",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "Wiki first task previews exact context then requires human authorization and one atomic human acceptance",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "source permission revocation also closes cached preview/proposal/receipt bodies, not just next send",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "real browser/Contract/Runtime/SQLite/fake Provider shows exact preview and preserves edited proposal on failed Apply",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "ignore stays pending, rejection ends only that proposal, and edit-accept writes the explicit new content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "zero changes is successful completion; malformed citation fails with no repaired proposal or extra request",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "RV-P0-03 purge removes all task bodies and receipts, and late output cannot resurrect sensitive A",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "read permission is separate from egress, and current human permission is rechecked inside acceptance",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "local dependency sets keep A applicable after unrelated Y edit, while another change to A conflicts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "pending recovery preserves proposals but no old authorization capability or automatic provider request",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "outcome_unknown A retains budget; explicit B has new identity and late A never overwrites B or applies",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "a Wiki mutation followed by a storage failure rolls back Wiki, proposal state and both receipts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-ai-runtime.test.ts",
+          "title": "RV-P0-01 real Transcript R1 -> R2 rejects the whole final Apply without a receipt or Wiki write",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-core-capability.test.ts",
+          "title": "real first Submission advances phase through its public capability, late first stays at Offer",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-backup.test.ts",
+          "title": "SQLite backup preserves WAL records with checked blob bytes, keeps failed points separate and validates isolated restore candidates",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-fence.test.ts",
+          "title": "purge rejects all actual-input producers and closes an already open bounded sink while unrelated inputs remain usable",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-fence.test.ts",
+          "title": "drain waits for the leased chunk to finish before deletion, rejects new write leases and forbids an unbounded sink chunk",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-fence.test.ts",
+          "title": "producer close and purge drain share one descriptor-close promise including empty candidates",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-fence.test.ts",
+          "title": "purge drain waits for an in-flight sink open and its final check before closing the descriptor",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-fence.test.ts",
+          "title": "a stale initial assertion reply cannot create a new sink after the affected references have drained",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-file-sinks.test.ts",
+          "title": "a selected import read holds a tracked lease; purge drains the open read and prevents staging after it resolves late",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-file-sinks.test.ts",
+          "title": "partial PDF staging is controlled, drained and rejects later chunks without publishing sensitive bytes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-file-sinks.test.ts",
+          "title": "the injected production sink publishes actual immutable bytes and every read is fenced",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "impact includes old workspaces, restore candidates, failed backups, staging and cache; only confirmed scope is erased after fencing/drain",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "owner cleanup failure stays incomplete and fenced; AI actor cannot trigger manual deletion",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "restore activates only an isolated checked copy with a new instance and persists one active pointer",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "a completed purge returns its original body-free receipt; restart recovery only resumes the previously approved scope",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "an incomplete purge blocks copies until explicit recovery finishes the approved original scope",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "automatic backup is disabled until the user enables an adjustable schedule; only one overdue point is created",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "selecting all copy directories still reports selected scope when an independent retained history contains the material",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "a retained older backup warns before the user may explicitly restore formerly purged references",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "an invalid restore candidate is rejected before closing current admission; the original SQLite workspace remains readable and can still back up",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-lifecycle.test.ts",
+          "title": "completed local purge controls block a stale candidate before closing admission",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-profile-renewal.test.ts",
+          "title": "a fresh explicit human Profile save renews only the singleton generation; new PDF persists while old producers remain permanently denied",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-profile-renewal.test.ts",
+          "title": "ordinary Profile edits do not advance a content epoch or invalidate earlier nonpurged PDF snapshots",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-data-profile-renewal.test.ts",
+          "title": "a rollback cannot renew a purged singleton and a gate is never notified before the committed save result",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-export.test.ts",
+          "title": "unnamed export freezes A and current Profile without forcing a named version; subsequent B cannot change it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-owner-purge.test.ts",
+          "title": "owner purge clears meaningful history and body-bearing receipts while preventing command replay from restoring it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-purge-excerpt.test.ts",
+          "title": "purging support removes Research source excerpts from current, historical and receipt views while preserving independent conclusion",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-purge-incomplete-admission.test.ts",
+          "title": "an incomplete real purge closes body reads and human writes until the original approved plan finishes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-purge-plan-review.test.ts",
+          "title": "rejects the old real SQLite purge plan when a new independent wiki source reference appears",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-purge-plan-review.test.ts",
+          "title": "rejects the old real SQLite purge plan when a new independent research source reference appears",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-purge-plan-review.test.ts",
+          "title": "rejects an old plan after an existing independent Wiki revision removes its source A relationship",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-purge-plan-review.test.ts",
+          "title": "keeps an approved purge plan valid across an unrelated Wiki save instead of using a global content epoch",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-purge-plan-review.test.ts",
+          "title": "does not invalidate a plan for a body-only revision that preserves the disclosed independent source relationship",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-runtime.test.ts",
+          "title": "real writer and utility ports join immutable sent files, authorized fake AI, complete backup, isolated activation and all-copy purge",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-runtime.test.ts",
+          "title": "real worker purge denies already-read import and PDF callbacks, but new human Profile content gets a new generation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-communication.test.ts",
+          "title": "real call is one correctable source, ordinary Offer words do not create stage or independent original",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-communication.test.ts",
+          "title": "correction changes source text revision, old text becomes unreadable; history and receipts retain no replaced full text",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-communication.test.ts",
+          "title": "archive preserves text source identity and readable references while concurrency still rejects old owner revision",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-communication.test.ts",
+          "title": "communication after real ending records late and followup without reopening opportunity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-communication.test.ts",
+          "title": "later send is Communication with independently frozen materials, never a second first Submission",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-communication.test.ts",
+          "title": "purge removes owner text, frozen materials, histories and any replayable receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-communication.test.ts",
+          "title": "retained resend file failure cannot become historical missing and leaves no communication or successful receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "real first Submission is unique, replayable and separates no resume from unknown historical content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "missing facts stay explicit without inventing current Resume or PDF: {\"kind\":\"content_unknown\",\"explanation\":\"确实使用简历，内容未知\"}",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "missing facts stay explicit without inventing current Resume or PDF: {\"kind\":\"file_missing\",\"knownContent\":\"已知原稿 A 的文字\",\"explanation\":\"历史 PDF 已丢失\"}",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "missing facts stay explicit without inventing current Resume or PDF: {\"kind\":\"not_used\"}",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "late first submission after a real later stage preserves highest phase and ended result",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "actual original A bytes are retained independently; later B cannot replace the selected artifact",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "promised file unavailable or retention failure rolls back core, Submission and receipt without missing-file fallback",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "failure after core stage mutation rolls back both owners",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "correcting the actual sending date updates the same event without changing frozen materials or creating a second send",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "purging first-send materials removes sensitive replayable content while body-free identity prevents a second first send",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-s-submission.test.ts",
+          "title": "public Resume A version can be sent to another opportunity after current B, freezing actual A identity and content without creating a destination Resume",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-source-support.test.ts",
+          "title": "correctable Transcript retains owner identity and stales only related Wiki support without rewriting any body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-wiki-provenance-review.test.ts",
+          "title": "a Wiki item depends on all actual inherited context inputs after adoption even when the model cites only selected B",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-wiki-provenance-review.test.ts",
+          "title": "clearing a manual Wiki context X marks adopted Y for review without invalidating Y for ordinary X revisions",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-wiki-targets.test.ts",
+          "title": "Wiki object targets bind an actual owner and AI adoption stays distinct from verification",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "Profile candidate accepts a closed real singleton and rejects malicious extra keys without mutating it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "all owner candidates accept real populated SQLite data, promoted Research and export histories in enforced read-only mode",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Employment missing mandatory body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Person wrong owning Employment",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Employment historical wrong table revision",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Project malicious unsupported executable field",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Project participant belongs to wrong context",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Company invalid empty name",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Opportunity body identity conflicts with table",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Opportunity event identity conflicts with table",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Research owner conflicts with table",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Interview simulation wrongly references itself",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Offer conditions event omits its original snapshot",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Interview impossible review version",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Offer missing explicit original state",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Offer historical wrong owner identity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Resume unsupported document schema",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Resume frozen digest conflicts with snapshot",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Wiki missing required body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Wiki object scope lacks explicit identity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Submission missing explicit historical material state",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Submission orphan command mapping",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Communication source identity from another object",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Communication orphan command mapping",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Materials impossible blob identity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "candidate rejects Materials preview claims no prepared content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "stale external source references and purged Interview body are legal candidate history, never resolved as latest original",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-candidate-validation.test.ts",
+          "title": "purged Submission tombstone is valid without body, and an active body for the same first-send opportunity is rejected",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-cross-owner.test.ts",
+          "title": "public Project reassociation preserves old context, same-name Person is never transferred, later Person promotion never rewrites Project responsibility history",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-cross-owner.test.ts",
+          "title": "real Profile save projects to both current Resumes without swallowing dirty editor content or changing frozen version/export PDF",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-history-source-review.test.ts",
+          "title": "source A cleanup finds history after current research switches to B and redacts all replayable A results",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-history-source-review.test.ts",
+          "title": "Wiki maintenance scope metadata remains complete beyond the display list limit and carries no body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-history-source-review.test.ts",
+          "title": "editing Wiki object scope to personal clears stale scopeId and passes restore validation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-history-source-review.test.ts",
+          "title": "editing Wiki object scope to cognition clears stale scopeId and passes restore validation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-history-source-review.test.ts",
+          "title": "editing Wiki to another object scope uses the new identity and keeps the original historical scope",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-history-source-review.test.ts",
+          "title": "Wiki trusted all-chain provenance retains source scope IDs in current and historical candidate metadata",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-history-source-review.test.ts",
+          "title": "restore rejects trusted provenance with missing object scope ID instead of tolerating an arbitrary missing ref",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-materials-import-purge.test.ts",
+          "title": "clearing a real in-flight file selection drains late writes and removes only the managed candidate",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-materials-import-purge.test.ts",
+          "title": "pending published hold is cleared body-free and cannot commit/replay (upgraded ledger: false)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-materials-import-purge.test.ts",
+          "title": "pending published hold is cleared body-free and cannot commit/replay (upgraded ledger: true)",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-materials-import-purge.test.ts",
+          "title": "clearing a separate preview with identical bytes preserves confirmed independent Raw and committed receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-owner-purge.test.ts",
+          "title": "public Project purge clears only Project body, participation/history and redacts old receipt, retaining Employment owner",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-owner-purge.test.ts",
+          "title": "Person and Employment purge use their owner, remove current/history/receipts, and keep independently owned Project responsibilities",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-owner-purge.test.ts",
+          "title": "Profile singleton clear empties current identity and redacts every old receipt without allowing command replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-owner-purge.test.ts",
+          "title": "Offer purge releases every frozen conditions/acceptance retention through its injected port, clears owner history and redacts replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g4-x-owner-purge.test.ts",
+          "title": "Opportunity public purge calls only its core owner and preserves shared Company and another attempt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-controlled-search.test.ts",
+          "title": "controlled Search confirms the exact query separately and Research cites only its actual SearchRun results",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-feedback.test.ts",
+          "title": "J-08: feedback is an independent durable owner; same receipt recovers unknown creation, append preserves history, archive is not purge",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-frozen-resume-lineage.test.ts",
+          "title": "Raw → bullet Resume AI → named snapshot/copy → actual Submission/resend → preparation → complete backup/isolated restore keeps frozen lineage and unique nested IDs",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-object-import.test.ts",
+          "title": "local import keeps the chosen Company owner from preview to Raw, and AI is a separate confirmation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-onboarding.test.ts",
+          "title": "J-01: missing JD remains absent, later JD belongs to the same opportunity without manufacturing an event",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-preferences.test.ts",
+          "title": "PR-03/UX-02: one durable homepage pin, clearing returns to Wiki and stale writes cannot silently replace it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-preferences.test.ts",
+          "title": "UX-02: module order is durable, pin derives the first position and duplicate/unknown modules are rejected",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-product-controls.test.ts",
+          "title": "product task stop/resume requires a new exact grant and shared remaining budget; ignore/reject/edited draft have distinct terminal effects",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-product-edges.test.ts",
+          "title": "AI groups roll back with the exact conflict item, and purging Offer or its actual Raw never revives task bodies",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-product-policies.test.ts",
+          "title": "controlled product tasks use real owners: preparation/review, atomic Research and promotion, selective simulation return and Offer analysis",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-product-resume.test.ts",
+          "title": "Resume product task uses real current owner, excludes managed identity, preserves unrelated edits and applies a proposal only once",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-resume-copy.test.ts",
+          "title": "DM-22: explicitly copy ordinary version content into another current Resume without copying its identity, frozen PDF or source ownership",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g5-submission-preparation.test.ts",
+          "title": "Preparation uses the actual retained sending A, never current Resume B; a Submission correction invalidates authorization",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 product unknown A permits exactly one explicitly prepared B awaiting its own authorization",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 credential generation change after handoff rejects an ignoring-abort provider late body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 unknown A, explicit operation B and late A keep independent bodies and shared spent budget",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 ignoring-abort late output after stop never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 ignoring-abort late output after revoke never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 ignoring-abort late output after source-purge never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 ignoring-abort late output after source-pause never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 ignoring-abort late output after provider-disable never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 ignoring-abort late output after backend-shutdown never starts another call or adopts content",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 provider disable while SQLite intent is awaiting cannot hand off, and new generation cannot reuse the original grant",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 resume output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 greeting output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 preparation output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 review output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 research output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 offer output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 promotion output rejects source R1→R2 in final Apply without target/state/receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 AI/Proposal storage reaches actual SQLITE_FULL quota and never reports success or partially stores proposals",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 derived summary/cache provenance rechecks current egress of omitted sensitive A at dispatch",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 one Research conflict rolls selected group back while another owner group remains applicable",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P1-03 second-window same-block changes are resolved by actual fine-grained Apply and stale full-document autosave cannot overwrite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P1-03 second-window unrelated-block changes are resolved by actual fine-grained Apply and stale full-document autosave cannot overwrite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 unregistered model subtask/manual/authorization/self-accept requests cannot mint another budget or factual action",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P1-04 actual A+B with citation only B survives two adopted summaries and cached read/receipt revocation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 source read revocation after handoff discards actual returned output, including prepared cache and receipts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 actual SQLite close/reopen changes backend generation, keeps unknown budget and never resurrects grants or late old producer bodies",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 unknown operation spends the last root request; explicit retry and resume cannot reset exhausted budget",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 Wiki output rejects actual Transcript R1→R2 at final Apply without owner, state or receipt partial commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "RV-P0-01 Simulation return rejects corrected selected Transcript R1→R2 without manufacturing personal fact",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 egress revocation after handoff closes actual-input followup and discards an ignoring-abort provider late body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 stop live gate survives actual-SQLITE_BUSY stop persistence failure before ignoring-abort late output",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 revoke live gate survives actual-SQLITE_BUSY stop persistence failure before ignoring-abort late output",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 stop live gate survives writer-SQLITE_FULL stop persistence failure before ignoring-abort late output",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 revoke live gate survives writer-SQLITE_FULL stop persistence failure before ignoring-abort late output",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 source reference live revoke remains closed with no persistent permission change, even after another authorization",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-failures.test.ts",
+          "title": "F2 egress reference live revoke remains closed with no persistent permission change, even after another authorization",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-transport.test.ts",
+          "title": "F2 actual runtime transport rejects AI/manual/UI/human-looking/generic/self-accept across every reality write owner",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-transport.test.ts",
+          "title": "RV-P1-03 frozen export rejects stale Resume/Profile and late PDF retains original two revisions and marks",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-ai-transport.test.ts",
+          "title": "RV-P1-07 evidence Raw has no ordinary overwrite; Transcript can correct and real Review without Search produces Research while Simulation cannot",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup db-snapshot failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup blob-enumeration failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup blob-copy failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup hash-verification failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup filtered-publish failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup manifest failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup atomic-publish failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup cancel failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "backup extra-file failure never reports complete or prunes the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-backup-faults.test.ts",
+          "title": "restore candidate controlled ENOSPC remains quarantined and leaves original active plus complete backup intact",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at pointer-before preserves committed pointer and never promotes interrupted backup",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at pointer-after preserves committed pointer and never promotes interrupted backup",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup-registered preserves committed pointer and never promotes interrupted backup",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup db-snapshot leaves last complete point valid and lists interrupted point separately",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup blob-enumeration leaves last complete point valid and lists interrupted point separately",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup blob-copy leaves last complete point valid and lists interrupted point separately",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup hash-verification leaves last complete point valid and lists interrupted point separately",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup filtered-publish leaves last complete point valid and lists interrupted point separately",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup manifest leaves last complete point valid and lists interrupted point separately",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-crash.test.ts",
+          "title": "actual child SIGKILL at backup atomic-publish leaves last complete point valid and lists interrupted point separately",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "a completed backup publishes only compact filtered SQLite and retained blobs, with no excluded body or device security file",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "untrusted restore package rejects missing without replacing or modifying active SQLite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "untrusted restore package rejects changed without replacing or modifying active SQLite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "untrusted restore package rejects extra without replacing or modifying active SQLite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "untrusted restore package rejects symlink without replacing or modifying active SQLite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "untrusted restore package rejects traversal without replacing or modifying active SQLite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "untrusted restore package rejects corrupt without replacing or modifying active SQLite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "failed backup missing cannot prune the previous complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "failed backup hash mismatch cannot prune the previous complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "purge drains and discards affected AI/parser/import/PDF staging, including closed results, while unrelated staging survives",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "restart classifies an interrupted registered backup candidate as failed, never as a complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "all managed copy kinds are visible and approved scope clears sensitive bytes; retained backup=false is honestly reported",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "all managed copy kinds are visible and approved scope clears sensitive bytes; retained backup=true is honestly reported",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "startup inventories a prior generation staging file as quarantine before purge can claim selected scope complete",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-recovery.test.ts",
+          "title": "startup quarantines unknown blob residuals while protecting every owner-registered incarnation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-restore-runtime.test.ts",
+          "title": "real restore changes all three identities, rejects old capability, preserves pending Proposal without reviving execution or device Secret",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-f3-restore-runtime.test.ts",
+          "title": "concurrent real backup and GC serialize, and purge either waits for the registered backup or fails visibly before deletion",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "wiki trusted provider binding freezes the current trusted generation into each fresh manifest",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "wiki trusted provider binding refuses authorization of an old manifest after the trusted generation changes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "wiki trusted provider binding checks the live binding again between authorization and handoff without consuming budget",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "wiki trusted provider binding fails closed on disabled configuration for both fresh preparation and handoff",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "wiki trusted provider binding can authorize and execute a fresh manifest with the trusted generation B fake adapter",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "wiki trusted provider binding rejects recipient changes carried by generic requests and leaves the trusted binding intact",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "product trusted provider binding freezes the current trusted generation into each fresh manifest",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "product trusted provider binding refuses authorization of an old manifest after the trusted generation changes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "product trusted provider binding checks the live binding again between authorization and handoff without consuming budget",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "product trusted provider binding fails closed on disabled configuration for both fresh preparation and handoff",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "product trusted provider binding can authorize and execute a fresh manifest with the trusted generation B fake adapter",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-provider-binding.test.ts",
+          "title": "product trusted provider binding rejects recipient changes carried by generic requests and leaves the trusted binding intact",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-runtime-control.test.ts",
+          "title": "real DB busy cannot delay stop dispatch gate; original command receipt persists after writer unlock",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-runtime-control.test.ts",
+          "title": "private production configuration disables dispatch and binds a fresh preview to the new fake generation without moving credential bytes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-control.test.ts",
+          "title": "a timed-out actual native SQL reader is really terminated; closing search does not wait for the SQL to finish",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-control.test.ts",
+          "title": "real SQLite EXCLUSIVE read contention reports partial failure while the independent local control callback remains responsive",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-control.test.ts",
+          "title": "native read, real SQLite backup and incremental FTS maintenance coexist; revoke kills the actual reader without waiting for backup",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-electron-process.test.ts",
+          "title": "actual Electron utility execPath can launch the fixed readonly helper in RunAsNode mode",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-lifecycle.test.ts",
+          "title": "normal release6 owner writes dirty Wiki/Project/Opportunity, fresh maintenance replaces all three and purge removes sensitive FTS/doc/chunks",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-lifecycle.test.ts",
+          "title": "normal v5 backup restores through release6, excludes derived payload and rebuilds current owner search without purged content revival",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-lifecycle.test.ts",
+          "title": "normal v6 backup restores through release6, excludes derived payload and rebuilds current owner search without purged content revival",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-parent-death.test.ts",
+          "title": "actual parent SIGKILL cannot leave a readonly helper orphaned in native SQL",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-parent-death.test.ts",
+          "title": "an alive host with no timeout cannot leave native SQL running past the independent child deadline",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-query.test.ts",
+          "title": "actual readonly chunk queries find Chinese one/two chars and trigram, finish a genuine no-match, and obey scope/active boundaries",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-query.test.ts",
+          "title": "large Chinese bodies stop at real row/UTF8 byte/comparison budgets and report incomplete rather than a false empty library",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-query.test.ts",
+          "title": "trigram matches survive a UTF8 chunk boundary; edits and permanent removal cannot leave searchable old snippets",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-query.test.ts",
+          "title": "a pending dirty projection is visibly incomplete and candidate/chunk cursors use indexed range plans",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-search-query.test.ts",
+          "title": "a row-budget boundary between documents gives a usable continuation instead of restarting at the same first results",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-secret-coordinator.test.ts",
+          "title": "a newer disable cannot be undone by an older save completing; real vault and runtime both stay disabled",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-secret-coordinator.test.ts",
+          "title": "a newer failed replacement cannot reopen the older save while its durable pending marker disables the vault",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-secret-coordinator.test.ts",
+          "title": "only the newest successfully saved generation can become the actual runtime recipient",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-secret-coordinator.test.ts",
+          "title": "new intent closes the live gate before its acknowledgement and before the earlier save completes",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-secret-coordinator.test.ts",
+          "title": "control acknowledgements resolving out of order cannot reorder save A and newer disable B in the durable vault",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-01: SIGKILL at staging-before recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-02: SIGKILL at staging-after recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-03: SIGKILL at hold-after recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-04: SIGKILL at publish-before recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-05: SIGKILL at publish-after recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-06: SIGKILL at commit-before recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-07: SIGKILL at commit-after recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-08: SIGKILL at handoff-before recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-09: SIGKILL at handoff-after recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-11: SIGKILL at receipt-after recovers the original receipt without replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-12 / F1-13: committed response loss converges through receipt after backend restart, never a new command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-10: held blobs resist concurrent GC; an old delete claim cannot retain or delete a new incarnation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-03 / F1-10: concurrent public GC requests cannot claim a live published hold or its later committed retention",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-01 / F1-02: partial staging ENOSPC closes the descriptor and cleans the candidate without formal Raw",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-02: a staged-byte hash mismatch cannot produce a formal Raw or success receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-16: quota ENOSPC during real blob writing creates failed receipt and no formal material",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-15: real SQLite page quota returns SQLITE_FULL and rolls owner mutation and receipt back",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-15: actual Materials confirm receives SQLITE_FULL inside its commit and retains a failed original receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-17: PDF candidate quota failure leaves no published artifact or partially staged PDF",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-storage-failures.test.ts",
+          "title": "F1-17: PDF ENOSPC fails the original frozen job without creating a named version or success receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "v5 rejects a rehashed registered backup with valid migration records and an executable proposal trigger",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "v6 rejects a rehashed registered backup with valid migration records and an executable proposal trigger",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects known table constraint replaced before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects known table replaced by an empty view before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects unknown view appended before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects existing trigger replaced by an owner mutation before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects quoted literal changed only in case before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects FTS virtual table tokenizer replaced before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects FTS shadow table structure changed before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "restore rejects unknown trigger and undecodable business JSON before candidate owner decoding",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "v5 registered backup retains its legitimate complete schema and can prepare restore",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "v6 registered backup retains its legitimate complete schema and can prepare restore",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "normal keyword case / whitespace and SQLite-generated ANALYZE statistics remain compatible",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/g6-untrusted-schema.test.ts",
+          "title": "rejects executable artifact views before FK inspection or selecting any candidate artifact",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "DM-27 confirming an unknown-date actual round is real, pending scheduling, and advances only the core stage",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "DM-26/28/37 schedule, reschedule, temporary cancellation, completion and correction retain one round and independent times",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "DM-29 current preparation, corrected transcript and current review are separate; only affected review awaits recheck",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "DM-26 multiple simulations belong to the same actual round and have their own state/content without actual stage effects",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "DM-33/39 late completed rounds with unknown dates retain the later result and first actual interview date",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "DM-28/37 permanent cancellation stays distinct and explicit correction keeps the same ID and cancellation explanation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "RV-MODULE failure after public core stage change rolls both owners and receipt back; foreign commands cannot write core",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "simulation cannot bind to a real round from another opportunity and optimistic command retries keep intent",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "saving identical current transcript text does not invalidate unchanged review support",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "a public capability failure DTO cannot be mistaken for a successful round or receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "saved actual/manual simulation content and metadata-only receipt survive a SQLite restart",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/interview.test.ts",
+          "title": "wrong confirmation and completed dates can be corrected on the same real round via its public core capability without changing state or inventing submission",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "local selection previews actual text and cancel leaves no formal Raw",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "confirmation commits the previewed bytes once and resolves their exact SourceRef",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "publish hold and committed retention prevent GC, while invalidated imports cannot commit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "real read, staging and publish failures leave no formal Raw or false success",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "real SQLite commit rejection rolls back material/retention and returns a failed receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "restart preserves workspace/receipts, rejects old capability, and obtains a real exclusive writer lock",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "unsupported, symlink, invalid UTF-8 and oversized files create no formal data",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "same-backend reconnect retires old preview sinks and does not leave reclaimable staging forever",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "failed filesystem startup releases the writer lock for a corrected retry",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/materials.test.ts",
+          "title": "hard crash after physical publish recovers the orphan only after producer exit",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migration-integrity.test.ts",
+          "title": "rejects a corrupted released manifest: DELETE FROM platform_migration_fragments",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migration-integrity.test.ts",
+          "title": "rejects a corrupted released manifest: DELETE FROM platform_migration_batches WHERE version=2",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migration-integrity.test.ts",
+          "title": "rejects a corrupted released manifest: UPDATE platform_migration_fragments SET checksum='changed'",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migration-integrity.test.ts",
+          "title": "rejects a corrupted released manifest: DROP TABLE platform_migration_batches",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migration-integrity.test.ts",
+          "title": "registers the real upgrade recovery as a managed copy",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migration-integrity.test.ts",
+          "title": "a missing or corrupt protected blob cannot produce a usable upgrade point or advance the schema",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migrations.test.ts",
+          "title": "upgrades a G1 workspace once, keeps its identity and creates a recovery point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/migrations.test.ts",
+          "title": "a failed batch rolls back completely and rejects missing dependencies/future versions",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "direct receipt creates one current Offer, preserves unknown time and never fabricates prerequisite stages",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "accepting 30k freezes known, unknown and absent material; new 25k conditions return to active and reacceptance keeps both bases",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "typo correction keeps accepted condition identity; explicit correction preserves acceptance basis, while real withdrawals preserve earlier facts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "a cross-owner exception or failure DTO rolls back the entire receive and original command receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "promised original retention failure never masquerades as historic loss and cannot partially accept",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "late-recorded old conditions and their acceptance never overwrite later current effective conditions or result",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "mistaken Offer withdrawal is corrected on the same Offer with validity and the prior result restored, without overwriting later real facts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "correcting a generic mistaken end after formal replacement cannot restore acceptance of obsolete conditions",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "correcting two mistaken withdrawals in either order restores the same accepted basis and validity: true",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "correcting two mistaken withdrawals in either order restores the same accepted basis and validity: false",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/offer.test.ts",
+          "title": "generic current-end correction must not silently correct an old true end when the current ending is Offer-owned",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "DM-02 same-name Company identities remain distinct and can be explicitly reused without JD",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "DM-04/05/06/33 late stage records retain reached phase and current result without fake predecessor objects",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "DM-35 correction reverses an erroneous end and retains both end and correction under the same attempt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "DM-39 correcting a later erroneous result restores the previous real result rather than inventing activity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "DM-02/39 Company rename and mistaken association correction keep reusable identity and explain the prior relation",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "DM-39 correcting a mistaken reached-stage event keeps its identity and removes the false advancement",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "the exact intent receipt and owned objects remain readable after closing and reopening SQLite",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/opportunity.test.ts",
+          "title": "Company public read supplies the known revision for an explicit conflicted rename retry",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/project.test.ts",
+          "title": "personal project is independent and readable without creating employment or a collaborator",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/project.test.ts",
+          "title": "completed project remains editable and real reopening differs from correction without creating a new identity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/project.test.ts",
+          "title": "A to B association preserves former collaborators as history and never migrates same-name people",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/project.test.ts",
+          "title": "participation exit, role change and rejoin preserve one context relationship and employment role",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/project.test.ts",
+          "title": "employment ends independently while project stays current, and historical employment cannot receive a new project link",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/project.test.ts",
+          "title": "original command receipts survive restart and stale or conflicting commands never overwrite the project",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/project.test.ts",
+          "title": "SQLite receipt failure rolls back association and participation transfer atomically",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "DM08/10 keeps owner unique and independently persists confirmation, evidence and verification",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "DM10 corrected statement requires explicit reassessment and clears old confirmation and independent verification",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "DM08 promotion is explicit, retains identity and only a readonly origin reference without private evidence disclosure",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "company promotion detects existing same-title content and never silently merges or doubles editable copies",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "origin retains its private version history after promotion while company cannot read it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "source version changes mark only the affected statement for review without rewriting the body",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "supplement, withdrawal and restoration retain one item with dated explanation and exact receipt replay",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "Research remains readable with its original command receipt after reopening a real SQLite file",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/research.test.ts",
+          "title": "source identity comparison depends on owner/version/scope values, not object property ordering",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume-artifacts.test.ts",
+          "title": "a held PDF commits its original owner, exact bytes and frozen Profile; GC and restart retain it",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume-artifacts.test.ts",
+          "title": "invalid PDF and explicit print failure cannot create a completed version or retained blob",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume-artifacts.test.ts",
+          "title": "reconnect or backend restart fails pending jobs, and forged or retired sessions cannot complete a fresh job",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume-artifacts.test.ts",
+          "title": "the same command UUID in Materials and Resume remains two isolated owner receipts",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume.test.ts",
+          "title": "current Resume composes sole current Profile, survives reopening and guards dirty identity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume.test.ts",
+          "title": "autosave creates no version; named version freezes original revisions and PDF; restore never rewinds Profile",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume.test.ts",
+          "title": "failed PDF completion remains failed after recovery and cannot masquerade as named version",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/resume.test.ts",
+          "title": "foreign version is not accessible and PDF retention failure rolls back completed version and receipt",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/wiki.test.ts",
+          "title": "DM-14 manual knowledge without source is a readable user statement, not verified truth",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/wiki.test.ts",
+          "title": "DM-15 exact retries and edits/retire/restore retain one identity and meaningful history",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/wiki.test.ts",
+          "title": "DM-13 validates the exact Materials owner/version/scope and never turns stale sources into another source",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/wiki.test.ts",
+          "title": "DM-11/13 real Materials public Raw supports several Wiki expressions without copying the original",
+          "status": "passed"
+        },
+        {
+          "file": "tests/integration/wiki.test.ts",
+          "title": "saved knowledge, history and original command receipt survive reopening the real SQLite file",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "desktop-batch",
+      "command": "CAREER_PACKAGED=1 CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' npx vitest run tests/desktop --exclude tests/desktop/g6-two-windows.electron.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/career-g6/final-desktop-results.json",
+      "exitCode": 1,
+      "tests": 19,
+      "passed": 17,
+      "failed": 2,
+      "sourceLogSha256": "f92347425f6ca9d1fe2fc540de9d3c75a240ae5a82eb2221bad3934c66bc31b1",
+      "cases": [
+        {
+          "file": "tests/desktop/g2.electron.test.ts",
+          "title": "normal desktop runs all six manual owner journeys, real PDF, protected quit, navigation and durable restart",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g3.electron.test.ts",
+          "title": "normal arm64 application connects three owners, real protected Raw, public core, Wiki readonly reference and durable restart",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g4.electron.test.ts",
+          "title": "normal application joins exported A/current B, first/resend, actual raw AI review, backup, isolated restore and user-confirmed purge",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g5-resume-undo.electron.test.ts",
+          "title": "AI resume-add from new task: undo preserves preceding manual text and bold, saves without conflict, and remains accepted",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g5-resume-undo.electron.test.ts",
+          "title": "AI resume-add from existing task: undo preserves preceding manual text and bold, saves without conflict, and remains accepted",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g5-resume-version-format.electron.test.ts",
+          "title": "named rich ResumeVersion retains frozen marks in history, actual PDF and a durable restore",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g5-sagas.electron.test.ts",
+          "title": "J-05/J-06 continuous normal desktop: multiple simulations, actual transcript correction/review/Research, direct Offer and actual manual Employment",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g5-windows.electron.test.ts",
+          "title": "normal two-window editor keeps remote unrelated typing, explicit conflict comparison, refresh and protected close",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g5-work-accumulation.electron.test.ts",
+          "title": "J02 continuously accumulates actual Project Raw, people, Wiki, rejected/accepted proposal, reassociation, corrected basis and purge",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g5.electron.test.ts",
+          "title": "G5 normal desktop: no-service onboarding, Resume proposal undo/history/export, draft, controlled import/Search, Feedback, zoom and restore continuity",
+          "status": "failed"
+        },
+        {
+          "file": "tests/desktop/g6-continuity.electron.test.ts",
+          "title": "normal packaged app closes with real PDF bytes held before delivery; reopen fails the original job without creating a version",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-continuity.electron.test.ts",
+          "title": "normal packaged app closes while a real backup is candidate and resolves it without losing the last complete point",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-continuity.electron.test.ts",
+          "title": "normal packaged stop immediately blocks dispatch during backup and a real DB lock; original receipt is recovered with the same command",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-continuity.electron.test.ts",
+          "title": "normal packaged restore candidate survives reopen, activates only after confirmation, and corrupt pointer recovery uses an explicit native choice",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-credential-gates.electron.test.ts",
+          "title": "normal Main startup honors a persisted first-save pending marker even without binding.json",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-credential-gates.electron.test.ts",
+          "title": "two normal credential bridges cannot reenable an earlier save after a later disable, including app restart",
+          "status": "failed"
+        },
+        {
+          "file": "tests/desktop/g6-secret.electron.test.ts",
+          "title": "normal preload/Main use real macOS safeStorage for virtual credentials and enforce current fake provider generation without secret leakage",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6.electron.test.ts",
+          "title": "normal arm64 process uses real search helper, fails closed on corrupt pointer, reconnects after SIGKILL and preserves committed data across duplicate launch and reopen",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/materials.electron.test.ts",
+          "title": "real desktop file dialog selection previews/cancels and saves/reads durable personal Raw",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "desktop-corrected",
+      "command": "CAREER_PACKAGED=1 CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' npx vitest run tests/desktop/g5.electron.test.ts tests/desktop/g6-credential-gates.electron.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/career-g6/final-desktop-recheck-results.json",
+      "exitCode": 0,
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "sourceLogSha256": "aaeeeb167e403ab692996bbf2ae796c70ab5b24d1eecba819dbde2004ad5ae5a",
+      "cases": [
+        {
+          "file": "tests/desktop/g5.electron.test.ts",
+          "title": "G5 normal desktop: no-service onboarding, Resume proposal undo/history/export, draft, controlled import/Search, Feedback, zoom and restore continuity",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-credential-gates.electron.test.ts",
+          "title": "normal Main startup honors a persisted first-save pending marker even without binding.json",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-credential-gates.electron.test.ts",
+          "title": "two normal credential bridges cannot reenable an earlier save after a later disable, including app restart",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "desktop-two-windows",
+      "command": "CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' CAREER_G6_TWO_WINDOWS_EVIDENCE=/tmp/career-g6-two-windows-final npx vitest run tests/desktop/g6-two-windows.electron.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/g6-two-windows-final-results.json",
+      "exitCode": 0,
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "sourceLogSha256": "d179bc35a7fd117708e58730b5f9da9e345b29e7b121bc706cc4fcc696f221a4",
+      "cases": [
+        {
+          "file": "tests/desktop/g6-two-windows.electron.test.ts",
+          "title": "normal packaged two Resume editors save the same revision: one commits and the other keeps its draft with an explicit formal comparison",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-two-windows.electron.test.ts",
+          "title": "normal packaged Proposal Apply and Undo keep the other Resume window edits; changed selected blocks cannot be silently overwritten",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "desktop-security",
+      "command": "CAREER_PACKAGED=1 CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/desktop/g6-security.electron.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/career-g6-security-final-vitest.json",
+      "exitCode": 0,
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "sourceLogSha256": "1f23ce1c53851531137030274bedcb11fd545a0cbbc70c8596d74218d16d0840",
+      "cases": [
+        {
+          "file": "tests/desktop/g6-security.electron.test.ts",
+          "title": "final normal Main rejects foreign preload callers and external navigation; its actual PDF window has no business capability",
+          "status": "passed"
+        },
+        {
+          "file": "tests/desktop/g6-security.electron.test.ts",
+          "title": "standalone normal package exposes no TCP/inspector listener and never reuses or stops an unrelated occupied port",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "packageAudit": {
+    "normalArm64": true,
+    "productionSource": "e70f4de6574604a27ea94111af99cedb5d80e172",
+    "appAsarSha256": "7ef33f0ea02a44fb48bac9199539cfd0865010d224b301384b252640f7b9a996",
+    "artifacts": [
+      {
+        "path": "/dist/application/local-search.cjs",
+        "sha256": "51ac4137275c75837348cba9d9b6d1a4fa08f43dad55147cc6b34daea301e710"
+      },
+      {
+        "path": "/dist/application/main.cjs",
+        "sha256": "9b52fbb78963bafdf003e780be801a9ddfe45094abbf33d5936fe681055ef630"
+      },
+      {
+        "path": "/dist/application/preload.cjs",
+        "sha256": "083e604dabbfccb818a649d16535a1183ad4eff17d9166035cf6d5b555901794"
+      },
+      {
+        "path": "/dist/application/utility.cjs",
+        "sha256": "78a7851ec22d9cf0cbcb7b358684e165baa68c192f59e50da0a3c9813c0c931f"
+      },
+      {
+        "path": "/dist/application/workspace-check.cjs",
+        "sha256": "ec0ce7eb625a6b93984788a6e575fdb10ca3aa26163f59cb2367a0a24e9d2671"
+      },
+      {
+        "path": "/dist/application/writer.cjs",
+        "sha256": "514f840e687b41ddb24988523203ce7974778d9caead7e4628311846a7684649"
+      },
+      {
+        "path": "/dist/materials-renderer/assets/index-8HLbBFsr.js",
+        "sha256": "9e7ebbfceccf1a430e186fdc941072589ef59626a237b98cf8ce695bfa68e541"
+      },
+      {
+        "path": "/dist/materials-renderer/assets/index-CAjya1a2.css",
+        "sha256": "6d72d3e447d3e1807c9464d548c06511c60e1b534994d0bc7ae61a90b11c9c25"
+      },
+      {
+        "path": "/dist/materials-renderer/index.html",
+        "sha256": "3839e2abe04a9e36df28a6eb51b98d4811bf5b8e0a19db7c1dd5c5070469f495"
+      }
+    ],
+    "forbidden": [],
+    "localSignature": "ad-hoc; Developer ID/Notarization/x64 READY / NOT RUN"
+  },
+  "frozen": {
+    "product": 12,
+    "architecture": 8,
+    "unchanged": true,
+    "files": [
+      {
+        "path": "docs/product-spec/SHA256SUMS.txt",
+        "baseline": "cc2f737350e2378801860e8b861fb9850371ef15a67764f27672697a8d364527",
+        "current": "cc2f737350e2378801860e8b861fb9850371ef15a67764f27672697a8d364527"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/PRODUCT.md",
+        "baseline": "fd74055806a56a4375eeae4a5a1ae41e2638aebc0b1588169e3284869f4b0c46",
+        "current": "fd74055806a56a4375eeae4a5a1ae41e2638aebc0b1588169e3284869f4b0c46"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/UX.md",
+        "baseline": "931410fde8726b8ef14374923856592a82e8b13122cd628a329557f22cee54be",
+        "current": "931410fde8726b8ef14374923856592a82e8b13122cd628a329557f22cee54be"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/MIGRATION.md",
+        "baseline": "dd3191d34ac5d8ecdce5127168d0a9f1724730c1d1752cc322194dba4995f0e5",
+        "current": "dd3191d34ac5d8ecdce5127168d0a9f1724730c1d1752cc322194dba4995f0e5"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/README.md",
+        "baseline": "2628c165a246c4bef2a63b74e26a8bb78a1b8a015e0aafe23a6f74d1e4eeca8b",
+        "current": "2628c165a246c4bef2a63b74e26a8bb78a1b8a015e0aafe23a6f74d1e4eeca8b"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/DOMAIN.md",
+        "baseline": "a356182edbc9aa1a350f8ad010dc83c18a69d6e614ca492f57cdf1ab1320f463",
+        "current": "a356182edbc9aa1a350f8ad010dc83c18a69d6e614ca492f57cdf1ab1320f463"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/JOURNEYS.md",
+        "baseline": "dfa9c5314403d68453e514860c309bd4bebdcb97e0978b536e614d6364eb6ace",
+        "current": "dfa9c5314403d68453e514860c309bd4bebdcb97e0978b536e614d6364eb6ace"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/AI.md",
+        "baseline": "3ee7fa44b1d671779b5f6f61d1a65d8b221112511823085e5348347846ef492a",
+        "current": "3ee7fa44b1d671779b5f6f61d1a65d8b221112511823085e5348347846ef492a"
+      },
+      {
+        "path": "docs/product-spec/rebuild-spec/ACCEPTANCE.md",
+        "baseline": "66aae47a376b0fd62f774739d304bf91058a97ea4662c37be6602d56a47c66ee",
+        "current": "66aae47a376b0fd62f774739d304bf91058a97ea4662c37be6602d56a47c66ee"
+      },
+      {
+        "path": "docs/product-spec/audit/R2-FREEZE-REVIEW.md",
+        "baseline": "77ea51ff4663afd3987cdf6f345bcb063bce1c9ffc0eb0593e16c425d3a8a26e",
+        "current": "77ea51ff4663afd3987cdf6f345bcb063bce1c9ffc0eb0593e16c425d3a8a26e"
+      },
+      {
+        "path": "docs/product-spec/audit/RECONCILIATION.md",
+        "baseline": "854ca619dd0541e66588e8137c6fc3b4790406a7adb857ac769d7904afa32a09",
+        "current": "854ca619dd0541e66588e8137c6fc3b4790406a7adb857ac769d7904afa32a09"
+      },
+      {
+        "path": "docs/product-spec/audit/R1-RECONCILIATION.md",
+        "baseline": "be13e01e36e2867e198b8f4e028657d413eb02bfa0fbedd27d6f788022c46597",
+        "current": "be13e01e36e2867e198b8f4e028657d413eb02bfa0fbedd27d6f788022c46597"
+      },
+      {
+        "path": "docs/architecture/ARCHITECTURE.md",
+        "baseline": "ce3126f76975648d9af14389e5c01512309b7a801953579d8ef3ccd1747bdb49",
+        "current": "ce3126f76975648d9af14389e5c01512309b7a801953579d8ef3ccd1747bdb49"
+      },
+      {
+        "path": "docs/architecture/DATA.md",
+        "baseline": "f9fa74b31f3344ace997e15b721848666d2dc5e895e33f6c9eef07c220349605",
+        "current": "f9fa74b31f3344ace997e15b721848666d2dc5e895e33f6c9eef07c220349605"
+      },
+      {
+        "path": "docs/architecture/MODULES.md",
+        "baseline": "c2e0739b22ed8805b05baf09c2700175c642374148cf007017984e144109d811",
+        "current": "c2e0739b22ed8805b05baf09c2700175c642374148cf007017984e144109d811"
+      },
+      {
+        "path": "docs/architecture/DELIVERY.md",
+        "baseline": "cc73f21585b44740c553ec8bf63778440ef8cad3b069e7b443732830f06ac702",
+        "current": "cc73f21585b44740c553ec8bf63778440ef8cad3b069e7b443732830f06ac702"
+      },
+      {
+        "path": "docs/architecture/AI-RUNTIME.md",
+        "baseline": "e6b56f05a6ae9b2fa5e5cafd41507574bbc017afc273c80bb55c5676eddb0277",
+        "current": "e6b56f05a6ae9b2fa5e5cafd41507574bbc017afc273c80bb55c5676eddb0277"
+      },
+      {
+        "path": "docs/architecture/ADR/001-LOCAL-TRANSACTIONS-AND-OWNERSHIP.md",
+        "baseline": "e9b1b81406b556cc6b722c4b83e430ca78bd098901003207ee64746c3c2f6250",
+        "current": "e9b1b81406b556cc6b722c4b83e430ca78bd098901003207ee64746c3c2f6250"
+      },
+      {
+        "path": "docs/architecture/ADR/003-AUTHORITY-IS-NOT-RECOVERED-CONTENT.md",
+        "baseline": "f731ddbaab767cf1147e52351b2d112e371d392872e6a58166d84c78aaa2cfde",
+        "current": "f731ddbaab767cf1147e52351b2d112e371d392872e6a58166d84c78aaa2cfde"
+      },
+      {
+        "path": "docs/architecture/ADR/002-DOCUMENTS-SOURCES-AND-FROZEN-HISTORY.md",
+        "baseline": "399a10cb0e42feba44f76f800674cb2825d5360b1a812f8e8245e1d2b50ddd9a",
+        "current": "399a10cb0e42feba44f76f800674cb2825d5360b1a812f8e8245e1d2b50ddd9a"
+      }
+    ]
+  },
+  "nativeSecret": {
+    "packaged": true,
+    "macOSSafeStorageEncryptDecrypt": true,
+    "writeOnlyPreload": true,
+    "inputCleared": true,
+    "providerGeneration": true,
+    "disableClosesGate": true,
+    "cancel": true,
+    "failedReplacementDoesNotFallback": true,
+    "replacement": true,
+    "delete": true,
+    "noPlaintextBusinessBackupLogsArgs": true,
+    "realProvider": "NOT TESTED"
+  },
+  "credentialStartup": {
+    "packaged": true,
+    "firstSavePendingWithoutBinding": true,
+    "vaultDisabled": true,
+    "runtimeProviderDisabled": true,
+    "realProvider": "NOT TESTED"
+  },
+  "credentialConcurrency": {
+    "packaged": true,
+    "twoRealWindows": true,
+    "actualSafeStorageEncryption": true,
+    "earlierSaveThenLaterDisable": true,
+    "vaultDisabled": true,
+    "runtimeDisabled": true,
+    "restartDisabled": true,
+    "realProvider": "NOT TESTED"
+  },
+  "desktopCrash": {
+    "packaged": true,
+    "realSearchHelper": true,
+    "backendSIGKILL": true,
+    "appSIGKILL": true,
+    "reconnect": true,
+    "duplicateLaunch": true,
+    "closeReopen": true,
+    "pointerReadOnly": true,
+    "sleepWake": "NOT RUN",
+    "safeStorageEncryption": "NOT RUN",
+    "errors": []
+  },
+  "g0": {
+    "unit": 3,
+    "electron": 1,
+    "exit": 0,
+    "evidence": [
+      "/tmp/career-g6/g0-unit.log",
+      "/tmp/career-g6/g0-smoke.log"
+    ]
+  },
+  "physicalSleepWake": {
+    "status": "PASS",
+    "evidence": "g6-real-sleep-wake-results.json",
+    "actualSleepSeconds": 140.0,
+    "samePidAfterWake": true,
+    "computerUseBodyHistoryVerified": true,
+    "normalCloseExitCode": 0
+  },
+  "realProvider": "NOT TESTED",
+  "realSearch": "NOT TESTED",
+  "realFeishu": "NOT TESTED",
+  "developerId": "READY / NOT RUN",
+  "notarization": "READY / NOT RUN",
+  "x64": "READY / NOT RUN",
+  "securityEvidence": "g6-security-results.json",
+  "localG6": "PASS",
+  "g6": "PASS for local failure/recovery gates; release conditions READY / NOT RUN",
+  "review": {
+    "standards": {
+      "agent": "g6_f3",
+      "hardViolations": 0,
+      "actionableSmells": 0
+    },
+    "spec": {
+      "agent": "g6_f2",
+      "remainingLocalGaps": 0,
+      "unresolvedP0P1": 0,
+      "localG6": "PASS"
+    },
+    "architectureSecurity": {
+      "agent": "g6_f1",
+      "unresolvedP0P1": 0,
+      "normalSecurityFinalTests": 2
+    },
+    "evidence": "g6-final-review.md"
+  },
+  "issues": {
+    "umbrella": 26,
+    "children": [
+      27,
+      28,
+      29,
+      30
+    ],
+    "state": "CLOSED",
+    "scope": "completed local G6; release READY / NOT RUN and real J07 untouched"
+  }
+}

@@ -26,3 +26,7 @@ npm run typecheck
 实际 4/4 PASS、0 skipped，exit 0，测试耗时 20.493s；typecheck exit 0。运行日志 `/tmp/g6-continuity-final.log`，逐项实际观察 `/tmp/career-g6-continuity/observations.json`。持久观察、日志 SHA、实际 executable/app.asar SHA 见 [结果 JSON](g6-desktop-continuity-results.json)。此前旧 F4 包仅预跑 PDF/backup 两项 2/2（另两项 skip）；本表仅根据 root 正常包完整四项结果。
 
 此包含本轮相关 Main/runtime/pointer 接缝；integration owner 将为后续安全补丁再次串行打包并复跑必要测试。本证据不是整个 G6 或真实发布签名通过声明；Developer ID / Notarization / x64 继续 READY。
+
+## Root 最终集成结算
+
+本工作线记录保留当时的边界；后续正式接线、最终正常包和真人系统 sleep/wake 的补验已完成，当前结算以 [G6 最终证据](g6-final.md) 和 [逐场景矩阵](g6-failure-matrix.md) 为准。LOCAL G6 PASS；发布条件仍 READY / NOT RUN、真实服务 NOT TESTED。

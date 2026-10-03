@@ -1,0 +1,273 @@
+{
+  "status": "PASS: final ordinary arm64 security boundary only",
+  "scope": [
+    "F4-11",
+    "AC-PR-01-01",
+    "AC-UX-13-01"
+  ],
+  "productionSourceCommit": "e70f4de6574604a27ea94111af99cedb5d80e172",
+  "appAsarSha256": "7ef33f0ea02a44fb48bac9199539cfd0865010d224b301384b252640f7b9a996",
+  "firstRun": {
+    "command": "CAREER_PACKAGED=1 CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/desktop/g6-security.electron.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/career-g6-security-vitest.json",
+    "exitCode": 1,
+    "testFiles": 1,
+    "passedTests": 1,
+    "failedTests": 1,
+    "log": "/tmp/g6-security-first.log",
+    "logSha256": "e02f183b26291589c9603e69b630fb9e33284086ed1bdf94775be8d704739537",
+    "reason": "Harness observed only will-navigate; production cancels the earlier will-frame-navigate, so the later event need not occur. Foreign denial/popup/identity assertions and standalone listener test passed. No product fix."
+  },
+  "finalRun": {
+    "command": "CAREER_PACKAGED=1 CAREER_PACKAGED_EXECUTABLE='/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext' node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/desktop/g6-security.electron.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/career-g6-security-final-vitest.json",
+    "exitCode": 0,
+    "testFiles": 1,
+    "tests": 2,
+    "log": "/tmp/g6-security-final.log",
+    "logSha256": "9f1e51616c5bacad4b05a14aefc8ae1138e99b21669d6337df6015c83544c6dd",
+    "vitestJson": "/tmp/career-g6-security-final-vitest.json",
+    "vitestJsonSha256": "1f23ce1c53851531137030274bedcb11fd545a0cbbc70c8596d74218d16d0840",
+    "testSourceSha256": "e422b0a3bf2682b75c9d534e46c365446f0f53d1e35f2893af7792407ef5d80a"
+  },
+  "main": {
+    "executable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+    "appAsarSha256": "7ef33f0ea02a44fb48bac9199539cfd0865010d224b301384b252640f7b9a996",
+    "status": "PASS",
+    "normalMain": true,
+    "foreign": [
+      {
+        "url": "data:text/html,untrusted-g6-fixture",
+        "denied": {
+          "bridges": {
+            "materials": "object",
+            "business": "object",
+            "secrets": "object",
+            "search": "object"
+          },
+          "denied": [
+            {
+              "name": "materials-ready",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:ready': Error: invalid_capability"
+            },
+            {
+              "name": "materials-list",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:request': Error: invalid_capability"
+            },
+            {
+              "name": "materials-reconnect",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:reconnect': Error: invalid_capability"
+            },
+            {
+              "name": "business-ready",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:ready': Error: invalid_capability"
+            },
+            {
+              "name": "business-list",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:request': Error: invalid_capability"
+            },
+            {
+              "name": "business-write",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:request': Error: invalid_capability"
+            },
+            {
+              "name": "business-reconnect",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:reconnect': Error: invalid_capability"
+            },
+            {
+              "name": "secret-status",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:secret-input': Error: invalid_capability"
+            },
+            {
+              "name": "secret-save",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:secret-input': Error: invalid_capability"
+            },
+            {
+              "name": "secret-disable",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:secret-input': Error: invalid_capability"
+            },
+            {
+              "name": "search",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:local-search': Error: invalid_capability"
+            },
+            {
+              "name": "sent-file",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:sent-file': Error: invalid_capability"
+            }
+          ]
+        }
+      },
+      {
+        "url": "career://app/index.html",
+        "denied": {
+          "bridges": {
+            "materials": "object",
+            "business": "object",
+            "secrets": "object",
+            "search": "object"
+          },
+          "denied": [
+            {
+              "name": "materials-ready",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:ready': Error: invalid_capability"
+            },
+            {
+              "name": "materials-list",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:request': Error: invalid_capability"
+            },
+            {
+              "name": "materials-reconnect",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:reconnect': Error: invalid_capability"
+            },
+            {
+              "name": "business-ready",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:ready': Error: invalid_capability"
+            },
+            {
+              "name": "business-list",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:request': Error: invalid_capability"
+            },
+            {
+              "name": "business-write",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:request': Error: invalid_capability"
+            },
+            {
+              "name": "business-reconnect",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'materials:reconnect': Error: invalid_capability"
+            },
+            {
+              "name": "secret-status",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:secret-input': Error: invalid_capability"
+            },
+            {
+              "name": "secret-save",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:secret-input': Error: invalid_capability"
+            },
+            {
+              "name": "secret-disable",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:secret-input': Error: invalid_capability"
+            },
+            {
+              "name": "search",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:local-search': Error: invalid_capability"
+            },
+            {
+              "name": "sent-file",
+              "rejected": true,
+              "error": "Error: Error invoking remote method 'career:sent-file': Error: invalid_capability"
+            }
+          ]
+        }
+      },
+      {
+        "url": "external-without-preload",
+        "denied": {
+          "materials": "undefined",
+          "business": "undefined",
+          "secrets": "undefined",
+          "search": "undefined"
+        }
+      }
+    ],
+    "identityUnchangedAfterRejectedReconnect": true,
+    "navigation": {
+      "originalUrl": "career://app/index.html#/wiki",
+      "attempts": [
+        "will-frame-navigate"
+      ],
+      "externalRequests": 0,
+      "childWindowsCreated": 0
+    },
+    "actualPrint": {
+      "sandboxed": true,
+      "registeredPreloads": [],
+      "devToolsOpened": false,
+      "capability": {
+        "materials": "undefined",
+        "business": "undefined",
+        "secrets": "undefined",
+        "search": "undefined",
+        "node": "undefined",
+        "process": "undefined"
+      },
+      "pdfHeader": "%PDF-",
+      "pdfBytes": 23485,
+      "hidden": true
+    },
+    "driverInspector": "Playwright-owned test transport; standalone test separately checks production without driver",
+    "realExternalServices": "NOT TESTED"
+  },
+  "standalone": {
+    "executable": "/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+    "appAsarSha256": "7ef33f0ea02a44fb48bac9199539cfd0865010d224b301384b252640f7b9a996",
+    "status": "PASS",
+    "normalMainWithoutPlaywright": true,
+    "ownedPids": [
+      95585,
+      95586,
+      95587,
+      95592,
+      95594
+    ],
+    "argv": "95585 /Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext --user-data-dir=/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-listener-9wO8JK/profile\n95586 /Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/Frameworks/CareerNext Helper.app/Contents/MacOS/CareerNext Helper --type=gpu-process --user-data-dir=/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-listener-9wO8JK/profile --gpu-preferences=WAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAADAAAAAEAAAAAAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --shared-files --field-trial-handle=1718379636,r,956349296749069004,5682959509042221920,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,16031373691889627981,15014961758206177739,4 --trace-process-track-uuid=3190708988185955192 --seatbelt-client=32\n95587 /Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/Frameworks/CareerNext Helper.app/Contents/MacOS/CareerNext Helper --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=network --user-data-dir=/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-listener-9wO8JK/profile --standard-schemes=career --secure-schemes=career --fetch-schemes=career --shared-files --field-trial-handle=1718379636,r,956349296749069004,5682959509042221920,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,16031373691889627981,15014961758206177739,4 --trace-process-track-uuid=3190708989122997041 --seatbelt-client=32\n95592 /Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/Frameworks/CareerNext Helper (Renderer).app/Contents/MacOS/CareerNext Helper (Renderer) --type=renderer --user-data-dir=/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-listener-9wO8JK/profile --standard-schemes=career --secure-schemes=career --fetch-schemes=career --app-path=/Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/Resources/app.asar --enable-sandbox --lang=zh-CN --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=4 --launch-time-ticks=3451174493294 --shared-files --field-trial-handle=1718379636,r,956349296749069004,5682959509042221920,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,16031373691889627981,15014961758206177739,4 --trace-process-track-uuid=3190708990060038890 --seatbelt-client=54\n95594 /Users/frog/Projects/Career-Next/out/g6-final/CareerNext-darwin-arm64/CareerNext.app/Contents/Frameworks/CareerNext Helper.app/Contents/MacOS/CareerNext Helper --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --user-data-dir=/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-listener-9wO8JK/profile --standard-schemes=career --secure-schemes=career --fetch-schemes=career --shared-files --field-trial-handle=1718379636,r,956349296749069004,5682959509042221920,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,16031373691889627981,15014961758206177739,4 --trace-process-track-uuid=3190708990997080739\n",
+    "tcpListenOutput": "",
+    "occupiedSentinelPort": 59385,
+    "sentinelResponses": 3,
+    "sentinelAliveAfterOwnedAppStop": true,
+    "stopSignal": "SIGTERM",
+    "stopExitCode": 0,
+    "stopSignalCode": null,
+    "inspector": "none",
+    "realExternalServices": "NOT TESTED"
+  },
+  "notRun": [
+    "Physical sleep/wake: separately owned by root/manual validation",
+    "Real external provider/search/Feishu",
+    "Physical power loss",
+    "Developer ID / Notarization / x64"
+  ],
+  "productionFilesChanged": [],
+  "gitIndexActions": "NONE: root serial final submission",
+  "validation": {
+    "typecheck": {
+      "command": "node_modules/node/bin/node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0,
+      "log": "/tmp/g6-security-typecheck-final.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scopedDiffCheckExitCode": 0,
+    "frozen": {
+      "docs/product-spec": {
+        "unchanged": 12,
+        "total": 12
+      },
+      "docs/architecture": {
+        "unchanged": 8,
+        "total": 8
+      },
+      "evidence": "/tmp/career-g6/final-frozen.json",
+      "sha256": "c5f7c1e026a28dc9d8497a0626ad06859149245fb6ab52773140dfa1764d8b01"
+    }
+  }
+}

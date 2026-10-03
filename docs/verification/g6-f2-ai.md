@@ -87,3 +87,7 @@ git diff --check
 ```
 
 分别 exit 0 / 0 / 0；**3 文件 45/45 PASS**（F2 runtime 36 + controller 5 + control UI 4）。日志 `/tmp/g6-f2-revoke-persistence-green.log`，机器补测记录已追加同一 JSON。本补丁没有更改 bootstrap 接线、owner、schema 或 Frozen；Root 继续最终 production runtime/package 集成回归。原 88/88 是先前广回归记录，不冒充本追加补丁的 packaged 回归。
+
+## Root 最终集成结算
+
+本工作线记录保留当时的边界；后续正式接线、最终正常包和真人系统 sleep/wake 的补验已完成，当前结算以 [G6 最终证据](g6-final.md) 和 [逐场景矩阵](g6-failure-matrix.md) 为准。LOCAL G6 PASS；发布条件仍 READY / NOT RUN、真实服务 NOT TESTED。
