@@ -12,7 +12,7 @@
   "dependencies": {
     "better-sqlite3": "13.0.3"
   },
-  "description": "Career-Next: local career workspace, G3 manual Research, Interview and Offer",
+  "description": "Career-Next: local career workspace, G4 cross-domain transactions and local AI proposals",
   "main": "dist/application/main.cjs",
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -35,7 +35,9 @@
     "smoke:g2": "vitest run tests/desktop/g2.electron.test.ts",
     "smoke:g2:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g2.electron.test.ts",
     "smoke:g3": "vitest run tests/desktop/g3.electron.test.ts",
-    "smoke:g3:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g3.electron.test.ts"
+    "smoke:g3:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g3.electron.test.ts",
+    "smoke:g4": "vitest run tests/desktop/g4.electron.test.ts",
+    "smoke:g4:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g4.electron.test.ts"
   },
   "devDependencies": {
     "@electron-forge/cli": "8.0.1",

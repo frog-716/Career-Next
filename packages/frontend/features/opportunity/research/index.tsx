@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Request,Result,type Item,type Owner,type Source,type Resolution} from '../../../../contracts/opportunity/research/schema';
 import type {BusinessTime} from '../../../../contracts/common/business-time';
-import type {SourceRef} from '../../../../contracts/materials/schema';
+import type {SourceRef} from '../../../../contracts/common/source-ref';
 export interface ResearchPageProps{opportunityId:string;companyId:string;workspaceInstance:string;request:(input:Request)=>Promise<Result>;onChanged?:()=>void;availableSources?:{ref:SourceRef;name:string}[];}
 type Draft={title:string;body:string;nature:Item['nature'];sources:Source[];leads:Item['leads'];userConfirmed:boolean;independentlyVerified:boolean;reason:string;reevaluated:boolean;timeKind:BusinessTime['kind'];date:string;instant:string;timezone:string;};
 const empty=():Draft=>({title:'',body:'',nature:'fact_statement',sources:[],leads:[],userConfirmed:false,independentlyVerified:false,reason:'',reevaluated:false,timeKind:'unknown',date:'',instant:'',timezone:''});

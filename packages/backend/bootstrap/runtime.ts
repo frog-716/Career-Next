@@ -31,7 +31,7 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  function adapter(token:PersistenceToken,boundGate=gate):ProductionSinkAdapter {tokens.set(token.id,token);return {controlledSink:filename=>boundGate.controlledSink(token,filename),withLease:work=>boundGate.withLease(token,work)};}
  async function drain(refs:readonly PersistenceReference[]){controller?.revokeReferences(refs);await gate.drain(refs);}
  async function initialize(){await mkdir(root,{recursive:true,mode:0o700});admission=true;
- writer=await startWriter<RuntimeStore>(root,randomUUID(),writerArtifact,{dataRoot,control:async(action,args)=>{if(action==='drain'){await drain(args[0] as PersistenceReference[]);return;}if(action==='beforeActivate'){admission=false;controller?.shutdown();await drain([...tokens.values()].flatMap(t=>[...t.inputs,...t.targets]));return;}if(action==='maintenance'){maintenance=args[0]===true;return;}throw Error('invalid_request');}});
+ writer=await startWriter<RuntimeStore>(root,randomUUID(),writerArtifact,{dataRoot,control:async(action,args)=>{if(action==='renewProfile'){gate.allowRenewedProfile(args[0] as number);return;}if(action==='drain'){await drain(args[0] as PersistenceReference[]);return;}if(action==='beforeActivate'){admission=false;controller?.shutdown();await drain([...tokens.values()].flatMap(t=>[...t.inputs,...t.targets]));return;}if(action==='maintenance'){maintenance=args[0]===true;return;}throw Error('invalid_request');}});
  const boundWriter=writer;gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await boundWriter.call('persistenceAssert',token);});
  const boundGate=gate;materials=await createMaterialsBackend(root,undefined,undefined,boundWriter,async id=>adapter(await boundWriter.call('producerToken',id),boundGate));
  blobs=createBlobBroker(root,maximumPdfBytes);await blobs.initialize();
@@ -53,13 +53,13 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
   }catch{const result=await boundWriter.call('pdfFail',commandId);await boundMaterials.collectGarbage().catch(()=>{});return ResumeResult.parse(result);}
  }
  return {get materials(){return materials;},
- async connectHuman(){allowed();currentSession=await materials.connectHuman();await Promise.allSettled([...operations]);await writer.call('recoverPending');await materials.collectGarbage();return currentSession;},
+ async connectHuman(){allowed();currentSession=await materials.connectHuman();await Promise.allSettled([...operations]);await writer.call('recoverPending');await materials.collectGarbage();await writer.call('automaticBackup').catch(()=>{});return currentSession;},
  business(session:HumanSession,module:BusinessModule,input:unknown){allowed();return track((async()=>{
   if(module==='ai'){const request=AiRequest.parse(input);if(request.operation==='ai.stop'){await controller.stop(request.taskId,request.mode);return writer.call('business',session,module,{operation:'ai.read',taskId:request.taskId});}}
   const result=await writer.call('business',session,module,input);
   if(module==='ai'){const request=AiRequest.parse(input),value=AiResult.parse(result);if(request.operation==='ai.authorize'&&value.kind==='task'){controller.openAfterAuthorization(value.task.id);void controller.start(value.task.id,request.operationId).catch(()=>{});}}
   if(module==='application'){const value=DataResult.parse(result);if(value.kind==='restored'){await writer.close();root=path.resolve(dataRoot,value.copy.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}}
-  if(module==='application'&&!admission&&DataResult.parse(result).kind==='failure'){await writer.close();const pointer=JSON.parse(await readFile(path.join(dataRoot,'active-workspace-pointer.json'),'utf8'));root=safeManagedPath(dataRoot,pointer.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}
+  if(module==='application'&&!admission&&DataResult.parse(result).kind==='failure'){await writer.close();const pointer=JSON.parse(await readFile(path.join(dataRoot,'active-workspace-pointer.json'),'utf8'));root=safeManagedPath(dataRoot,pointer.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();return DataResult.parse({kind:'failure',code:'restore_failed_reconnected'});}
   return result;
  })());},
  async selectSentFile(session:HumanSession,filename:string){allowed();const boundWriter=writer,boundMaterials=materials,boundBlobs=blobs;if(!['.pdf','.txt','.md'].includes(path.extname(filename).toLowerCase()))throw Error('unsupported_file');return track((async()=>{const token=await boundWriter.call('artifactToken',session),sink=adapter(token);let prepared:{id:string;blobId:string}|undefined;

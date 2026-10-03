@@ -97,7 +97,7 @@ async function sendPrint(printAction:'html'|'complete'|'fail',commandId:string,p
 }
 async function businessWithPrint(module:BusinessModule,input:unknown){
  const result=await sendBusiness(module,input);
- if(module==='application'&&result&&typeof result==='object'&&'kind'in result&&result.kind==='restored'){await connect();}if(module!=='resume')return result;
+ if(module==='application'&&result&&typeof result==='object'&&'kind'in result&&(result.kind==='restored'||result.kind==='failure'&&'code'in result&&result.code==='restore_failed_reconnected')){await connect();}if(module!=='resume')return result;
  const request=ResumeRequest.parse(input),parsed=ResumeResult.parse(result);
  if((request.operation!=='resume.name-version'&&request.operation!=='resume.export')||parsed.status!=='pending-job')return parsed;
  const bound=identity;if(!bound)throw Error('disconnected');

@@ -10,6 +10,7 @@ import { createSessions,type HumanSession } from '../platform/runtime/sessions';
 import { createLedger } from '../platform/database/ledger';
 import { composeDomains } from './domain-registry';
 import type { BusinessModule } from '../../contracts/common/bridge';
+import {Request as ProfileRequest} from '../../contracts/profile/schema';
 import { PdfArtifact,Result as ResumeResult } from '../../contracts/resume/schema';
 export function createWriterCommands(db:Database.Database,workspaceInstance:string,generation:string,options?:{dataRoot:string;control:LifecycleControl}){
  const authority=createSessions(workspaceInstance,generation);
@@ -21,7 +22,7 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  const control=options?.control??{drain:async()=>{},beforeActivate:async()=>{},maintenance:async<T>(work:()=>Promise<T>)=>work(),closeWorkspace:()=>{throw Error('restore_unavailable');}};
  lifecycle=composeLifecycle(db,domains,materials,fence,ai,root,options?.dataRoot??root,control,()=>currentHuman);
  const producers=new Map<string,PersistenceToken>();
- function capture(id:string,inputs:PersistenceReference[],targets:PersistenceReference[]){const token=fence.capture({producerId:id,inputs,targets});producers.set(id,token);return token;}
+ function capture(id:string,inputs:PersistenceReference[],targets:PersistenceReference[]){if(producers.has(id))return assertProducer(id);const token=fence.capture({producerId:id,inputs,targets});producers.set(id,token);return token;}
  function assertProducer(id:string){const token=producers.get(id);if(!token)throw Error('invalid_capability');fence.assert(token);return token;}
  domains.files.recover();
  const physicalCommand=(id:string)=>'resume.version/'+id;
@@ -29,7 +30,7 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  recoverPending();
  return {...materials,
   connect(){currentHuman=materials.connect();return currentHuman;},
-  async business(session:HumanSession,module:BusinessModule,input:unknown){authority.check(session);human=true;try{const result=await domains.handle(module,input);if(module==='resume'){const parsed=ResumeResult.parse(result);if(parsed.status==='pending-job')capture((input as {commandId:string}).commandId,[{owner:'resume',objectId:parsed.job.resumeId},{owner:'profile',objectId:'current'}],[{owner:'resume',objectId:parsed.job.resumeId}]);}return result;}finally{human=false;}},
+  async business(session:HumanSession,module:BusinessModule,input:unknown){authority.check(session);human=true;try{if(module==='profile'&&ProfileRequest.parse(input).operation==='profile.save'){let renewal:{renewed:boolean;generation:number}|undefined;const before=domains.profile.read().revision;const result=db.transaction(()=>{const saved=domains.profile.handle(input);if(saved.status==='profile'&&saved.profile.revision>before)renewal=fence.renewProfileAfterHumanSave({actor:'human',ownerRevision:saved.profile.revision});return saved;})();if(renewal?.renewed)await control.renewProfile?.(renewal.generation);return result;}const result=await domains.handle(module,input);if(module==='resume'){const parsed=ResumeResult.parse(result);if(parsed.status==='pending-job')capture((input as {commandId:string}).commandId,[{owner:'resume',objectId:parsed.job.resumeId},{owner:'profile',objectId:'current'}],[{owner:'resume',objectId:parsed.job.resumeId}]);}return result;}finally{human=false;}},
   begin(session:HumanSession,name:string){const id=materials.begin(session,name);capture(id,[],[{owner:'import',objectId:id}]);return id;},
   valid(session:HumanSession,id:string){assertProducer(id);return materials.valid(session,id);},
   preview(session:HumanSession,input:Parameters<typeof materials.preview>[1]){assertProducer(input.importId);return materials.preview(session,input);},

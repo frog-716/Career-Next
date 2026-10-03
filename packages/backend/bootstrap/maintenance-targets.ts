@@ -4,6 +4,7 @@ import type {HumanSession} from '../platform/runtime/sessions';
 export async function maintenanceTargets(d:ReturnType<typeof composeDomains>,materials:Store,session?:HumanSession){
  if(!session)throw Error('invalid_capability');const targets:{owner:string;objectId:string;label:string}[]=[];
  const add=(owner:string,objectId:string,label:string)=>{if(!targets.some(t=>t.owner===owner&&t.objectId===objectId))targets.push({owner,objectId,label:(owner+' · '+label).slice(0,255)});};
+ for(const item of materials.pendingImports())add('import',item.id,'进行中的导入 '+item.name);
  for(const item of await materials.list(session))add('materials',item.id,item.name);
  for(const file of d.files.list())add('actual-artifact',file.id,file.name);
  const wiki=d.wiki.handle({operation:'list',includeRetired:true});if(wiki.kind==='list')for(const item of wiki.items)add('wiki',item.id,item.title);
