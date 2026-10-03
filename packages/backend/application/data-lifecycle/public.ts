@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';import {randomUUID} from 'node:crypto';import {existsSync,readFileSync,readdirSync,lstatSync} from 'node:fs';import {mkdir,rm} from 'node:fs/promises';import path from 'node:path';
-import {Request,Result,BackupSettings,Plan,type PurgeImpact,type PurgePlan} from '../../../contracts/application/schema';
+import {DataRequestSchema as Request,Result,BackupSettings,Plan,type PurgeImpact,type PurgePlan} from '../../../contracts/application/schema';
 import {createBackupManager,type BackupPorts} from '../../platform/backup/public';
 import {durableJson,safeManagedPath,type ManagedCopy} from '../../platform/backup/managed-copies';
 import type {PersistenceReference} from '../../platform/persistence/fence';

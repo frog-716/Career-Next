@@ -20,6 +20,7 @@ export async function maintenanceTargets(d:ReturnType<typeof composeDomains>,mat
  for(const item of d.wiki.maintenanceObjects('opportunity',o.id))add('wiki',item.id,item.title);
  for(const owner of [{kind:'opportunity' as const,id:o.id},{kind:'company' as const,id:o.companyId}]){const research=d.research.handle({operation:'read',owner});if(research.kind==='document')for(const item of research.items)add('research',item.item.id,item.item.title);}
  }
+ for(const item of d.feedback.list())add('feedback',item.id,item.entries[0]!.text.slice(0,80));
  add('profile','current','当前本人身份');return targets;
 }
 /** Object-owned scopes expand through public interfaces; shared facts stay independent. */

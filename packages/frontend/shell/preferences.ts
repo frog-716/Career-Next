@@ -1,0 +1,9 @@
+import {useEffect,useRef,useState} from 'react';
+import {useLocation,useNavigate} from 'react-router';
+import {PreferencesRequest,PreferencesResult,type Preferences} from '../../contracts/application/preferences';
+export function useHomepagePreferences(workspaceInstance?:string){
+ const [value,setValue]=useState<Preferences>({revision:0,pinned:null}),[status,setStatus]=useState(''),[busy,setBusy]=useState(false);const navigate=useNavigate(),location=useLocation(),path=useRef(location.pathname);path.current=location.pathname;
+ useEffect(()=>{if(!workspaceInstance)return;let active=true;void window.career.request('application',{operation:'preferences.read'}).then(result=>{const parsed=PreferencesResult.parse(result);if(!active||parsed.kind!=='preferences')return;setValue(parsed.preferences);if(path.current==='/')navigate('/'+(parsed.preferences.pinned??'wiki'),{replace:true});}).catch(()=>{if(active)setStatus('首页偏好暂不可读；仍可直接打开对象。');});return()=>{active=false;};},[workspaceInstance]);
+ async function pin(pinned:Preferences['pinned']){setBusy(true);const intent=PreferencesRequest.parse({operation:'preferences.pin',commandId:crypto.randomUUID(),expectedRevision:value.revision,pinned});try{let result:unknown;try{result=await window.career.request('application',intent);}catch{result=await window.career.request('application',{operation:'preferences.receipt',commandId:'commandId'in intent?intent.commandId:''});}const parsed=PreferencesResult.parse(result);if(parsed.kind==='preferences'){setValue(parsed.preferences);setStatus('首页偏好已保存。');}else if(parsed.kind==='preferences_conflict'){setValue(parsed.preferences);setStatus('另一窗口已修改首页偏好；已显示正式值，请重新选择。');}else setStatus('尚未确认，请重新读取首页偏好后操作。');}catch{setStatus('首页偏好保存结果尚未确认，请重新打开资料后核对。');}finally{setBusy(false);}}
+ return {pinned:value.pinned,pin,status,busy};
+}

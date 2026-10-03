@@ -287,7 +287,7 @@ const [creating,setCreating]=useState(false);
  function open(id:string){setSelected(id);
 setOpened(old=>old.includes(id)?old:[...old,id]);
 }
- return <section aria-label="任职"><h2>任职</h2>
+ return <section aria-label="任职" data-feedback-owner="employment" data-feedback-id={selected}><h2>任职</h2>
 <button onClick={()=>setCreating(value=>!value)}>{creating?'收起新增（保留输入）':'新增任职'}
 </button>
 <div hidden={!creating}>

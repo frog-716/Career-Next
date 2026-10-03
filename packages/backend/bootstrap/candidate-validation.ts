@@ -1,3 +1,5 @@
+import {validateFeedbackCandidate} from '../application/feedback/public';
+import {validatePreferencesCandidate} from '../application/preferences/public';
 import type Database from 'better-sqlite3';
 import {validateCandidate as materials,candidateRelations as materialsRelations} from '../domains/materials/public';
 import {validateCandidate as wiki,candidateRelations as wikiRelations} from '../domains/wiki/public';
@@ -16,7 +18,7 @@ import {composeDomains} from './domain-registry';
 import {createMaterialsStore} from '../domains/materials/store';
 import {validateFileCandidates} from '../platform/files/candidates';
 import {validateAiCandidate,candidateRelations as aiRelations} from '../ai-runtime/public';
-export function validateBusinessCandidate(db:Database.Database){for(const validate of [materials,wiki,resume,profile,employment,project,company,core,research,interview,offer,submission,communication,validateAiCandidate])validate(db);}
+export function validateBusinessCandidate(db:Database.Database){for(const validate of [materials,wiki,resume,profile,employment,project,company,core,research,interview,offer,submission,communication,validateAiCandidate,validatePreferencesCandidate,validateFeedbackCandidate])validate(db);}
 
 export function validateCandidateRelations(db:Database.Database){
  const materialsStore=createMaterialsStore(db,'candidate-validation','candidate-validation');

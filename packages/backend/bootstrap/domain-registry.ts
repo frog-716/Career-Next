@@ -1,3 +1,4 @@
+import {composeFeedback} from './feedback-composition';
 import type Database from 'better-sqlite3';
 import {SourceRef} from '../../contracts/common/source-ref';
 import { createEmploymentDomain } from '../domains/employment/public';
@@ -23,7 +24,7 @@ export function composeDomains(db:Database.Database,materials:Store,extra:{ai:{h
  const employment=createEmploymentDomain(db);
  const project=createProjectDomain(db,{resolveEmployment:employment.resolveEmployment,resolvePerson:employment.resolvePerson});
  const opportunity=createOpportunityDomain(db);
- const root=path.dirname(db.name),ledger=createLedger(db);
+ const root=path.dirname(db.name),ledger=createLedger(db),feedback=composeFeedback(db,root);
  const artifact=(ref:Parameters<Store['resolveSourceArtifact']>[0])=>{const value=materials.resolveSourceArtifact(ref);return value&&verifyProtectedOriginal(root,value)?value:undefined;};
  const profile=createProfileDomain(db);
  const resume=createResumeDomain(db,{resolveOpportunity:opportunity.resolveOpportunity,profile});
@@ -39,5 +40,5 @@ export function composeDomains(db:Database.Database,materials:Store,extra:{ai:{h
  const metadata=printingMetadata();
  const printedResume={handle(input:unknown){const request=ResumeRequest.parse(input);return (request.operation==='resume.name-version'||request.operation==='resume.export')?resume.prepareVersion(request,metadata):resume.handle(request);}};
  const handle=registerDomains({wiki,employment,project,opportunity,profile,resume:printedResume,research,interview,offer,submission,communication,...extra});
- return {handle,resume,wiki,employment,project,opportunity,research,interview,offer,profile,submission,communication,files,resolveSource,pendingPrint(commandId:string){const result=ResumeResult.parse(resume.handle({operation:'resume.receipt',commandId}));if(result.status!=='pending-job')return undefined;return result.job;}};
+ return {handle,resume,wiki,employment,project,opportunity,research,interview,offer,profile,submission,communication,feedback,files,resolveSource,pendingPrint(commandId:string){const result=ResumeResult.parse(resume.handle({operation:'resume.receipt',commandId}));if(result.status!=='pending-job')return undefined;return result.job;}};
 }

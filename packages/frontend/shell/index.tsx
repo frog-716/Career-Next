@@ -5,12 +5,12 @@ import { Panel } from '../design-system/Panel';
 import styles from './shell.module.css';
 import '../design-system/tokens.css';
 export { navigationManifest,resolveRoute,resumePath } from './routes';
-export interface ShellProps{pages:Record<NavigationId,ReactNode>;resume?:ReactNode}
+export interface ShellProps{pages:Record<NavigationId,ReactNode>;resume?:ReactNode;pinned?:NavigationId|null;onPin?:(id:NavigationId|null)=>void;pinBusy?:boolean}
 /** Hidden views stay mounted so navigation cannot discard an owner editor session. */
-export function CareerShell({pages,resume}:ShellProps){
+export function CareerShell({pages,resume,pinned,onPin,pinBusy}:ShellProps){
  const route=resolveRoute(useLocation().pathname);
  return <div className={styles.shell}>
-  <nav className={styles.sidebar} aria-label="一级导航">{navigationManifest.map(entry=><Link key={entry.id} to={entry.path} className={styles.link} aria-current={route.view!=='not-found'&&route.module===entry.id?'page':undefined}><span className={styles.icon} aria-hidden="true">{entry.icon}</span><span>{entry.label}</span></Link>)}</nav>
+  <nav className={styles.sidebar} aria-label="一级导航">{navigationManifest.map(entry=><div key={entry.id}><Link to={entry.path} className={styles.link} aria-current={route.view!=='not-found'&&route.module===entry.id?'page':undefined}><span className={styles.icon} aria-hidden="true">{entry.icon}</span><span>{entry.label}</span></Link>{onPin&&<button disabled={pinBusy} aria-label={pinned===entry.id?`取消${entry.label}置顶首页`:`置顶${entry.label}首页`} aria-pressed={pinned===entry.id} onClick={()=>onPin(pinned===entry.id?null:entry.id)}>{pinned===entry.id?'★':'☆'}</button>}</div>)}</nav>
   <main className={styles.content}>
    {navigationManifest.map(entry=><div key={entry.id} hidden={route.view!=='module'||route.module!==entry.id} data-module={entry.id}>{pages[entry.id]}</div>)}
    <div hidden={route.view!=='resume'} data-module="opportunity-resume">{resume??(route.view==='resume'?<Panel label="简历入口"><p>这个简历入口暂不可用，请返回所属机会。</p></Panel>:null)}</div>

@@ -5,11 +5,11 @@ export type Company=z.infer<typeof Company>;
 export const Phase=z.enum(['preparation','submitted','interview','offer']);
 export type Phase=z.infer<typeof Phase>;
 export const Outcome=z.enum(['active','accepted','recruiter_ended','withdrawn']);
-export const Opportunity=z.object({id:z.uuid(),companyId:z.uuid(),role:z.string().trim().min(1).max(200),revision:Revision,phase:Phase,result:Outcome,stageDates:z.object({submitted:BusinessTime,interview:BusinessTime,offer:BusinessTime}).strict(),recordedAt:z.string()}).strict();
+export const Opportunity=z.object({id:z.uuid(),companyId:z.uuid(),role:z.string().trim().min(1).max(200),jd:z.string().max(100000).optional(),revision:Revision,phase:Phase,result:Outcome,stageDates:z.object({submitted:BusinessTime,interview:BusinessTime,offer:BusinessTime}).strict(),recordedAt:z.string()}).strict();
 export type Opportunity=z.infer<typeof Opportunity>;
 export const OpportunityView=Opportunity.extend({companyName:z.string()}).strict();
 export type OpportunityView=z.infer<typeof OpportunityView>;
-export const History=z.object({id:z.uuid(),opportunityId:z.uuid(),revision:Revision,type:z.enum(['created','identity_edited','identity_corrected','stage_reached','stage_corrected','ended','end_corrected','continued','offer_accepted','offer_conditions_replaced','offer_recruiter_withdrew','offer_user_withdrew','offer_acceptance_corrected','offer_withdrawal_corrected']),reason:z.string(),companyId:z.uuid(),role:z.string(),previousCompanyId:z.uuid().optional(),previousRole:z.string().optional(),businessTime:BusinessTime,phase:Phase,result:Outcome,stage:Phase.optional(),stageOwner:z.enum(['submission','interview','offer']).optional(),voided:z.boolean().optional(),previousResult:Outcome.optional(),correctedEventId:z.uuid().optional(),basisId:z.uuid().optional(),historical:z.boolean().optional(),recordedAt:z.string()}).strict();
+export const History=z.object({id:z.uuid(),opportunityId:z.uuid(),revision:Revision,type:z.enum(['created','identity_edited','identity_corrected','jd_updated','stage_reached','stage_corrected','ended','end_corrected','continued','offer_accepted','offer_conditions_replaced','offer_recruiter_withdrew','offer_user_withdrew','offer_acceptance_corrected','offer_withdrawal_corrected']),reason:z.string(),companyId:z.uuid(),role:z.string(),previousCompanyId:z.uuid().optional(),previousRole:z.string().optional(),jd:z.string().max(100000).optional(),previousJd:z.string().max(100000).optional(),businessTime:BusinessTime,phase:Phase,result:Outcome,stage:Phase.optional(),stageOwner:z.enum(['submission','interview','offer']).optional(),voided:z.boolean().optional(),previousResult:Outcome.optional(),correctedEventId:z.uuid().optional(),basisId:z.uuid().optional(),historical:z.boolean().optional(),recordedAt:z.string()}).strict();
 export type History=z.infer<typeof History>;
 const Command={commandId:CommandId};const Existing={...Command,id:z.uuid(),expectedRevision:Revision};const Event={...Existing,reason:z.string().trim().min(1).max(1000),businessTime:BusinessTime};
 export const CompanyRequest=z.discriminatedUnion('operation',[
@@ -20,6 +20,7 @@ export const CompanyRequest=z.discriminatedUnion('operation',[
 ]);
 export type CompanyRequest=z.infer<typeof CompanyRequest>;
 export const CoreRequest=z.discriminatedUnion('operation',[
+ z.object({operation:z.literal('save-jd'),...Event,jd:z.string().max(100000)}).strict(),
  z.object({operation:z.literal('create'),...Command,companyId:z.uuid(),role:Opportunity.shape.role}).strict(),
  z.object({operation:z.literal('edit'),...Event,companyId:z.uuid(),role:Opportunity.shape.role,correction:z.boolean()}).strict(),
  z.object({operation:z.literal('record-stage'),...Event,stage:z.enum(['submitted','interview','offer'])}).strict(),

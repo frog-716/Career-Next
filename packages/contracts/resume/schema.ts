@@ -34,10 +34,13 @@ export const Request=z.discriminatedUnion('operation',[
  z.strictObject({operation:z.literal('resume.lookup'),opportunityId:Id}),
  z.strictObject({operation:z.literal('resume.candidates'),opportunityId:Id}),
  z.strictObject({operation:z.literal('resume.version'),resumeId:Id,versionId:Id}),
+ z.strictObject({operation:z.literal('resume.copy-candidates'),resumeId:Id}),
+ z.strictObject({operation:z.literal('resume.copy-version'),commandId:Id,resumeId:Id,versionId:Id,expectedRevision:Revision,expectedProfileRevision:Revision}),
  z.strictObject({operation:z.literal('resume.restore'),commandId:Id,resumeId:Id,versionId:Id,expectedRevision:Revision,expectedProfileRevision:Revision}),
  z.strictObject({operation:z.literal('resume.receipt'),commandId:Id})
 ]);
 export const Result=z.discriminatedUnion('status',[
+ z.strictObject({status:z.literal('copy-candidates'),items:z.array(z.strictObject({versionId:Id,name:z.string(),sourceResumeId:Id,companyName:z.string(),role:z.string(),recordedAt:z.string()})).max(500)}),
  z.strictObject({status:z.literal('document'),document:Document,profile:Profile,opportunity:z.strictObject({id:Id,companyName:z.string(),role:z.string()})}),
  z.strictObject({status:z.literal('pending-job'),job:Snapshot,name:z.string()}),
  z.strictObject({status:z.literal('version'),version:Version}),

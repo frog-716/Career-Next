@@ -18,13 +18,14 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
   if(request.operation==='list')return Result.parse({kind:'opportunities',items:(db.prepare("SELECT content_json FROM opportunity_core ORDER BY json_extract(content_json,'$.recordedAt') DESC,rowid DESC LIMIT 500").all() as {content_json:string}[]).map(row=>view(Opportunity.parse(JSON.parse(row.content_json))))});
   if(request.operation==='history'){read(request.id);return Result.parse({kind:'history',items:(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision DESC').all(request.id) as {history_json:string}[]).map(row=>JSON.parse(row.history_json))});}
   return executeCommand(db,'opportunity',request.commandId,request,()=>{
-   const recordedAt=new Date().toISOString();let opportunity:Opportunity;let previousResult:Opportunity['result']|undefined;let correctedEventId:string|undefined;let previousCompanyId:string|undefined;let previousRole:string|undefined;
-   let type:'created'|'identity_edited'|'identity_corrected'|'stage_reached'|'stage_corrected'|'ended'|'end_corrected'|'continued'='created';
+   const recordedAt=new Date().toISOString();let opportunity:Opportunity;let previousResult:Opportunity['result']|undefined;let correctedEventId:string|undefined;let previousCompanyId:string|undefined;let previousRole:string|undefined;let previousJd:string|undefined;
+   let type:'created'|'identity_edited'|'identity_corrected'|'jd_updated'|'stage_reached'|'stage_corrected'|'ended'|'end_corrected'|'continued'='created';
    if(request.operation==='create'){
     if(!dependencies.resolveCompany(request.companyId))throw Error('not_found');opportunity={id:randomUUID(),companyId:request.companyId,role:request.role,revision:1,phase:'preparation',result:'active',stageDates:{submitted:{kind:'unknown'},interview:{kind:'unknown'},offer:{kind:'unknown'}},recordedAt};
    }else{
     const old=read(request.id);if(old.revision!==request.expectedRevision)throw Error('conflict');opportunity={...old,revision:old.revision+1,recordedAt};
     switch(request.operation){
+     case 'save-jd':previousJd=old.jd;opportunity.jd=request.jd;type='jd_updated';break;
      case 'edit':previousCompanyId=old.companyId;previousRole=old.role;if(!dependencies.resolveCompany(request.companyId))throw Error('not_found');if(request.companyId!==old.companyId&&!request.correction)throw Error('invalid_transition');opportunity.companyId=request.companyId;opportunity.role=request.role;type=request.correction?'identity_corrected':'identity_edited';break;
      case 'record-stage':{const ranks={preparation:0,submitted:1,interview:2,offer:3};if(ranks[request.stage]>ranks[old.phase])opportunity.phase=request.stage;const prior=old.stageDates[request.stage];const next=request.businessTime;
       opportunity.stageDates={...old.stageDates,[request.stage]:earliest(prior,next)};type='stage_reached';break;}
@@ -43,7 +44,7 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
     }
    }
    db.prepare('INSERT INTO opportunity_core VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET company_id=excluded.company_id,revision=excluded.revision,content_json=excluded.content_json').run(opportunity.id,opportunity.companyId,opportunity.revision,JSON.stringify(opportunity));
-   const history={id:randomUUID(),opportunityId:opportunity.id,revision:opportunity.revision,type,companyId:opportunity.companyId,role:opportunity.role,...previousCompanyId?{previousCompanyId,previousRole}:{},reason:request.operation==='create'?'创建一次尝试':request.reason,businessTime:request.operation==='create'?{kind:'unknown'}:request.businessTime,phase:opportunity.phase,result:opportunity.result,recordedAt,...stageOwner?{stageOwner}:{},...previousResult?{previousResult}:{},...correctedEventId?{correctedEventId}:{},...request.operation==='record-stage'||request.operation==='correct-stage'?{stage:request.stage}:{},...request.operation==='correct-stage'?{voided:request.voided}:{}};
+   const history={id:randomUUID(),opportunityId:opportunity.id,revision:opportunity.revision,type,companyId:opportunity.companyId,role:opportunity.role,...previousCompanyId?{previousCompanyId,previousRole}:{},reason:request.operation==='create'?'创建一次尝试':request.reason,businessTime:request.operation==='create'?{kind:'unknown'}:request.businessTime,phase:opportunity.phase,result:opportunity.result,recordedAt,...request.operation==='save-jd'?{jd:request.jd,previousJd}: {},...stageOwner?{stageOwner}:{},...previousResult?{previousResult}:{},...correctedEventId?{correctedEventId}:{},...request.operation==='record-stage'||request.operation==='correct-stage'?{stage:request.stage}:{},...request.operation==='correct-stage'?{voided:request.voided}:{}};
    db.prepare('INSERT INTO opportunity_core_history VALUES (?,?,?,?)').run(history.id,opportunity.id,opportunity.revision,JSON.stringify(history));return Result.parse({kind:'opportunity',opportunity:view(opportunity)});
   });
  }

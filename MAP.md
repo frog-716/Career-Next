@@ -4,7 +4,7 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，不进入 G5/G6。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，当前已授权 G5 完整旅程与桌面连续性，不进入 G6。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
 
 ## 冻结输入与阅读入口
 
@@ -77,4 +77,11 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `backend/application/data-lifecycle/` 组合 owner 的公开维护能力；`platform/backup/` 管一致恢复点、受管理副本和唯一 active pointer，`platform/persistence/` 拒绝已清除对象的迟到生产者。
 - `backend/bootstrap/{ai-composition,lifecycle-composition,candidate-validation}.ts` 是真实跨 owner 接缝与候选恢复校验入口；迁移发布版本为 4，已发布 G1–G3 SQL 不变。
 - `frontend/support/{ai,data-lifecycle}/` 是 Wiki 辅助与设置入口，`frontend/app/g4-support.tsx` 装配。清除通知关闭受影响正文/缓存并拒绝旧响应，保留无关草稿；恢复先卸载旧编辑会话再建立新资料身份。
-- [G4 umbrella #14](https://github.com/frog-716/Career-Next/issues/14) 和 #15–19 管任务；正常开发与 arm64 打包证据见 [G4 验收](docs/verification/g4-cross-domain.md)。下一门 G5 尚未授权。
+- [G4 umbrella #14](https://github.com/frog-716/Career-Next/issues/14) 和 #15–19 管任务；正常开发与 arm64 打包证据见 [G4 验收](docs/verification/g4-cross-domain.md)。G5 已明确授权；验收期间 Issues 保持打开，最终 checkpoint 等真人 Desktop Gate。
+
+## G5 入口（进行中，尚未通过）
+
+- [G5 umbrella #20](https://github.com/frog-716/Career-Next/issues/20)，子任务 #21–25；[104 分支矩阵](docs/verification/g5-acceptance-matrix.md) 是本轮独立证据入口，不改变冻结正本。
+- `backend/application/{preferences,feedback}/` 分别拥有唯一首页偏好与反馈，合同在 `contracts/application/`。Feedback 截图复用平台 blob 保留；不进入职业知识或 AI Context。
+- `frontend/support/feedback/` 使用独立弹层保留底下编辑会话；`shell/preferences.ts` 仅在无具体目标时读取首页偏好。
+- 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程使用本地受控资料与 fake adapter；真实 Provider/Search/Feishu 不测，M 正式迁移与 G6 不授权。

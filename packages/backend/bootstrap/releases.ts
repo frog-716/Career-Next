@@ -1,3 +1,6 @@
+import {feedbackMigration} from '../application/feedback/public';
+import {g5RetentionMigration} from '../platform/database/g5-retention';
+import {preferencesMigration} from '../application/preferences/public';
 import {persistenceMigration} from '../platform/persistence/fence';
 import {g4RetentionMigration} from '../platform/database/g4-retention';
 import {fileCandidateMigration} from '../platform/files/candidates';
@@ -39,4 +42,8 @@ export const releases:readonly MigrationBatch[]=[{version:2,name:'002-g2-first-b
  {id:'submission.initial.v1',dependencies:['platform.commands.v1','opportunity.initial.v1','platform.g4-retention.v1'],sql:submissionMigration},
  {id:'communication.initial.v1',dependencies:['platform.commands.v1','opportunity.initial.v1','platform.g4-retention.v1'],sql:communicationMigration},
  {id:'ai.initial.v1',dependencies:['platform.commands.v1','wiki.initial.v1','platform.persistence.v1'],sql:aiMigration},
+]},{version:5,name:'005-g5-journeys',fragments:[
+ {id:'platform.g5-retention.v1',dependencies:['platform.g4-retention.v1'],sql:g5RetentionMigration},
+ {id:'application.feedback.v1',dependencies:['platform.commands.v1','platform.g5-retention.v1'],sql:feedbackMigration},
+ {id:'application.preferences.v1',dependencies:['platform.commands.v1'],sql:preferencesMigration},
 ]}];

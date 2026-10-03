@@ -1,3 +1,6 @@
+import {FeedbackRequest} from '../../contracts/application/feedback';
+import {createPreferences} from '../application/preferences/public';
+import {PreferencesRequest} from '../../contracts/application/preferences';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {createPersistenceFence,type PersistenceToken,type PersistenceReference} from '../platform/persistence/fence';
@@ -16,8 +19,9 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  const authority=createSessions(workspaceInstance,generation);
  const materials=createMaterialsStore(db,workspaceInstance,generation,authority);
  const root=path.dirname(db.name),ledger=createLedger(db),fence=createPersistenceFence(db,{workspaceInstance,backendGeneration:generation});
+ const preferences=createPreferences(db);
  let human=false;let currentHuman:HumanSession|undefined;let ai!:ReturnType<typeof createAiRuntime>;let lifecycle!:ReturnType<typeof composeLifecycle>;
- const domains=composeDomains(db,materials,{ai:{handle:input=>ai.handle(input,'human')},application:{handle:input=>lifecycle.handle(input,'human')}});
+ const domains=composeDomains(db,materials,{ai:{handle:input=>ai.handle(input,'human')},application:{handle:input=>PreferencesRequest.safeParse(input).success?preferences.handle(input):FeedbackRequest.safeParse(input).success?domains.feedback.handle(input):lifecycle.handle(input,'human')}});
  ai=createAiRuntime(db,composeAiPorts(domains,materials,root,{workspaceInstance,backendGeneration:generation},fence,()=>{try{if(!currentHuman)return false;authority.check(currentHuman);return true;}catch{return false;}}));
  const control=options?.control??{drain:async()=>{},beforeActivate:async()=>{},maintenance:async<T>(work:()=>Promise<T>)=>work(),closeWorkspace:()=>{throw Error('restore_unavailable');}};
  lifecycle=composeLifecycle(db,domains,materials,fence,ai,root,options?.dataRoot??root,control,()=>currentHuman);

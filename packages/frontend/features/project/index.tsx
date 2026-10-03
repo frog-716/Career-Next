@@ -154,7 +154,7 @@ export function ProjectPage({purgeNotice,request,employmentRequest,relationEpoch
  const list=useQuery({queryKey:['projects'],retry:false,queryFn:async()=>{const result=await request({operation:'list'});if(result.kind!=='list')throw new Error('read_failed');return result;}});
  useEffect(()=>{if(!purgeNotice)return;const removed=opened.filter(id=>wasPurged(purgeNotice,'project',id));setOpened(old=>old.filter(id=>!removed.includes(id)));if(selected&&removed.includes(selected))setSelected(undefined);void list.refetch();},[purgeNotice?.sequence]);
  function open(id:string){setSelected(id);setOpened(old=>old.includes(id)?old:[...old,id]);}
- return <section aria-label="项目">
+ return <section aria-label="项目" data-feedback-owner="project" data-feedback-id={selected}>
   <h2>项目</h2><button onClick={()=>setCreating(value=>!value)}>{creating?'收起新增（保留输入）':'新增项目'}</button>
   <div hidden={!creating}><CreateProject request={request} employmentRequest={employmentRequest} onCreated={id=>{setCreating(false);open(id);void client.invalidateQueries({queryKey:['projects']});}}/></div>
   {list.isError&&<p role="alert">项目列表暂时未刷新。<button onClick={()=>void list.refetch()}>重新读取列表</button></p>}
