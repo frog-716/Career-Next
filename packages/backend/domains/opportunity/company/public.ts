@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import {Company,CompanyRequest,Result} from '../../../../contracts/opportunity/schema';
+import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import {executeCommand} from '../../../platform/commands/receipts';
 export const companyMigration=`CREATE TABLE opportunity_company(id TEXT PRIMARY KEY,revision INTEGER NOT NULL,name TEXT NOT NULL);
 CREATE TABLE opportunity_company_history(company_id TEXT NOT NULL REFERENCES opportunity_company(id),revision INTEGER NOT NULL,name TEXT NOT NULL,PRIMARY KEY(company_id,revision));`;
@@ -18,5 +19,5 @@ export function createCompanyDomain(db:Database.Database){
    return Result.parse({kind:'company',company});
   });
  }
- return {handle,resolveCompany};
+ return {handle,resolveCompany,purgeImpact(id:string){const value=resolveCompany(id);return value?{id,revision:value.revision,name:value.name,blobIds:[],retentions:[]}:undefined;},purge(id:string){db.transaction(()=>{db.prepare('DELETE FROM opportunity_company_history WHERE company_id=?').run(id);db.prepare('UPDATE opportunity_company SET name=?,revision=revision+1 WHERE id=?').run('已清除的公司',id);redactOwnerReceipts(db,'opportunity',[id],{kind:'failure',code:'not_found'});})();}};
 }

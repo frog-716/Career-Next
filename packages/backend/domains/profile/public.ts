@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import {Request,Result,Profile} from '../../../contracts/profile/schema';
-import {executeCommand,commandReceipt} from '../../platform/commands/receipts';
+import {executeCommand,commandReceipt,redactedCommandResults} from '../../platform/commands/receipts';
 export const profileMigration=`CREATE TABLE profile_current(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL,body TEXT NOT NULL);
 INSERT INTO profile_current VALUES(1,0,'{"name":"","contact":"","links":[]}');`;
 export function createProfileDomain(db:Database.Database){
@@ -18,5 +18,5 @@ export function createProfileDomain(db:Database.Database){
    }));
   }catch(error){return error instanceof Error&&error.message==='conflict'?{status:'conflict',profile:read()}:{status:'failure',code:'storage-failed'};}
  }
- return {read,handle};
+ return {read,handle,purgeImpact(id:string){return id==='current'?{id,revision:read().revision,name:'当前本人资料',blobIds:[],retentions:[]}:undefined;},purge(id:string){if(id!=='current')return;db.transaction(()=>{db.prepare('UPDATE profile_current SET revision=revision+1,body=? WHERE id=1').run(JSON.stringify({name:'',contact:'',links:[]}));redactedCommandResults(db,'profile',()=>true,{status:'not-found'});})();}};
 }

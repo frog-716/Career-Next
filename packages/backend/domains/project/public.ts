@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import {Project,Request,Result,History,Participation} from '../../../contracts/project/schema';
 import type {EmploymentRelation,PersonRelation} from '../../../contracts/employment/schema';
+import {redactOwnerReceipts} from '../../platform/commands/purge-receipts';
 import {executeCommand,commandReceipt} from '../../platform/commands/receipts';
 export type ProjectDependencies={
  resolveEmployment(id:string):EmploymentRelation|undefined;
@@ -89,7 +90,7 @@ export function createProjectDomain(db:Database.Database,dependencies:ProjectDep
    case 'participant.edit':case 'participant.leave':return changeParticipation(request);
   }
  }
- return {handle(input:unknown):Result {
+ return {purgeImpact(id:string){const item=read(id);return item?{id,revision:item.revision,name:item.name,blobIds:[],retentions:[]}:undefined;},purge(id:string){db.transaction(()=>{db.prepare('DELETE FROM project_participation WHERE project_id=?').run(id);db.prepare('DELETE FROM project_history WHERE project_id=?').run(id);db.prepare('DELETE FROM project_current WHERE id=?').run(id);redactOwnerReceipts(db,'project',[id],{kind:'failure',code:'not_found'});})();},handle(input:unknown):Result {
   const parsed=Request.safeParse(input);if(!parsed.success)return failure('invalid_input');
   const request=parsed.data;
   try {return Result.parse('commandId' in request&&request.operation!=='receipt'?executeCommand(db,'project',request.commandId,request,()=>Result.parse(dispatch(request))):dispatch(request));}

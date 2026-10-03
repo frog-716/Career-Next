@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import { Request, Result, Employment, Person, EmploymentRelation, PersonRelation } from '../../../contracts/employment/schema';
 import type { BusinessTime } from '../../../contracts/common/business-time';
+import {redactOwnerReceipts} from '../../platform/commands/purge-receipts';
 import { commandReceipt, executeCommand } from '../../platform/commands/receipts';
 export const employmentMigration=`
 CREATE TABLE employment_current(id TEXT PRIMARY KEY, revision INTEGER NOT NULL, value_json TEXT NOT NULL);
@@ -81,7 +82,12 @@ return result===undefined?{kind:'not_recorded'}:Result.parse(result);
 }
   }
  }
+ function personPurgeImpact(id:string){const row=db.prepare('SELECT value_json FROM employment_person WHERE id=?').get(id) as {value_json:string}|undefined;const value=row?Person.parse(JSON.parse(row.value_json)):undefined;return value?{id,revision:value.revision,name:value.name,employmentId:value.employmentId,blobIds:[],retentions:[]}:undefined;}
+ function purgePerson(id:string){db.transaction(()=>{db.prepare('DELETE FROM employment_person_history WHERE person_id=?').run(id);db.prepare('DELETE FROM employment_person WHERE id=?').run(id);redactOwnerReceipts(db,'employment',[id],{kind:'failure',code:'not_found'});})();}
  return {
+  purgeImpact(id:string){const value=employment(id);return value?{id,revision:value.revision,name:value.company,blobIds:[],retentions:[],relatedIds:people(id).map(item=>item.id)}:undefined;},
+  personPurgeImpact,purgePerson,
+  purge(id:string){db.transaction(()=>{const ids=people(id).map(item=>item.id);for(const personId of ids)purgePerson(personId);db.prepare('DELETE FROM employment_history WHERE employment_id=?').run(id);db.prepare('DELETE FROM employment_current WHERE id=?').run(id);redactOwnerReceipts(db,'employment',[id,...ids],{kind:'failure',code:'not_found'});})();},
   handle(input:unknown):Result {const parsed=Request.safeParse(input);
 if(!parsed.success)return failure('invalid_input');
 const request=parsed.data;

@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import {Opportunity,OpportunityView,CoreRequest,Result,History,type Company} from '../../../../contracts/opportunity/schema';
 import type {BusinessTime} from '../../../../contracts/common/business-time';
+import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import {executeCommand} from '../../../platform/commands/receipts';
 import { z } from 'zod';
 import { BusinessTime as BusinessTimeSchema } from '../../../../contracts/common/business-time';
@@ -75,7 +76,7 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
    return {opportunity:view(opportunity),eventId:history.id};
   });
  };
- return {handle,resolveOpportunity,recordOfferEvent};
+ return {handle,resolveOpportunity,recordOfferEvent,purgeImpact(id:string){let value;try{value=read(id);}catch{return undefined;}return {id,companyId:value.companyId,revision:value.revision,name:value.role,blobIds:[],retentions:[]};},purge(id:string){db.transaction(()=>{db.prepare('DELETE FROM opportunity_core_history WHERE opportunity_id=?').run(id);db.prepare('DELETE FROM opportunity_core WHERE id=?').run(id);for(const owner of ['opportunity','opportunity.stage-capability','opportunity.offer-event','opportunity.submission-time-correction','opportunity.interview-confirmation-correction'])redactOwnerReceipts(db,owner,[id],{kind:'failure',code:'not_found'});})();}};
 }
 
 function earliest(prior:BusinessTime,next:BusinessTime):BusinessTime {
