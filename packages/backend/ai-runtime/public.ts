@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import {createHash,randomUUID} from 'node:crypto';
 import {Recipient,Request,Result,Operation,Proposal,Task,type Manifest} from '../../contracts/ai/schema';
+import {SourceRef} from '../../contracts/common/source-ref';
 import {executeCommand,commandReceipt,redactedCommandResults} from '../platform/commands/receipts';
 import {validateWikiOutput} from '../domains/wiki/public';
 import {inheritProvenance} from './provenance';
@@ -165,7 +166,7 @@ export function createAiRuntime(db:Database.Database,ports:AiPorts){
 export function validateAiCandidate(db:Database.Database){
  try{
   const tasks=new Map<string,TaskRecord>();
-  for(const row of db.prepare('SELECT id,data_json FROM ai_tasks').all() as {id:string;data_json:string}[]){const value:unknown=JSON.parse(row.data_json);const task=TaskRecordSchema.parse(value);if(task.id!==row.id||task.usedRequests>task.budget.requests||task.state==='purged'&&task.sources.length)throw Error();tasks.set(row.id,task);}
+  for(const row of db.prepare('SELECT id,data_json FROM ai_tasks').all() as {id:string;data_json:string}[]){const value:unknown=JSON.parse(row.data_json);const task=TaskRecordSchema.parse(value);if(task.id!==row.id||task.usedRequests>task.budget.requests||(task.state==='purged'?task.sources.length:!task.sources.length))throw Error();tasks.set(row.id,task);}
   const operations=new Map<string,Operation>();
   const operationCounts=new Map<string,number>(),proposalCounts=new Map<string,number>();
   for(const row of db.prepare('SELECT id,task_id,data_json FROM ai_operations').all() as {id:string;task_id:string;data_json:string}[]){const raw=JSON.parse(row.data_json) as Operation,op=Operation.parse(raw),task=tasks.get(row.task_id);
@@ -175,6 +176,7 @@ export function validateAiCandidate(db:Database.Database){
    if(raw.manifest&&(raw.manifest.taskId!==op.taskId||JSON.stringify(op.manifest!.target)!==JSON.stringify(task.target)||JSON.stringify(op.manifest!.provenance)!==JSON.stringify(op.provenance)||JSON.stringify(op.manifest!.recipient)!==JSON.stringify(op.recipient)||JSON.stringify(op.manifest!.budget)!==JSON.stringify(task.budget)||createHash('sha256').update(JSON.stringify(raw.manifest)).digest('hex')!==op.manifestDigest))throw Error();
    operations.set(row.id,op);
   }
+  for(const task of tasks.values())if(task.state!=='purged'&&!operationCounts.get(task.id))throw Error();
   const provenanceKey=(items:Proposal['provenance'])=>JSON.stringify(items.map(item=>JSON.stringify(item)).sort());
   for(const row of db.prepare('SELECT id,task_id,operation_id,data_json FROM ai_proposals').all() as {id:string;task_id:string;operation_id:string;data_json:string}[]){const proposal=Proposal.parse(JSON.parse(row.data_json)),task=tasks.get(row.task_id),op=operations.get(row.operation_id);
    if(!task||!op||proposal.id!==row.id||proposal.taskId!==row.task_id||proposal.operationId!==row.operation_id||op.taskId!==task.id||JSON.stringify(proposal.target)!==JSON.stringify(task.target)||task.state==='purged'||op.state!=='success'||provenanceKey(proposal.provenance)!==provenanceKey(op.provenance))throw Error();
@@ -184,6 +186,23 @@ export function validateAiCandidate(db:Database.Database){
    if(JSON.stringify(proposal.dependencies)!==JSON.stringify(expected)||proposal.change.kind!=='create'&&(!proposal.before||proposal.before.id!==proposal.change.itemId)||proposal.change.kind==='create'&&proposal.before||proposal.state==='accepted'&&!proposal.receiptId)throw Error();
   }
  }catch{throw Error('backup_ai_invalid');}
+}
+export type AiCandidateRelation={owner:string;objectId:string;kind:'object'|'source';source?:SourceRef;revision?:number;taskId:string;operationId?:string;proposalId?:string;role:'task_source'|'target_scope'|'actual_provenance'|'manifest_source'|'manifest_knowledge'|'proposal_source'|'before'|'change_target'|'dependency';target?:Task['target'];provenance?:Proposal['provenance'][number]};
+/** Restore composition receives identity/authority metadata only, never cached or proposed bodies. */
+export function candidateRelations(db:Database.Database):AiCandidateRelation[]{
+ validateAiCandidate(db);const relations:AiCandidateRelation[]=[],tasks=new Map<string,TaskRecord>();
+ const addSource=(source:SourceRef,context:Pick<AiCandidateRelation,'taskId'|'operationId'|'proposalId'>,role:AiCandidateRelation['role'])=>relations.push({...context,role,owner:source.owner,objectId:source.objectId,revision:source.revision,kind:'source',source});
+ const addTarget=(target:Task['target'],context:Pick<AiCandidateRelation,'taskId'|'operationId'|'proposalId'>)=>{if(target.scopeId)relations.push({...context,role:'target_scope',owner:target.scope,objectId:target.scopeId,kind:'object',target});};
+ const addProvenance=(items:Proposal['provenance'],task:TaskRecord,context:Pick<AiCandidateRelation,'taskId'|'operationId'|'proposalId'>)=>{for(const provenance of items){let source:SourceRef|undefined;
+  if(provenance.owner==='materials')source=SourceRef.parse({owner:'materials',objectId:provenance.objectId,revision:provenance.revision,locator:'whole',scope:'personal'});
+  else if(provenance.owner==='interview'||provenance.owner==='communication'){const selected=task.sources.find(ref=>ref.owner===provenance.owner&&ref.objectId===provenance.objectId),scopeId=provenance.scopeId??(selected&&selected.owner!=='materials'?selected.opportunityId:undefined);if(!scopeId)throw Error('backup_ai_invalid');source=SourceRef.parse({owner:provenance.owner,objectId:provenance.objectId,revision:provenance.revision,locator:provenance.owner==='interview'?'transcript':'text',scope:'opportunity',opportunityId:scopeId});}
+  if(source&&provenance.scope!==source.scope||source?.owner==='materials'&&provenance.scopeId)throw Error('backup_ai_invalid');
+  relations.push({...context,role:'actual_provenance',owner:provenance.owner,objectId:provenance.objectId,revision:provenance.revision,kind:source?'source':'object',...(source?{source}:{}),provenance});
+ }};
+ for(const row of db.prepare('SELECT data_json FROM ai_tasks').all() as {data_json:string}[]){const task=TaskRecordSchema.parse(JSON.parse(row.data_json));tasks.set(task.id,task);if(task.state==='purged')continue;const context={taskId:task.id};for(const source of task.sources)addSource(source,context,'task_source');addTarget(task.target,context);}
+ for(const row of db.prepare('SELECT data_json FROM ai_operations').all() as {data_json:string}[]){const op=Operation.parse(JSON.parse(row.data_json)),task=tasks.get(op.taskId)!;if(task.state==='purged')continue;const context={taskId:op.taskId,operationId:op.id};addProvenance(op.provenance,task,context);if(op.manifest){for(const source of op.manifest.materials)addSource(source.ref,context,'manifest_source');for(const item of op.manifest.knowledge)relations.push({...context,role:'manifest_knowledge',owner:'wiki',objectId:item.id,revision:item.revision,kind:'object'});}}
+ for(const row of db.prepare('SELECT data_json FROM ai_proposals').all() as {data_json:string}[]){const proposal=Proposal.parse(JSON.parse(row.data_json)),task=tasks.get(proposal.taskId)!,context={taskId:proposal.taskId,operationId:proposal.operationId,proposalId:proposal.id};for(const source of proposal.sources)addSource(source,context,'proposal_source');addTarget(proposal.target,context);addProvenance(proposal.provenance,task,context);if(proposal.before)relations.push({...context,role:'before',owner:'wiki',objectId:proposal.before.id,revision:proposal.before.revision,kind:'object'});if(proposal.change.kind!=='create')relations.push({...context,role:'change_target',owner:'wiki',objectId:proposal.change.itemId,kind:'object'});for(const dependency of proposal.dependencies){const source=proposal.sources.find(ref=>ref.owner===dependency.owner&&ref.objectId===dependency.objectId&&ref.revision===dependency.revision);relations.push({...context,role:'dependency',owner:dependency.owner,objectId:dependency.objectId,revision:dependency.revision,kind:source?'source':'object',...(source?{source}:{} )});}}
+ return relations;
 }
 /** Backup keeps persistent proposals and receipts, never transient request bodies or grants. */
 export function sanitizeAiCandidate(db:Database.Database){
