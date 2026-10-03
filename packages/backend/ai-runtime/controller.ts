@@ -7,7 +7,7 @@ export interface AiWriterControllerPort {
  markUnknown(operationId:string,reason?:string):Promise<void>;
  failOperation(operationId:string,reason:string):Promise<void>;
  cancelBeforeHandoff(operationId:string):Promise<void>;
- stop(taskId:string,mode:'stop'|'revoke'):Promise<void>;
+ stop(taskId:string,mode:'stop'|'revoke',commandId?:string):Promise<void>;
 }
 /** Lives on utility control loop. Never owns SQLite or exposes a manual user session. */
 export function createAiController(writer:AiWriterControllerPort,adapter:ProviderAdapter){
@@ -15,9 +15,9 @@ export function createAiController(writer:AiWriterControllerPort,adapter:Provide
  const bindingMatches=(intent:DispatchIntent)=>!!binding&&JSON.stringify(intent.manifest.recipient)===JSON.stringify(binding)&&JSON.stringify(intent.manifest.recipient)===JSON.stringify(adapter.recipient);
  const references=(intent:DispatchIntent)=>[...intent.manifest.provenance.map(ref=>ref.owner+'/'+ref.objectId),...intent.manifest.product?.dependencies.map(ref=>ref.owner+'/'+ref.objectId)??[],'wiki/'+(intent.manifest.target.scopeId??`scope:${intent.manifest.target.scope}`),...(intent.manifest.target.scopeId?[intent.manifest.target.scope+'/'+intent.manifest.target.scopeId]:[])];
  const touches=(intent:DispatchIntent,operationId:string)=>references(intent).some(key=>purged.has(key)||(activePauses.get(key)??0)>0||(paused.get(key)??0)>(authorized.get(operationId)?.get(key)??0));
- function stop(taskId:string,mode:'stop'|'revoke'){
+ function stop(taskId:string,mode:'stop'|'revoke',commandId?:string){
   closed.add(taskId);for(const entry of running.values())if(entry.taskId===taskId)entry.abort.abort();
-  return writer.stop(taskId,mode);
+  return writer.stop(taskId,mode,commandId);
  }
  async function start(taskId:string,operationId:string){
   if(shutDown||closed.has(taskId))throw Error('task_closed');if(running.has(operationId))throw Error('operation_in_flight');

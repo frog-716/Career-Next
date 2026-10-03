@@ -36,4 +36,6 @@ export const WikiResult=z.discriminatedUnion('kind',[
 export type WikiResult=z.infer<typeof WikiResult>;
 
 export const Request=z.discriminatedUnion('operation',[...WikiRequest.options,...ProductRequest.options,...SearchRequest.options]);export type Request=z.infer<typeof Request>;
-export const Result=z.discriminatedUnion('kind',[...WikiResult.options,...ProductResult.options,...SearchResult.options]);export type Result=z.infer<typeof Result>;
+// Acknowledges only synchronous admission closure; the original command receipt remains authoritative.
+export const ExecutionBlocked=z.object({kind:z.literal('execution_blocked'),taskId:z.uuid(),commandId:z.uuid(),mode:z.enum(['stop','revoke']),dispatchBlocked:z.literal(true),persistencePending:z.literal(true)}).strict();
+export const Result=z.discriminatedUnion('kind',[...WikiResult.options,...ProductResult.options,...SearchResult.options,ExecutionBlocked]);export type Result=z.infer<typeof Result>;
