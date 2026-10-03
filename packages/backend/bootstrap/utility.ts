@@ -4,10 +4,11 @@ import { dispatchMaterials } from '../transport/materials';
 import { Identity } from '../../contracts/materials/schema';
 import type { MessagePortMain } from 'electron';
 import {z} from 'zod';
+import {ProviderBinding} from '../platform/providers/binding';
 import {Result as DataResult} from '../../contracts/application/schema';
 async function start() {
 const recoveryBackup=process.argv[4]?z.uuid().parse(process.argv[4]):undefined;
-const runtime=await createRuntimeBackend(process.argv[2]!,undefined,process.argv[3]??process.argv[2]!,{automaticBackups:!recoveryBackup});
+const runtime=await createRuntimeBackend(process.argv[2]!,undefined,process.argv[3]??process.argv[2]!,{automaticBackups:!recoveryBackup,...process.argv[5]?{providerBinding:ProviderBinding.parse(JSON.parse(process.argv[5]))}:{}});
 // This isolated, empty maintenance candidate is never exposed as the active business workspace.
 if(recoveryBackup){const human=await runtime.connectHuman();const candidate=DataResult.parse(await runtime.business(human,'application',{operation:'data.restore.prepare',backupId:recoveryBackup}));if(candidate.kind!=='restore_candidate'){await runtime.close();throw Error('restore_invalid');}const restored=DataResult.parse(await runtime.business(human,'application',{operation:'data.restore.activate',candidateId:candidate.copy.id,confirmed:true}));if(restored.kind!=='restored'){await runtime.close();throw Error('restore_invalid');}}
 
@@ -22,7 +23,8 @@ process.parentPort!.on('message',event=>{
     currentPort=port;
     port.on('message',async event=>{
       if(currentPort!==port) return;
-      const {requestId,request,identity: bound,selectedFile,module,printAction,commandId,pdf,sentFileAction,searchAction}=event.data;
+      const {requestId,request,identity: bound,selectedFile,module,printAction,commandId,pdf,sentFileAction,searchAction,providerAction,binding}=event.data;
+      if(providerAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||providerAction!=='configure')throw Error('invalid_capability');runtime.configureProvider(ProviderBinding.parse(binding));if(currentPort===port)port.postMessage({requestId,identity,result:{configured:true}});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'invalid_request'});}return;}
       if(searchAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||searchAction!=='query')throw Error('invalid_capability');const result=await runtime.search(session,request);if(currentPort===port)port.postMessage({requestId,identity,result});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'invalid_request'});}return;}
       if(sentFileAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||sentFileAction!=='select'||typeof selectedFile!=='string')throw Error('invalid_capability');const result=await runtime.selectSentFile(session,selectedFile);if(currentPort===port)port.postMessage({requestId,identity,result});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'file_failed'});}return;}
       if(printAction){

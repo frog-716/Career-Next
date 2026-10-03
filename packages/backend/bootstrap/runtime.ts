@@ -1,3 +1,4 @@
+import {ProviderBinding} from '../platform/providers/binding';
 import {safeManagedPath} from '../platform/backup/managed-copies';
 import {randomUUID,createHash} from 'node:crypto';
 import {mkdir,open,readFile} from 'node:fs/promises';
@@ -20,8 +21,8 @@ import type {RuntimeStore} from './writer-commands';
 import {createLocalSearch} from '../platform/search/public';
 import {LocalSearchRequest,LocalSearchResult} from '../../contracts/application/local-search';
 const maximumPdfBytes=16*1024*1024;
-export async function createRuntimeBackend(initialRoot:string,writerArtifact?:string,dataRoot=initialRoot,options?:{automaticBackups?:boolean}){
- let root=initialRoot,closing=false,maintenance=false,admission=true,currentSession:HumanSession|undefined;
+export async function createRuntimeBackend(initialRoot:string,writerArtifact?:string,dataRoot=initialRoot,options?:{automaticBackups?:boolean;providerBinding?:ProviderBinding}){
+ let providerBinding:ProviderBinding=options?.providerBinding??{enabled:true,generation:'fake-v1'},bindingEpoch=0;let root=initialRoot,closing=false,maintenance=false,admission=true,currentSession:HumanSession|undefined;
  const purgePlans=new Map<string,{workspace:string;refs:PersistenceReference[];copies:string[]}>();
  const operations=new Set<Promise<unknown>>(),prints=new Map<string,Promise<ResumeResult>>(),tokens=new Map<string,PersistenceToken>();
  let writer!:Awaited<ReturnType<typeof startWriter<RuntimeStore>>>;
@@ -37,14 +38,14 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  async function drain(refs:readonly PersistenceReference[]){controller?.revokeReferences(refs);await gate.drainAndDiscard(refs);}
  async function initialize(){await mkdir(root,{recursive:true,mode:0o700});admission=true;
  writer=await startWriter<RuntimeStore>(root,randomUUID(),writerArtifact,{dataRoot,control:async(action,args)=>{if(action==='renewProfile'){gate.allowRenewedProfile(args[0] as number);return;}if(action==='drain'){await drain(args[0] as PersistenceReference[]);return;}if(action==='beforeActivate'){admission=false;controller?.shutdown();await drain([...tokens.values()].flatMap(t=>[...t.inputs,...t.targets]));return;}if(action==='maintenance'){maintenance=args[0]===true;return;}throw Error('invalid_request');}});
- const boundWriter=writer;gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await boundWriter.call('persistenceAssert',token);});
+ await writer.call('providerBinding',providerBinding);const boundWriter=writer;gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await boundWriter.call('persistenceAssert',token);});
  const boundGate=gate;materials=await createMaterialsBackend(root,undefined,undefined,boundWriter,async id=>adapter(await boundWriter.call('producerToken',id),boundGate));
  const establish=materials.connectHuman.bind(materials);materials.connectHuman=async()=>{const session=await establish();currentSession=session;return session;};
  blobs=createBlobBroker(root,maximumPdfBytes);await blobs.initialize();
  makeController();
  localSearch=createLocalSearch(root,writerArtifact?path.join(path.dirname(writerArtifact),'local-search.cjs'):undefined);
  }
- function makeController(){const aiWriter=writer;controller=createAiController({prepareDispatch:id=>aiWriter.call('aiPrepareDispatch',id),markProcessing:id=>aiWriter.call('aiMarkProcessing',id),settle:(id,value)=>aiWriter.call('aiSettle',id,value),markUnknown:(id,reason)=>aiWriter.call('aiMarkUnknown',id,reason),failOperation:(id,reason)=>aiWriter.call('aiFailOperation',id,reason),cancelBeforeHandoff:id=>aiWriter.call('aiCancelBeforeHandoff',id),stop:async(taskId,mode,commandId)=>{if(!currentSession||!commandId)throw Error('invalid_capability');await aiWriter.call('business',currentSession,'ai',{operation:'ai.stop',commandId,taskId,mode});}},createDeterministicFakeProvider());
+ function makeController(){const aiWriter=writer;controller=createAiController({prepareDispatch:id=>aiWriter.call('aiPrepareDispatch',id),markProcessing:id=>aiWriter.call('aiMarkProcessing',id),settle:(id,value)=>aiWriter.call('aiSettle',id,value),markUnknown:(id,reason)=>aiWriter.call('aiMarkUnknown',id,reason),failOperation:(id,reason)=>aiWriter.call('aiFailOperation',id,reason),cancelBeforeHandoff:id=>aiWriter.call('aiCancelBeforeHandoff',id),stop:async(taskId,mode,commandId)=>{if(!currentSession||!commandId)throw Error('invalid_capability');await aiWriter.call('business',currentSession,'ai',{operation:'ai.stop',commandId,taskId,mode});}},createDeterministicFakeProvider(providerBinding.generation));if(!providerBinding.enabled)controller.setProviderBinding(undefined);
  }
  // Writer startup recovery can request drain before there is any producer/sink.
  gate=createPersistenceSinkGate(()=>{throw Error('persistence_denied');});await initialize();
@@ -59,7 +60,9 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
    await boundWriter.call('pdfPublished',session,commandId,artifact.blobId);return ResumeResult.parse(await boundWriter.call('pdfCommit',session,commandId,artifact));
   }catch{const result=await boundWriter.call('pdfFail',commandId);await boundMaterials.collectGarbage().catch(()=>{});return ResumeResult.parse(result);}
  }
- return {get materials(){return materials;},
+ return {
+ configureProvider(input:unknown){const next=ProviderBinding.parse(input),epoch=++bindingEpoch;controller.setProviderBinding(undefined);controller.shutdown();providerBinding=next;track(writer.call('providerBinding',next).then(()=>{if(!closing&&epoch===bindingEpoch)makeController();})).catch(()=>{});},
+ get materials(){return materials;},
  async search(session:HumanSession,input:unknown){
   allowed();assertCurrent(session);const request=LocalSearchRequest.parse(input),bound=localSearch,boundWriter=writer;
   // One bounded maintenance batch, then yield back to the independent control loop.
@@ -72,7 +75,7 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
   return {...result,items,partial,notice:partial?'结果未完整检索' as const:'检索完成' as const};
  },
  async connectHuman(){allowed();currentSession=await materials.connectHuman();await Promise.allSettled([...operations]);await writer.call('recoverPending');await materials.collectGarbage();if(options?.automaticBackups!==false)await writer.call('automaticBackup').catch(()=>{});return currentSession;},
- business(session:HumanSession,module:BusinessModule,input:unknown){const control=module==='ai'&&['ai.stop','product.stop'].includes(AiRequest.parse(input).operation);if(control){if(closing)throw Error('disconnected');}else allowed();return track((async()=>{assertCurrent(session);const boundController=controller;const authorization=module==='ai'&&['ai.authorize','product.authorize'].includes(AiRequest.parse(input).operation)?boundController.captureAuthorization():undefined;let pause:object|undefined;
+ business(session:HumanSession,module:BusinessModule,input:unknown){const parsed=module==='ai'?AiRequest.safeParse(input):undefined;const control=parsed?.success&&['ai.stop','product.stop'].includes(parsed.data.operation);if(control){if(closing)throw Error('disconnected');}else allowed();return track((async()=>{assertCurrent(session);const boundController=controller;const authorization=module==='ai'&&['ai.authorize','product.authorize'].includes(AiRequest.parse(input).operation)?boundController.captureAuthorization():undefined;let pause:object|undefined;
  if(module==='application'){const request=DataRequest.parse(input);if(request.operation==='data.purge.confirm'){const plan=purgePlans.get(request.planId);if(plan?.workspace===session.workspaceInstance&&request.selectedCopyIds.every(id=>plan.copies.includes(id))){pause=boundController.pauseReferences(plan.refs);await localSearch.close();}}}
  try{
   if(module==='ai'){const request=AiRequest.parse(input);if(request.operation==='ai.stop'||request.operation==='product.stop'){const persistence=controller.stop(request.taskId,request.mode,request.commandId);track(persistence).catch(()=>{});return AiResult.parse({kind:'execution_blocked',taskId:request.taskId,commandId:request.commandId,mode:request.mode,dispatchBlocked:true,persistencePending:true});}}

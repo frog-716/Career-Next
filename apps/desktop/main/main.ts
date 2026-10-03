@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, protocol, utilityProcess, MessageChannelMain, dialog, Menu, safeStorage } from 'electron';
 import type { UtilityProcess, MessagePortMain, IpcMainInvokeEvent } from 'electron';
 import { randomUUID } from 'node:crypto';
-import { readFile, mkdir, writeFile, rename, open } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, rename, open, access } from 'node:fs/promises';
 import path from 'node:path';
 import { Identity, Request, Result } from '../../../packages/contracts/materials/schema';
 import type { Identity as RuntimeIdentity, Request as MaterialRequest, Result as MaterialResult } from '../../../packages/contracts/materials/schema';
@@ -16,6 +16,8 @@ import {SentFileCandidate} from '../../../packages/contracts/opportunity/submiss
 import { selectMaterial } from '../capabilities/select-material';
 import {createSecretVault} from '../capabilities/secret-vault';
 import {SecretInput} from '../../../packages/contracts/ai/secret-input';
+import {ProviderBinding} from '../../../packages/backend/platform/providers/binding';
+import type {SecretBridge} from '../../../packages/contracts/ai/secret-input';
 import {LocalSearchRequest,LocalSearchResult} from '../../../packages/contracts/application/local-search';
 app.setName('Career Next');
 // Standard Electron profile switch permits isolated data directories; never enables test capabilities.
@@ -26,6 +28,7 @@ protocol.registerSchemesAsPrivileged([{scheme:'career',privileges:{standard:true
 const url='career://app/index.html';
 let window: BrowserWindow, backend: UtilityProcess | undefined, port: MessagePortMain | undefined, identity: RuntimeIdentity | undefined;
 const appWindows=new Set<BrowserWindow>(),windowWorkspaces=new Map<number,string>();
+let secrets!:SecretBridge;
 let connecting: Promise<RuntimeIdentity> | undefined;
 let quitting=false, quitReady=false, quitRequested=false;
 const pending=new Map<string,{resolve(result: unknown):void; reject(error:Error):void; timer:ReturnType<typeof setTimeout>}>();
@@ -45,6 +48,8 @@ async function connect(): Promise<RuntimeIdentity> {
     disconnect();
     const dataRoot=app.getPath('userData');let recoveryBackup:string|undefined;let active:Awaited<ReturnType<typeof activeWorkspace>>;
     try{active=await activeWorkspace(dataRoot);if(active.expected)await validateActive(active.root,active.expected);}catch{
+      // Stop an existing backend before offering recovery; reconnect must never reuse its old writer.
+      if(backend?.pid){const prior=backend;await new Promise<void>(resolve=>{prior.once('exit',()=>resolve());prior.kill();});backend=undefined;}
       // No business connection or egress is admitted until an explicit verified recovery choice.
       const choices=createManagedCopies(dataRoot).list().filter(copy=>copy.kind==='backup'&&copy.state==='ready');
       if(!choices.length)throw Error('recovery_selection_required');
@@ -56,7 +61,8 @@ async function connect(): Promise<RuntimeIdentity> {
     const copies=createManagedCopies(dataRoot),copy=copies.register({relativePath:path.relative(dataRoot,root),kind:'current_workspace',state:'candidate'});
     await mkdir(root,{recursive:true,mode:0o700});
     if(!backend?.pid) {
-      const child=utilityProcess.fork(path.join(__dirname,'utility.cjs'),[root,dataRoot,...recoveryBackup?[recoveryBackup]:[]],{serviceName:'Career Materials Backend',stdio:'pipe',allowLoadingUnsignedLibraries:false});
+      let config:ProviderBinding={enabled:true,generation:'fake-v1'};if(await access(path.join(dataRoot,'security/binding.json')).then(()=>true,()=>false)){const status=await secrets.request({operation:'status'});config={enabled:status.kind==='status'&&status.status.enabled,generation:status.kind==='status'?status.status.generation??'fake-v1':'fake-v1'};}
+      const child=utilityProcess.fork(path.join(__dirname,'utility.cjs'),[root,dataRoot,recoveryBackup??'',JSON.stringify(config)],{serviceName:'Career Materials Backend',stdio:'pipe',allowLoadingUnsignedLibraries:false});
       backend=child;
       child.on('exit',()=>{ if(backend===child){ backend=undefined; disconnect(); } });
     }
@@ -76,7 +82,7 @@ async function connect(): Promise<RuntimeIdentity> {
     activePort.start();backend.postMessage({connect:true},[channel.port2]);
     const current=await ready;
     if(active.expected&&active.expected!==current.workspaceInstance)throw Error('active_pointer_identity_mismatch');
-    if(!recoveryBackup)copies.update(copy.id,{state:'ready'});
+    if(!recoveryBackup)createManagedCopies(dataRoot).update(copy.id,{state:'ready'});
     if(active.initial)durableJson(path.join(dataRoot,'active-workspace-pointer.json'),{copyId:copy.id,relativePath:path.relative(dataRoot,root),workspaceInstance:current.workspaceInstance});
     return current;
   })();
@@ -103,6 +109,7 @@ async function sendBusiness(module:BusinessModule,input:unknown):Promise<unknown
   port!.postMessage({requestId,identity:bound,module,request});
  });
 }
+async function configureProvider(binding:ProviderBinding){const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');const requestId=randomUUID();await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:()=>resolve(),reject,timer});port!.postMessage({requestId,identity:bound,providerAction:'configure',binding:ProviderBinding.parse(binding)});});}
 const printing=new Map<string,Promise<unknown>>();
 async function sendPrint(printAction:'html'|'complete'|'fail',commandId:string,pdf?:Uint8Array):Promise<unknown>{
  const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');
@@ -145,8 +152,9 @@ if(locked) app.whenReady().then(async()=>{
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([{role:'appMenu'},{role:'editMenu'},{label:'视图',submenu:[{role:'resetZoom'},{role:'zoomIn'},{role:'zoomOut'},{role:'togglefullscreen'}]},{label:'文件',submenu:[{label:'新建窗口',accelerator:'CmdOrCtrl+Shift+N',click:()=>{if(identity&&!quitting)void createAppWindow().loadURL(url);}},{role:'close'}]},{role:'windowMenu'}]));
   window=createAppWindow();
-  const secrets=createSecretVault(path.join(app.getPath('userData'),'security'),{available:()=>safeStorage.isAsyncEncryptionAvailable(),encrypt:input=>safeStorage.encryptStringAsync(input)});
-  ipcMain.handle('career:secret-input',async(event,input:unknown)=>{trusted(event);const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};return secrets.request(parsed.data);});
+  secrets=createSecretVault(path.join(app.getPath('userData'),'security'),{available:()=>safeStorage.isAsyncEncryptionAvailable(),encrypt:input=>safeStorage.encryptStringAsync(input)});
+  ipcMain.handle('career:secret-input',async(event,input:unknown)=>{trusted(event);const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};if(parsed.data.operation==='status')return secrets.request(parsed.data);
+   await configureProvider({enabled:false,generation:'fake-v1'});const result=await secrets.request(parsed.data);if(result.kind==='status'&&result.status.enabled&&result.status.generation)await configureProvider({enabled:true,generation:result.status.generation});return result;});
   ipcMain.handle('career:local-search',async(event,input:unknown)=>{
    trusted(event);const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');const request=LocalSearchRequest.parse(input),requestId=randomUUID();
    return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:value=>{try{resolve(LocalSearchResult.parse(value));}catch{reject(Error('invalid_request'));}},reject,timer});port!.postMessage({requestId,identity:bound,searchAction:'query',request});});

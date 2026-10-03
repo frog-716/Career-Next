@@ -1,3 +1,5 @@
+import {ProviderBinding} from '../platform/providers/binding';
+import {createDeterministicFakeProvider} from '../platform/providers/deterministic-fake';
 import {composeLocalSearch} from './local-search-composition';
 import {FeedbackRequest} from '../../contracts/application/feedback';
 import {createPreferences} from '../application/preferences/public';
@@ -21,11 +23,12 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  const authority=createSessions(workspaceInstance,generation);
  const materials=createMaterialsStore(db,workspaceInstance,generation,authority);
  const root=path.dirname(db.name),ledger=createLedger(db),fence=createPersistenceFence(db,{workspaceInstance,backendGeneration:generation});
- const preferences=createPreferences(db);
+ const preferences=createPreferences(db);let providerBinding:ProviderBinding={enabled:true,generation:'fake-v1'};
  let human=false;let currentHuman:HumanSession|undefined;let ai!:ReturnType<typeof createAiRuntime>;let lifecycle!:ReturnType<typeof composeLifecycle>;
  const domains=composeDomains(db,materials,{ai:{handle:input=>(input as {operation:string}).operation.startsWith('search.')?domains.search.handle(input):ai.handle(input,'human')},application:{handle:input=>PreferencesRequest.safeParse(input).success?preferences.handle(input):FeedbackRequest.safeParse(input).success?domains.feedback.handle(input):lifecycle.handle(input,'human')}});
  const localSearch=composeLocalSearch(db,domains);
  const aiPorts=composeAiPorts(domains,materials,root,{workspaceInstance,backendGeneration:generation},fence,()=>{try{if(!currentHuman)return false;authority.check(currentHuman);return true;}catch{return false;}});
+ aiPorts.recipient=()=>{if(!providerBinding.enabled)throw Error('provider_disabled');return createDeterministicFakeProvider(providerBinding.generation).recipient;};
  aiPorts.product=composeProductPorts(domains,aiPorts,root);ai=createAiRuntime(db,aiPorts);
  const control=options?.control??{drain:async()=>{},beforeActivate:async()=>{},maintenance:async<T>(work:()=>Promise<T>)=>work(),closeWorkspace:()=>{throw Error('restore_unavailable');}};
  lifecycle=composeLifecycle(db,domains,materials,fence,ai,root,options?.dataRoot??root,control,()=>currentHuman);
@@ -38,6 +41,7 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  function recoverPending(){for(const id of domains.resume.recoverPendingVersions())ledger.fail(physicalCommand(id),'invalid_capability');}
  recoverPending();
  return {...materials,
+  providerBinding(input:unknown){providerBinding=ProviderBinding.parse(input);},
   list(session:HumanSession){assertReadable();return materials.list(session);},
   read(session:HumanSession,id:string){assertReadable();return materials.read(session,id);},
   receipt(session:HumanSession,id:string){assertReadable();return materials.receipt(session,id);},

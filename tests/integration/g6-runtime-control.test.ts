@@ -19,3 +19,12 @@ it('real DB busy cannot delay stop dispatch gate; original command receipt persi
  await writeFile('/tmp/career-g6/control-observations.json',JSON.stringify({actualSqliteWriteLock:true,elapsedMs,commandId,dispatchBlocked:true,receiptConverged:true},null,2));
  }finally{if(blocker){blocker.exec('ROLLBACK');blocker.close();}await runtime.close();await rm(root,{recursive:true,force:true});}
 },15000);
+
+it('private production configuration disables dispatch and binds a fresh preview to the new fake generation without moving credential bytes',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'career-g6-binding-')),runtime=await createRuntimeBackend(path.join(root,'workspaces/local'),path.resolve('dist/application/writer.cjs'),root);
+ try{const session=await runtime.connectHuman(),call=(input:unknown)=>runtime.business(session,'ai',input),company=await runtime.business(session,'opportunity',{operation:'company.create',commandId:randomUUID(),name:'Generation fixture'}) as any;
+ const prepare=()=>call({operation:'product.prepare',commandId:randomUUID(),input:{target:{kind:'research-organize',owner:{kind:'company',id:company.company.id}},sources:[],egressSourceIds:[],wikiIds:[],egressWikiIds:[],objects:[]},budget:{requests:2,inputBytes:524288,outputBytes:196608}}) as Promise<any>;
+ const a=await prepare(),op=a.task.operations[0];runtime.configureProvider({enabled:false,generation:'fake-v1'});expect(await call({operation:'product.authorize',commandId:randomUUID(),operationId:op.id,manifestDigest:op.manifestDigest})).toMatchObject({kind:'failure',code:'provider_disabled'});expect(await prepare()).toMatchObject({kind:'failure',code:'provider_disabled'});
+ const generation=randomUUID();runtime.configureProvider({enabled:true,generation});const b=await prepare();expect(b.task.operations[0].recipient.generation).toBe(generation);expect(await call({operation:'product.authorize',commandId:randomUUID(),operationId:op.id,manifestDigest:op.manifestDigest})).toMatchObject({kind:'failure',code:'provider_binding_changed'});const fresh=b.task.operations[0];await call({operation:'product.authorize',commandId:randomUUID(),operationId:fresh.id,manifestDigest:fresh.manifestDigest});await expect.poll(async()=>{const value=await call({operation:'product.read',taskId:b.task.id}) as any;return value.task.proposals.length;}).toBe(2);expect((await call({operation:'product.read',taskId:a.task.id}) as any).task.proposals).toEqual([]);
+ }finally{await runtime.close();await rm(root,{recursive:true,force:true});}
+},15000);
