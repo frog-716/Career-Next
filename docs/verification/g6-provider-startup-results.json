@@ -1,0 +1,60 @@
+{
+  "scope": "Main-only startup provider metadata resolver; isolated synthetic filesystem / actual Vault / actual AES-GCM; no actual Keychain or external call",
+  "baseline": "44683f4ba5b45118215f2ed89bdcabc2720499a9",
+  "status": "PASS_LOCAL_STARTUP_RESOLVER",
+  "red": {
+    "command": "node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/g6-provider-startup.test.ts",
+    "exitCode": 1,
+    "failed": 2,
+    "actual": "enabled:true/fake-v1 after first-save pending missing binding; enabled:true/fake-v1 after actual EACCES",
+    "expected": "enabled:false/fake-v1"
+  },
+  "green": {
+    "command": "node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/g6-provider-startup.test.ts tests/g6-secret.test.ts",
+    "exitCode": 0,
+    "files": 2,
+    "passed": 14,
+    "startupCases": 9,
+    "existingVaultCases": 5
+  },
+  "typecheck": {
+    "command": "node_modules/node/bin/node node_modules/typescript/bin/tsc --noEmit",
+    "exitCode": 0
+  },
+  "cases": [
+    "real first-save metadata-open EIO after marker/cipher write; no binding; reopened vault and startup disabled",
+    "actual filesystem directory chmod EACCES disabled",
+    "genuinely absent / empty security state retains local fake baseline",
+    "pending-only evidence disabled",
+    "cipher-only evidence disabled",
+    "unknown security evidence disabled",
+    "valid current generation enabled; explicit disable / delete persistent; still-permitted old generation after unavailable uncommitted replacement retained",
+    "malformed metadata / rejected status read disabled",
+    "security or binding symlink denied before reading linked state"
+  ],
+  "mainChanges": "resolver import, remove obsolete fs access import, replace connect startup config; shared Main left unstaged for root together with F2 coordinator hunks",
+  "limitations": [
+    "normal packaged startup connection: NOT RUN in this subtask",
+    "system safeStorage: NOT RUN in this subtask",
+    "physical sleep/wake: NOT RUN",
+    "real provider/search/Feishu: NOT TESTED"
+  ],
+  "logs": {
+    "red": {
+      "path": "/tmp/g6-provider-startup-red.log",
+      "sha256": "065b0f43dad87471463b559b950fcbb304f90a448831fcee01083e5efd2b2b4b"
+    },
+    "green": {
+      "path": "/tmp/g6-provider-startup-green.log",
+      "sha256": "4e166ec750e8694ac6db5e251f24f52dd414d2a1f2807137405821738a47a469"
+    },
+    "final": {
+      "path": "/tmp/g6-provider-startup-final.log",
+      "sha256": "5d01358101f83fa42e3c7026acd426cbe60280a3f5971f8e4e9678e78c2d5809"
+    },
+    "typecheck": {
+      "path": "/tmp/g6-provider-startup-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}
