@@ -1,3 +1,4 @@
+import {wasPurged,type PurgeNotice} from '../../design-system/purge-notice';
 import React,{useEffect,useRef,useState} from 'react';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useForm} from 'react-hook-form';
@@ -50,7 +51,7 @@ function replaceUndoably(editor:Editor,content:CareerDocument){
  editor.view.dispatch(editor.state.tr.replaceWith(0,editor.state.doc.content.size,next.content));
  editor.view.dispatch(closeHistory(editor.state.tr));
 }
-function ResumeEditor({opened,request,onReturn,active}:{opened:Opened;request:Transport;onReturn?:()=>void;active:boolean}){
+function ResumeEditor({opened,request,onReturn,active,purgeNotice}:{purgeNotice?:PurgeNotice;opened:Opened;request:Transport;onReturn?:()=>void;active:boolean}){
  const [,redraw]=useState(0);const transport=useRef(request);transport.current=request;
  const [profile,setProfile]=useState(opened.profile);const [profileDirty,setProfileDirty]=useState(false);
  const resumeTransport=async(input:ResumeRequest):Promise<ResumeResult>=>{const result=await transport.current(input);if(result.status==='profile')throw new Error('unexpected Profile response');return result;};
@@ -67,7 +68,9 @@ function ResumeEditor({opened,request,onReturn,active}:{opened:Opened;request:Tr
  }
  const editor=useEditor({injectCSS:false,extensions:[StarterKit.configure({heading:{levels:[2]},code:false,codeBlock:false,blockquote:false,hardBreak:false,horizontalRule:false,orderedList:false,underline:false,link:{openOnClick:false}}),stableIds],content:toEditor(opened.document.content),editorProps:{attributes:{'aria-label':'简历正文','role':'textbox','aria-multiline':'true'},handleDOMEvents:{compositionstart:()=>{session.composition(true);return false;},compositionend:()=>{setTimeout(()=>{session.composition(false);if(editor)updateFromEditor(editor);},0);return false;}}},onUpdate:({editor:updated})=>updateFromEditor(updated)});
  const queryClient=useQueryClient();
+ const [profilePurge,setProfilePurge]=useState(0);
  const profileQuery=useQuery({queryKey:['resume',opened.document.opportunityId,'profile'],queryFn:async()=>{const result=await transport.current({operation:'profile.read'});if(result.status!=='profile')throw new Error('基础资料读取失败');return result.profile;},initialData:opened.profile,refetchInterval:5000,retry:false});
+ useEffect(()=>{if(!wasPurged(purgeNotice,'profile','current'))return;setProfilePurge(purgeNotice!.sequence);setProfile(old=>({...old,name:'',contact:'',links:[]}));setProfileDirty(false);void profileQuery.refetch();},[purgeNotice?.sequence]);
  useEffect(()=>{if(profileQuery.data.revision!==profile.revision){setProfile(profileQuery.data);session.profileRevision(profileQuery.data.revision);}},[profileQuery.data,profile.revision,session]);
  useEffect(()=>{if(state.status!=='dirty'||formatError)return;const timer=setTimeout(()=>{if(!formatErrorRef.current)void session.flush();},650);return()=>clearTimeout(timer);},[state.content,state.status,formatError,session]);
  useEffect(()=>{const protect=(event:BeforeUnloadEvent)=>{if(session.state().status!=='saved'||formatErrorRef.current||profileDirty||restoreCommand||versionCommand){event.preventDefault();event.returnValue='';}};window.addEventListener('beforeunload',protect);return()=>window.removeEventListener('beforeunload',protect);},[session,profileDirty,restoreCommand,versionCommand]);
@@ -117,7 +120,7 @@ function ResumeEditor({opened,request,onReturn,active}:{opened:Opened;request:Tr
   {versionCommand?.operation==='resume.export'&&!namingBusy&&<aside><p>未命名导出结果待核对，当前输入保留。</p><button onClick={async()=>{try{await finishVersion(await request({operation:'resume.receipt',commandId:versionCommand.commandId}));}catch{setError('仍无法核对导出结果');}}}>核对导出结果</button><button onClick={async()=>{try{await finishVersion(await request(versionCommand));}catch{setError('导出结果待核对');}}}>继续原导出</button></aside>}
   {formatError&&<p role="alert">{formatError}</p>}{error&&<p role="alert">{error}</p>}{historyReadStatus==='failed'&&<aside><p role="alert">版本历史读取失败，缓存可能不完整；已保存的版本保持不变。</p><button onClick={()=>void refreshHistory()}>重新读取版本历史</button></aside>}{historyReadStatus==='loading'&&<p role="status">正在读取版本历史…</p>}{overflow&&<p>正文超过一页 A4；导出将自动分页，请检查 PDF 页数。</p>}
   <article className={`resume-paper resume-font-${state.content.layout.fontSize}`}>
-   <ProfileFields profile={profile} request={request} onDirty={setProfileDirty} onSaved={current=>{setProfile(current);session.profileRevision(current.revision);queryClient.setQueryData(['resume',opened.document.opportunityId,'profile'],current);}}/>
+   <ProfileFields key={profilePurge} profile={profile} request={request} onDirty={setProfileDirty} onSaved={current=>{setProfile(current);session.profileRevision(current.revision);queryClient.setQueryData(['resume',opened.document.opportunityId,'profile'],current);}}/>
    <EditorContent editor={editor}/>
   </article>
   {history&&<aside className="resume-panel"><h2>命名版本历史</h2>{historyReadStatus==='loaded'&&versions.length===0&&<p>尚未创建命名版本。</p>}{versions.map(version=><button key={version.id} onClick={()=>setViewed(version)}>{version.name||'未命名导出'}</button>)}<button onClick={()=>{setHistory(false);setViewed(undefined);editor?.commands.focus();}}>关闭历史</button>{viewed&&<div><h3>{viewed.name||'未命名导出'}（冻结材料）</h3><p>{viewed.snapshot.profile.name} · {viewed.snapshot.profile.contact}</p>{viewed.snapshot.content.sections.map(section=><section key={section.id}><h4>{section.title}</h4>{section.blocks.map(block=><p key={block.id}>{block.type==='paragraph'?block.spans.map(span=>span.text).join(''):block.items.map(item=>item.spans.map(span=>span.text).join('')).join(' / ')}</p>)}</section>)}<p>对应 PDF 已保留，{viewed.pdf.size} 字节；源正文不会被当前编辑改写。</p><button onClick={()=>void restore(viewed)}>恢复此版本正文</button><button onClick={()=>{setViewed(undefined);editor?.commands.focus();}}>取消查看 / 恢复</button></div>}</aside>}
@@ -125,9 +128,11 @@ function ResumeEditor({opened,request,onReturn,active}:{opened:Opened;request:Tr
  </section>;
 }
 /** Nested Opportunity view. Keeping this component mounted retains independent editor sessions. */
-export function ResumePage({request,profileRequest,opportunityId,onReturn,active=true}:{request:(input:ResumeRequest)=>Promise<ResumeResult>;profileRequest:(input:ProfileRequest)=>Promise<ProfileResult>;opportunityId:string;onReturn?:()=>void;active?:boolean}){
+export function ResumePage({purgeNotice,request,profileRequest,opportunityId,onReturn,active=true}:{purgeNotice?:PurgeNotice;request:(input:ResumeRequest)=>Promise<ResumeResult>;profileRequest:(input:ProfileRequest)=>Promise<ProfileResult>;opportunityId:string;onReturn?:()=>void;active?:boolean}){
  const dispatch:Transport=input=>input.operation==='profile.read'||input.operation==='profile.save'||input.operation==='profile.receipt'?profileRequest(input):request(input);
+ const [blocked,setBlocked]=useState<string[]>([]);
  const [documents,setDocuments]=useState<Record<string,Opened>>({});const [error,setError]=useState('');const transport=useRef(dispatch);transport.current=dispatch;
- useEffect(()=>{let active=true;if(documents[opportunityId])return;setError('');void transport.current({operation:'resume.open',commandId:crypto.randomUUID(),opportunityId}).then(result=>{if(!active)return;if(result.status==='document')setDocuments(current=>({...current,[opportunityId]:result}));else setError('无法打开指定机会的简历，请返回所属机会。');}).catch(()=>{if(active)setError('简历打开结果待核对，请返回机会后重新打开原对象。');});return()=>{active=false;};},[opportunityId,documents]);
- return <>{error&&<p role="alert">{error}</p>}{!documents[opportunityId]&&!error&&<p>正在读取简历…</p>}{Object.entries(documents).map(([id,opened])=><div key={id} hidden={id!==opportunityId}><ResumeEditor opened={opened} request={dispatch} onReturn={onReturn} active={active&&id===opportunityId}/></div>)}</>;
+ useEffect(()=>{if(!purgeNotice)return;const removed=Object.entries(documents).filter(([id,doc])=>wasPurged(purgeNotice,'resume',doc.document.id)||wasPurged(purgeNotice,'opportunity',id)).map(([id])=>id);if(!removed.length)return;setBlocked(old=>[...new Set([...old,...removed])]);setDocuments(old=>Object.fromEntries(Object.entries(old).filter(([id])=>!removed.includes(id))));setError('选定简历已永久清除；原编辑器与历史已关闭。');},[purgeNotice?.sequence]);
+ useEffect(()=>{let active=true;if(documents[opportunityId]||blocked.includes(opportunityId))return;setError('');void transport.current({operation:'resume.open',commandId:crypto.randomUUID(),opportunityId}).then(result=>{if(!active)return;if(result.status==='document')setDocuments(current=>({...current,[opportunityId]:result}));else setError('无法打开指定机会的简历，请返回所属机会。');}).catch(()=>{if(active)setError('简历打开结果待核对，请返回机会后重新打开原对象。');});return()=>{active=false;};},[opportunityId,documents,blocked]);
+ return <>{blocked.includes(opportunityId)&&<button onClick={()=>{setBlocked(old=>old.filter(id=>id!==opportunityId));setError('');}}>明确开始新的当前简历</button>}{error&&<p role="alert">{error}</p>}{!documents[opportunityId]&&!error&&<p>正在读取简历…</p>}{Object.entries(documents).map(([id,opened])=><div key={id} hidden={id!==opportunityId}><ResumeEditor purgeNotice={purgeNotice} opened={opened} request={dispatch} onReturn={onReturn} active={active&&id===opportunityId}/></div>)}</>;
 }

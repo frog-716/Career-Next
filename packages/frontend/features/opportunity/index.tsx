@@ -1,3 +1,4 @@
+import {wasPurged,type PurgeNotice} from '../../design-system/purge-notice';
 import {useRef,useState,useEffect} from 'react';
 import {QueryClient,QueryClientProvider,useQuery} from '@tanstack/react-query';
 import {useForm} from 'react-hook-form';
@@ -5,7 +6,7 @@ import {Request,Result,type OpportunityView,type Company,type History,type Phase
 import {BusinessTime} from '../../../contracts/common/business-time';
 import {sendOpportunityIntent} from './save';
 import type { ReactNode } from 'react';
-export interface OpportunityPageProps{request:(input:Request)=>Promise<Result>;onOpenResume?:(opportunityId:string)=>void;workspaceInstance?:string;focusOpportunity?:{id:string;sequence:number};renderSubmodules?:(opportunity:OpportunityView,onChanged:()=>void)=>ReactNode}
+export interface OpportunityPageProps{purgeNotice?:PurgeNotice;request:(input:Request)=>Promise<Result>;onOpenResume?:(opportunityId:string)=>void;workspaceInstance?:string;focusOpportunity?:{id:string;sequence:number};renderSubmodules?:(opportunity:OpportunityView,onChanged:()=>void)=>ReactNode}
 type IdentityForm={companyId:string;role:string;correction:boolean;reason:string};
 type EventForm={reason:string;stage:'submitted'|'interview'|'offer';timeKind:'unknown'|'date'|'instant';date:string;instant:string;timezone:string};
 const emptyIdentity:IdentityForm={companyId:'',role:'',correction:false,reason:''};
@@ -13,7 +14,7 @@ const emptyEvent:EventForm={reason:'',stage:'interview',timeKind:'unknown',date:
 const phaseLabel={preparation:'投递准备',submitted:'已投递',interview:'面试',offer:'Offer'};const resultLabel={active:'进行中',accepted:'接受 Offer',withdrawn:'用户退出',recruiter_ended:'招聘方终止'};
 const historyLabel:Record<History['type'],string>={created:'创建尝试',identity_edited:'身份信息更新',identity_corrected:'身份信息纠错',stage_reached:'登记现实阶段',stage_corrected:'纠正原阶段事件',ended:'结果变化',end_corrected:'纠正误结束',continued:'现实重新继续',offer_accepted:'接受当时 Offer 条件',offer_conditions_replaced:'正式 Offer 条件替换',offer_recruiter_withdrew:'招聘方撤回 Offer',offer_user_withdrew:'用户退出 Offer',offer_acceptance_corrected:'纠正原接受误操作',offer_withdrawal_corrected:'纠正原 Offer 撤回误操作'};
 export function OpportunityPage(props:OpportunityPageProps){const [client]=useState(()=>new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}}));return <QueryClientProvider client={client}><OpportunityContents {...props}/></QueryClientProvider>;}
-function OpportunityContents({request,onOpenResume,workspaceInstance='opportunity-session',focusOpportunity,renderSubmodules}:OpportunityPageProps){
+function OpportunityContents({purgeNotice,request,onOpenResume,workspaceInstance='opportunity-session',focusOpportunity,renderSubmodules}:OpportunityPageProps){
  const [selected,setSelected]=useState<OpportunityView>();const [company,setCompany]=useState<Company>();const [status,setStatus]=useState('未保存');const [pending,setPending]=useState<Request>();const [missing,setMissing]=useState(false);const [busy,setBusy]=useState(false);const [history,setHistory]=useState<History[]>([]);const [server,setServer]=useState<OpportunityView>();const generation=useRef(0);const submoduleContext=useRef<OpportunityView|undefined>(undefined);if(selected)submoduleContext.current=selected;
  const [companyServer,setCompanyServer]=useState<Company>();const [correctionEventId,setCorrectionEventId]=useState<string>();const [voidStage,setVoidStage]=useState(false);
  const identity=useForm<IdentityForm>({defaultValues:emptyIdentity});const event=useForm<EventForm>({defaultValues:emptyEvent});const companyForm=useForm<{name:string}>({defaultValues:{name:''}});
@@ -22,6 +23,7 @@ function OpportunityContents({request,onOpenResume,workspaceInstance='opportunit
  const companies=useQuery({queryKey:['opportunity',workspaceInstance,'companies'],queryFn:async()=>{const r=Result.parse(await request({operation:'company.list'}));if(r.kind!=='companies')throw Error('公司读取失败');return r.items;}});
  const opportunities=useQuery({queryKey:['opportunity',workspaceInstance,'list'],queryFn:async()=>{const r=Result.parse(await request({operation:'list'}));if(r.kind!=='opportunities')throw Error('机会读取失败');return r.items;}});
  function adopt(value?:OpportunityView){generation.current++;setCorrectionEventId(undefined);setVoidStage(false);setSelected(value);setCompany(undefined);setCompanyServer(undefined);companyForm.reset({name:''});identity.reset(value?{companyId:value.companyId,role:value.role,reason:'',correction:false}:emptyIdentity);event.reset(emptyEvent);setServer(undefined);setHistory([]);setStatus(value?'已保存':'未保存');}
+ useEffect(()=>{if(!purgeNotice)return;if(wasPurged(purgeNotice,'opportunity',selected?.id)){adopt();submoduleContext.current=undefined;setPending(undefined);setStatus('这条机会及从属资料已永久清除。');}if(wasPurged(purgeNotice,'company',company?.id)){setCompany(undefined);companyForm.reset({name:''});setCompanyServer(undefined);}if(selected&&wasPurged(purgeNotice,'company',selected.companyId))setSelected({...selected,companyName:'已清除的公司'});void companies.refetch();void opportunities.refetch();},[purgeNotice?.sequence]);
  async function open(id:string){if(pending||dirty&&!window.confirm('有未保存输入。放弃后切换机会？'))return;const current=++generation.current;try{const r=Result.parse(await request({operation:'read',id}));if(current!==generation.current)return;if(r.kind==='opportunity')adopt(r.opportunity);else setStatus('机会暂不可读');}catch{if(current===generation.current)setStatus('读取失败，输入保留');}}
  useEffect(()=>{if(!focusOpportunity||focusedSequence.current===focusOpportunity.sequence)return;focusedSequence.current=focusOpportunity.sequence;void open(focusOpportunity.id);},[focusOpportunity]);
  async function handleResult(result:Result|{kind:'unknown'},intent:Request){

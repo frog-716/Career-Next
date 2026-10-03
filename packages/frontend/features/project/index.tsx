@@ -1,3 +1,4 @@
+import {wasPurged,type PurgeNotice} from '../../design-system/purge-notice';
 import {useState,useEffect,useRef} from 'react';
 import {useForm} from 'react-hook-form';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
@@ -6,7 +7,7 @@ import type {Project,Result,Request} from '../../../contracts/project/schema';
 import type {ProjectRequest} from './commands';
 import {useProjectCommands} from './useProjectCommands';
 import {ChangeControls,displayTime,emptyChange,type ChangeContext} from './ChangeControls';
-export type ProjectPageProps={request:ProjectRequest;relationEpoch?:number;employmentRequest?:(input:EmploymentRequest)=>Promise<EmploymentResult>};
+export type ProjectPageProps={purgeNotice?:PurgeNotice;request:ProjectRequest;relationEpoch?:number;employmentRequest?:(input:EmploymentRequest)=>Promise<EmploymentResult>};
 const labels={inprogress:'进行中',paused:'暂停',completed:'完成',cancelled:'取消'};
 const actionLabels={created:'创建项目',edited:'维护项目',state_changed:'状态变化',reopened:'真实重新推进',associated:'任职关联变化',joined:'加入项目',rejoined:'重新加入',left:'退出项目',role_changed:'项目职责变化'};
 const parseTags=(value:string)=>value.split(/[,，]/).map(item=>item.trim()).filter(Boolean);
@@ -146,11 +147,12 @@ function ProjectDetails({value,request,employmentRequest,onSaved}:ProjectPagePro
   </li>)}</ol>}
  </section>;
 }
-export function ProjectPage({request,employmentRequest,relationEpoch}:ProjectPageProps){
+export function ProjectPage({purgeNotice,request,employmentRequest,relationEpoch}:ProjectPageProps){
  const client=useQueryClient();const [selected,setSelected]=useState<string>();const [opened,setOpened]=useState<string[]>([]);const [creating,setCreating]=useState(false);
  const observedEpoch=useRef(relationEpoch);
  useEffect(()=>{if(observedEpoch.current===relationEpoch)return;observedEpoch.current=relationEpoch;void client.invalidateQueries({queryKey:['projects']});void client.invalidateQueries({queryKey:['employments']});void client.invalidateQueries({queryKey:['employment']});},[relationEpoch,client]);
  const list=useQuery({queryKey:['projects'],retry:false,queryFn:async()=>{const result=await request({operation:'list'});if(result.kind!=='list')throw new Error('read_failed');return result;}});
+ useEffect(()=>{if(!purgeNotice)return;const removed=opened.filter(id=>wasPurged(purgeNotice,'project',id));setOpened(old=>old.filter(id=>!removed.includes(id)));if(selected&&removed.includes(selected))setSelected(undefined);void list.refetch();},[purgeNotice?.sequence]);
  function open(id:string){setSelected(id);setOpened(old=>old.includes(id)?old:[...old,id]);}
  return <section aria-label="项目">
   <h2>项目</h2><button onClick={()=>setCreating(value=>!value)}>{creating?'收起新增（保留输入）':'新增项目'}</button>

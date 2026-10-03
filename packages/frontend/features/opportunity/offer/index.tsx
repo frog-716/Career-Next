@@ -1,3 +1,4 @@
+import {wasPurged,type PurgeNotice} from '../../../design-system/purge-notice';
 import React, {useEffect,useRef,useState} from 'react';
 import {Request,Result,Conditions,type Offer,type AcceptanceBasis,type Event} from '../../../../contracts/opportunity/offer/schema';
 import type {OpportunityView} from '../../../../contracts/opportunity/schema';
@@ -17,8 +18,8 @@ function dirty(session:Session){return contentDirty(session)||!!session.reason||
 function timeOf(session:Session):BusinessTime{return session.timeKind==='unknown'?{kind:'unknown'}:session.timeKind==='date'?{kind:'date',date:session.date}:{kind:'instant',instant:session.instant,timezone:session.timezone};}
 function formatTime(time:BusinessTime){return time.kind==='unknown'?'未知':time.kind==='date'?time.date:time.instant+' ('+time.timezone+')';}
 function conditionSummary(conditions:Conditions){return Object.entries(fields).map(([key,label])=>{const field=conditions[key as keyof Values];return `${label}：${field.kind==='known'?field.value:'未知'}`;}).join('；');}
-export interface OfferPageProps {opportunityId:string;workspaceInstance:string;request(input:Request):Promise<Result>;onChanged?():void;sources?:RawSummary[];sourcesError?:boolean;}
-export function OfferPage({opportunityId,workspaceInstance,request,onChanged,sources,sourcesError}:OfferPageProps){
+export interface OfferPageProps {purgeNotice?:PurgeNotice;opportunityId:string;workspaceInstance:string;request(input:Request):Promise<Result>;onChanged?():void;sources?:RawSummary[];sourcesError?:boolean;}
+export function OfferPage({purgeNotice,opportunityId,workspaceInstance,request,onChanged,sources,sourcesError}:OfferPageProps){
  const key=workspaceInstance+':'+opportunityId;const active=useRef(key);active.current=key;const send=useRef(request);send.current=request;
  const [sessions,setSessions]=useState<Record<string,Session>>({});const session=sessions[key]??initial();
  function update(target:string,change:(session:Session)=>Session){setSessions(previous=>({...previous,[target]:change(previous[target]??initial())}));}
@@ -26,6 +27,7 @@ export function OfferPage({opportunityId,workspaceInstance,request,onChanged,sou
  function adopt(target:string,result:Extract<Result,{kind:'offer'|'empty'}>,status:string){update(target,current=>({...current,loaded:true,offer:result.kind==='offer'?result.offer:undefined,opportunity:result.opportunity,values:valuesOf(result.kind==='offer'?result.offer:undefined),original:originalOf(result.kind==='offer'?result.offer:undefined),reason:'',timeKind:'unknown',date:'',instant:'',timezone:'',historical:false,mode:'correction',busy:false,pending:undefined,missing:false,server:undefined,history:undefined,status}));}
  useEffect(()=>{const target=key;let alive=true;update(target,current=>current.loaded?current:{...current,status:'正在读取 Offer'});void (async()=>{try{const result=Result.parse(await send.current({operation:'offer.read',opportunityId}));if(!alive)return;if(result.kind==='offer'||result.kind==='empty'){setSessions(previous=>{const existing=previous[target];if(existing?.loaded)return previous;return {...previous,[target]:{...initial(),loaded:true,offer:result.kind==='offer'?result.offer:undefined,opportunity:result.opportunity,values:valuesOf(result.kind==='offer'?result.offer:undefined),original:originalOf(result.kind==='offer'?result.offer:undefined),status:'已读取'}};});}else update(target,current=>({...current,status:'Offer 读取失败；不会把失败当成尚无 Offer。'}));}catch{if(alive)update(target,current=>({...current,status:'Offer 读取失败；输入保留。'}));}})();return ()=>{alive=false;};},[key]);
  useEffect(()=>{const guard=(event:BeforeUnloadEvent)=>{if(Object.values(sessions).some(session=>dirty(session)||!!session.pending)){event.preventDefault();event.returnValue='';}};window.addEventListener('beforeunload',guard);return()=>window.removeEventListener('beforeunload',guard);},[sessions]);
+ useEffect(()=>{if(!purgeNotice)return;setSessions(old=>Object.fromEntries(Object.entries(old).map(([id,value])=>wasPurged(purgeNotice,'offer',value.offer?.id)?[id,{...initial(),loaded:true,status:'这份Offer已永久清除，旧条件与历史已关闭。'}]:[id,value])));},[purgeNotice?.sequence]);
  async function compare(target=key){try{const result=Result.parse(await send.current({operation:'offer.read',opportunityId}));if(result.kind==='offer'||result.kind==='empty')update(target,current=>({...current,server:result,status:'冲突：草稿保留，请比较当前正式值。'}));else update(target,current=>({...current,status:'当前正式值暂不可读；草稿保留。'}));}catch{update(target,current=>({...current,status:'当前正式值读取失败；草稿保留。'}));}}
  async function handleResult(target:string,result:Result,intent:Request){
   if(result.kind==='offer'||result.kind==='empty'){

@@ -19,7 +19,7 @@ export function createCompanyDomain(db:Database.Database){
    return Result.parse({kind:'company',company});
   });
  }
- return {handle,resolveCompany,purgeImpact(id:string){const value=resolveCompany(id);return value?{id,revision:value.revision,name:value.name,blobIds:[],retentions:[]}:undefined;},purge(id:string){db.transaction(()=>{db.prepare('DELETE FROM opportunity_company_history WHERE company_id=?').run(id);db.prepare('UPDATE opportunity_company SET name=?,revision=revision+1 WHERE id=?').run('已清除的公司',id);redactOwnerReceipts(db,'opportunity',[id],{kind:'failure',code:'not_found'});})();}};
+ return {handle,maintenanceObjects(){return db.prepare('SELECT id,name,revision FROM opportunity_company').all() as {id:string;name:string;revision:number}[];},resolveCompany,purgeImpact(id:string){const value=resolveCompany(id);return value?{id,revision:value.revision,name:value.name,blobIds:[],retentions:[]}:undefined;},purge(id:string){db.transaction(()=>{db.prepare('DELETE FROM opportunity_company_history WHERE company_id=?').run(id);db.prepare('UPDATE opportunity_company SET name=?,revision=revision+1 WHERE id=?').run('已清除的公司',id);redactOwnerReceipts(db,'opportunity',[id],{kind:'failure',code:'not_found'});})();}};
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';

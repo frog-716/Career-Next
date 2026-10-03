@@ -12,7 +12,7 @@ import type {ProductionSinkAdapter} from '../platform/files/staging';
 import {createAiController} from '../ai-runtime/controller';
 import {createDeterministicFakeProvider} from '../platform/providers/deterministic-fake';
 import {Request as AiRequest,Result as AiResult} from '../../contracts/ai/schema';
-import {Result as DataResult} from '../../contracts/application/schema';
+import {Request as DataRequest,Result as DataResult} from '../../contracts/application/schema';
 import {Result as ResumeResult} from '../../contracts/resume/schema';
 import type {HumanSession} from '../platform/runtime/sessions';
 import type {BusinessModule} from '../../contracts/common/bridge';
@@ -20,6 +20,7 @@ import type {RuntimeStore} from './writer-commands';
 const maximumPdfBytes=16*1024*1024;
 export async function createRuntimeBackend(initialRoot:string,writerArtifact?:string,dataRoot=initialRoot){
  let root=initialRoot,closing=false,maintenance=false,admission=true,currentSession:HumanSession|undefined;
+ const purgePlans=new Map<string,{workspace:string;refs:PersistenceReference[];copies:string[]}>();
  const operations=new Set<Promise<unknown>>(),prints=new Map<string,Promise<ResumeResult>>(),tokens=new Map<string,PersistenceToken>();
  let writer!:Awaited<ReturnType<typeof startWriter<RuntimeStore>>>;
  let materials!:Awaited<ReturnType<typeof createMaterialsBackend>>;
@@ -27,6 +28,7 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  let gate!:ReturnType<typeof createPersistenceSinkGate>;
  let controller!:ReturnType<typeof createAiController>;
  function track<T>(job:Promise<T>){operations.add(job);void job.finally(()=>operations.delete(job)).catch(()=>{});return job;}
+ function assertCurrent(session:HumanSession){if(!currentSession||session.actor?.kind!=='human'||session.actor.token!==currentSession.actor.token||session.workspaceInstance!==currentSession.workspaceInstance||session.backendGeneration!==currentSession.backendGeneration||session.connectionGeneration!==currentSession.connectionGeneration)throw Error('invalid_capability');}
  function allowed(){if(closing||maintenance||!admission)throw Error('maintenance_busy');}
  function adapter(token:PersistenceToken,boundGate=gate):ProductionSinkAdapter {tokens.set(token.id,token);return {controlledSink:filename=>boundGate.controlledSink(token,filename),withLease:work=>boundGate.withLease(token,work)};}
  async function drain(refs:readonly PersistenceReference[]){controller?.revokeReferences(refs);await gate.drain(refs);}
@@ -54,13 +56,16 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  }
  return {get materials(){return materials;},
  async connectHuman(){allowed();currentSession=await materials.connectHuman();await Promise.allSettled([...operations]);await writer.call('recoverPending');await materials.collectGarbage();await writer.call('automaticBackup').catch(()=>{});return currentSession;},
- business(session:HumanSession,module:BusinessModule,input:unknown){allowed();return track((async()=>{
+ business(session:HumanSession,module:BusinessModule,input:unknown){allowed();return track((async()=>{assertCurrent(session);const boundController=controller;const authorization=module==='ai'&&AiRequest.parse(input).operation==='ai.authorize'?boundController.captureAuthorization():undefined;let pause:object|undefined;
+ if(module==='application'){const request=DataRequest.parse(input);if(request.operation==='data.purge.confirm'){const plan=purgePlans.get(request.planId);if(plan?.workspace===session.workspaceInstance&&request.selectedCopyIds.every(id=>plan.copies.includes(id)))pause=boundController.pauseReferences(plan.refs);}}
+ try{
   if(module==='ai'){const request=AiRequest.parse(input);if(request.operation==='ai.stop'){await controller.stop(request.taskId,request.mode);return writer.call('business',session,module,{operation:'ai.read',taskId:request.taskId});}}
   const result=await writer.call('business',session,module,input);
-  if(module==='ai'){const request=AiRequest.parse(input),value=AiResult.parse(result);if(request.operation==='ai.authorize'&&value.kind==='task'){controller.openAfterAuthorization(value.task.id);void controller.start(value.task.id,request.operationId).catch(()=>{});}}
-  if(module==='application'){const value=DataResult.parse(result);if(value.kind==='restored'){await writer.close();root=path.resolve(dataRoot,value.copy.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}}
+  if(module==='ai'){const request=AiRequest.parse(input),value=AiResult.parse(result);if(request.operation==='ai.authorize'&&value.kind==='task'&&value.task.operations.some(op=>op.id===request.operationId&&op.state==='not_sent'&&op.authorized)){boundController.openAfterAuthorization(value.task.id,request.operationId,authorization);void boundController.start(value.task.id,request.operationId).catch(()=>{});}}
+  if(module==='application'){const value=DataResult.parse(result);if(value.kind==='purge_plan')purgePlans.set(value.plan.id,{workspace:session.workspaceInstance,refs:value.plan.impact.references,copies:value.plan.copies.map(c=>c.id)});if(value.kind==='restored'){await writer.close();root=path.resolve(dataRoot,value.copy.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}}
   if(module==='application'&&!admission&&DataResult.parse(result).kind==='failure'){await writer.close();const pointer=JSON.parse(await readFile(path.join(dataRoot,'active-workspace-pointer.json'),'utf8'));root=safeManagedPath(dataRoot,pointer.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();return DataResult.parse({kind:'failure',code:'restore_failed_reconnected'});}
   return result;
+ }finally{if(pause)boundController.finishPause(pause);}
  })());},
  async selectSentFile(session:HumanSession,filename:string){allowed();const boundWriter=writer,boundMaterials=materials,boundBlobs=blobs;if(!['.pdf','.txt','.md'].includes(path.extname(filename).toLowerCase()))throw Error('unsupported_file');return track((async()=>{const token=await boundWriter.call('artifactToken',session),sink=adapter(token);let prepared:{id:string;blobId:string}|undefined;
  try{const bytes=await sink.withLease(async()=>{await boundWriter.call('persistenceAssert',token);const handle=await open(filename,constants.O_RDONLY|constants.O_NOFOLLOW);try{const info=await handle.stat();if(!info.isFile()||info.size<1||info.size>maximumPdfBytes)throw Error('unsupported_file');const buffer=Buffer.alloc(info.size+1);let count=0;while(count<buffer.length){await boundWriter.call('persistenceAssert',token);const value=await handle.read(buffer,count,Math.min(65536,buffer.length-count),count);if(!value.bytesRead)break;count+=value.bytesRead;}if(count!==info.size)throw Error('file_failed');return buffer.subarray(0,count);}finally{await handle.close();}});

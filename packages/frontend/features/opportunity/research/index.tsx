@@ -1,12 +1,13 @@
+import {wasPurged,type PurgeNotice} from '../../../design-system/purge-notice';
 import {useEffect,useRef,useState} from 'react';
 import {Request,Result,type Item,type Owner,type Source,type Resolution} from '../../../../contracts/opportunity/research/schema';
 import type {BusinessTime} from '../../../../contracts/common/business-time';
 import type {SourceRef} from '../../../../contracts/common/source-ref';
-export interface ResearchPageProps{opportunityId:string;companyId:string;workspaceInstance:string;request:(input:Request)=>Promise<Result>;onChanged?:()=>void;availableSources?:{ref:SourceRef;name:string}[];}
+export interface ResearchPageProps{purgeNotice?:PurgeNotice;opportunityId:string;companyId:string;workspaceInstance:string;request:(input:Request)=>Promise<Result>;onChanged?:()=>void;availableSources?:{ref:SourceRef;name:string}[];}
 type Draft={title:string;body:string;nature:Item['nature'];sources:Source[];leads:Item['leads'];userConfirmed:boolean;independentlyVerified:boolean;reason:string;reevaluated:boolean;timeKind:BusinessTime['kind'];date:string;instant:string;timezone:string;};
 const empty=():Draft=>({title:'',body:'',nature:'fact_statement',sources:[],leads:[],userConfirmed:false,independentlyVerified:false,reason:'',reevaluated:false,timeKind:'unknown',date:'',instant:'',timezone:''});
 type Session={owner:Owner;items:Resolution[];references:{itemId:string;originRevision:number;owner:Owner;originOwner:Owner}[];docRevision:number;selected?:Item;draft:Draft;dirty:boolean;status:string;pending?:Request;busy:boolean;server?:Item;companyComparison?:Resolution[];history?:string[];loaded:boolean;readEpoch:number;lifecycleAction?:'withdraw'|'restore';};
-export function ResearchPage({opportunityId,companyId,workspaceInstance,request,onChanged,availableSources=[]}:ResearchPageProps){
+export function ResearchPage({purgeNotice,opportunityId,companyId,workspaceInstance,request,onChanged,availableSources=[]}:ResearchPageProps){
  const [scope,setScope]=useState<'opportunity'|'company'>('opportunity');const sessions=useRef(new Map<string,Session>());const [,refresh]=useState(0);const render=()=>refresh(v=>v+1);
  const owner:Owner={kind:scope,id:scope==='company'?companyId:opportunityId};const key=workspaceInstance+':'+owner.kind+':'+owner.id;
  if(!sessions.current.has(key))sessions.current.set(key,{owner,items:[],references:[],docRevision:0,draft:empty(),dirty:false,status:'正在读取',busy:false,loaded:false,readEpoch:0});
@@ -17,6 +18,7 @@ export function ResearchPage({opportunityId,companyId,workspaceInstance,request,
  async function load(session:Session,afterSave=false){const epoch=++session.readEpoch;try{const r=Result.parse(await request({operation:'read',owner:session.owner}));if(epoch!==session.readEpoch)return;if(r.kind!=='document')throw Error();session.items=r.items;session.references=r.references;session.docRevision=r.revision;session.loaded=true;if(!afterSave)session.status='已读取';}catch{if(epoch!==session.readEpoch)return;session.status=afterSave?'已保存，暂时未刷新；可重新读取':'读取失败，保留当前输入';}render();}
  useEffect(()=>{if(!s.loaded)void load(s);},[key]);
  function adopt(item?:Item){s.selected=item;s.draft=item?{title:item.title,body:item.body,nature:item.nature,sources:item.sources,leads:item.leads,userConfirmed:item.userConfirmed,independentlyVerified:item.independentlyVerified,reason:'',reevaluated:false,timeKind:'unknown',date:'',instant:'',timezone:''}:empty();s.dirty=false;s.server=undefined;s.companyComparison=undefined;s.history=undefined;s.lifecycleAction=undefined;render();}
+ useEffect(()=>{if(!purgeNotice)return;for(const value of sessions.current.values()){value.items=value.items.filter(item=>!wasPurged(purgeNotice,'research',item.item.id));if(wasPurged(purgeNotice,'research',value.selected?.id)){value.selected=undefined;value.draft=empty();value.pending=undefined;value.dirty=false;value.server=undefined;value.companyComparison=undefined;value.readEpoch++;}value.draft.sources=value.draft.sources.map(source=>wasPurged(purgeNotice,source.ref.owner,source.ref.objectId)?{...source,excerpt:'',assessment:'needs_review'}:source);value.history=undefined;void load(value);}render();},[purgeNotice?.sequence]);
  function switchItem(item?:Item){if(s.pending||s.busy)return;if((s.dirty||s.lifecycleAction)&&!window.confirm('放弃尚未保存的研究输入？'))return;adopt(item);}
  function change<K extends keyof Draft>(name:K,value:Draft[K]){s.draft={...s.draft,[name]:value};s.dirty=true;render();}
  async function result(session:Session,r:Result,intent:Request){

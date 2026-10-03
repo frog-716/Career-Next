@@ -1,10 +1,11 @@
+import {wasPurged,type PurgeNotice} from '../../design-system/purge-notice';
 import { useEffect, useRef, useState } from 'react';
 import { Identity, Result } from '../../../contracts/materials/schema';
 import type { Preview, Raw, RawSummary } from '../../../contracts/materials/schema';
 import { saveRaw, verifyReceipt } from './save';
 import type { SaveState } from './save';
 const errors: Record<string,string>={unsupported_file:'当前只支持 256 KiB 以内的 UTF-8 TXT 或 Markdown 文本，不能导入此文件。',file_failed:'读取或暂存文件失败，未保存资料。请检查文件后重新选择。',storage_failed:'文件发布失败，未保存资料。可检查磁盘后重新确认。',db_failed:'数据库未完成保存，请检查磁盘空间后重新确认。',invalid_capability:'预览或连接已失效。保留当前预览，请重新选择文件。',conflict:'当前预览与保存意图不一致，未覆盖资料。保留当前预览，请重新选择或取消。',content_unavailable:'已保存的原件暂时无法读取，请重试。',disconnected:'后端连接断开，请重新连接。'};
-export function RawImport() {
+export function RawImport({purgeNotice}:{purgeNotice?:PurgeNotice}={}) {
   const [preview,setPreview]=useState<Preview>();
   const [previewInvalid,setPreviewInvalid]=useState(false);
   const [raw,setRaw]=useState<Raw>();
@@ -16,6 +17,7 @@ export function RawImport() {
   const bridge=window.careerMaterials;
   async function refreshList() { const result=Result.parse(await bridge.request({operation:'list'}));if(result.kind==='list')setItems(result.items); }
   useEffect(()=>{ let active=true; void bridge.ready().then(value=>{Identity.parse(value);if(active){setConnected(true);setStatus('请选择个人原始材料');void refreshList().catch(()=>setStatus('资料列表读取失败，可重新连接。'));}}).catch(()=>{if(active)setStatus('连接失败，请重新连接。');});return()=>{active=false;}; },[]);
+  useEffect(()=>{if(!purgeNotice)return;const matchesRaw=wasPurged(purgeNotice,'materials',raw?.id)||wasPurged(purgeNotice,'materials',save?.raw?.id);const matchesImport=wasPurged(purgeNotice,'import',preview?.importId);if(matchesRaw||matchesImport){sequence.current++;setRaw(undefined);setSave(undefined);if(matchesImport)setPreview(undefined);setBusy(false);setStatus('选定内容已永久清除，旧预览和回执正文已关闭。');}setItems(old=>old.filter(item=>!wasPurged(purgeNotice,'materials',item.id)));void refreshList().catch(()=>{});},[purgeNotice?.sequence]);
   function apply(state: SaveState) {
     setSave(state);
     if(state.code==='invalid_capability')setPreviewInvalid(true);

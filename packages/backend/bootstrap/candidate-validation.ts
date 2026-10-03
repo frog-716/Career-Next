@@ -15,18 +15,20 @@ import {validateCandidate as communication,candidateRelations as communicationRe
 import {composeDomains} from './domain-registry';
 import {createMaterialsStore} from '../domains/materials/store';
 import {validateFileCandidates} from '../platform/files/candidates';
-import {validateAiCandidate} from '../ai-runtime/public';
+import {validateAiCandidate,candidateRelations as aiRelations} from '../ai-runtime/public';
 export function validateBusinessCandidate(db:Database.Database){for(const validate of [materials,wiki,resume,profile,employment,project,company,core,research,interview,offer,submission,communication,validateAiCandidate])validate(db);}
 
 export function validateCandidateRelations(db:Database.Database){
  const materialsStore=createMaterialsStore(db,'candidate-validation','candidate-validation');
  const d=composeDomains(db,materialsStore,{ai:{handle(){throw Error('candidate_read_only');}},application:{handle(){throw Error('candidate_read_only');}}});
- const present=(owner:string,id:string)=>owner==='materials'?!!materialsStore.purgeImpact(id):owner==='company'?!!d.opportunity.companyPurgeImpact(id):owner==='person'?!!d.employment.personPurgeImpact(id):owner==='opportunity'?!!d.opportunity.purgeImpact(id):owner==='submission'?!!d.submission.describePurge(id):owner==='communication'?!!d.communication.describePurge(id):owner==='interview'?!!d.interview.purgeImpact(id):owner==='resume'?!!d.resume.purgeImpact(id):owner==='employment'?!!d.employment.purgeImpact(id):owner==='project'?!!d.project.purgeImpact(id):false;
- const relationCollectors:((db:Database.Database)=>{owner:string;objectId:string;kind:'object'|'source';source?:import('../../contracts/common/source-ref').SourceRef;optional?:boolean}[])[]=[materialsRelations,wikiRelations,resumeRelations,profileRelations,employmentRelations,projectRelations,companyRelations,coreRelations,researchRelations,interviewRelations,offerRelations,submissionRelations,communicationRelations];
+ const present=(owner:string,id:string)=>owner==='wiki'?!!d.wiki.purgeImpact(id):owner==='research'?!!d.research.purgeImpact(id):owner==='materials'?!!materialsStore.purgeImpact(id):owner==='company'?!!d.opportunity.companyPurgeImpact(id):owner==='person'?!!d.employment.personPurgeImpact(id):owner==='opportunity'?!!d.opportunity.purgeImpact(id):owner==='submission'?!!d.submission.describePurge(id):owner==='communication'?!!d.communication.describePurge(id):owner==='interview'?!!d.interview.purgeImpact(id):owner==='resume'?!!d.resume.purgeImpact(id):owner==='employment'?!!d.employment.purgeImpact(id):owner==='project'?!!d.project.purgeImpact(id):false;
+ const relationCollectors:((db:Database.Database)=>{owner:string;objectId:string;kind:'object'|'source';source?:import('../../contracts/common/source-ref').SourceRef;optional?:boolean;revision?:number;provenance?:import('../../contracts/common/provenance').Provenance}[])[]=[materialsRelations,wikiRelations,resumeRelations,profileRelations,employmentRelations,projectRelations,companyRelations,coreRelations,researchRelations,interviewRelations,offerRelations,submissionRelations,communicationRelations,aiRelations];
  for(const collect of relationCollectors)for(const ref of collect(db)){
   const purged=db.prepare('SELECT purged FROM platform_purge_fences WHERE owner=? AND object_id=?').get(ref.owner,ref.objectId) as {purged:number}|undefined;
   if(purged?.purged||ref.optional)continue;
-  if(!present(ref.owner,ref.objectId)||(ref.source&&!d.resolveSource(ref.source)))throw Error('backup_relation_invalid');
+  if(!present(ref.owner,ref.objectId))throw Error('backup_relation_invalid');
+  if(ref.source){const current=d.resolveSource(ref.source);if(!current||ref.source.revision>current.revision)throw Error('backup_relation_invalid');}
+  if(ref.owner==='wiki'&&(ref.revision||ref.provenance)){const expected=d.wiki.revisionIdentity(ref.objectId,ref.provenance?.revision??ref.revision!);if(!expected||ref.provenance&&(expected.scope!==ref.provenance.scope||expected.scopeId!==ref.provenance.scopeId))throw Error('backup_relation_invalid');}
  }
  validateFileCandidates(db);
 }

@@ -1,10 +1,11 @@
+import {wasPurged,type PurgeNotice} from '../../design-system/purge-notice';
 import { useState,useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery,useQueryClient,useMutation } from '@tanstack/react-query';
 import { BusinessTime } from '../../../contracts/common/business-time';
 import type { Employment,Person,Request,Result } from '../../../contracts/employment/schema';
 import { submitEmploymentCommand,checkEmploymentCommand,employmentLifecycleCanProceed,type EmploymentRequest,type CommandState } from './commands';
-type PageProps={request:EmploymentRequest};
+type PageProps={purgeNotice?:PurgeNotice;request:EmploymentRequest};
 function displayTime(time:BusinessTime):string {return time.kind==='unknown'?'未知':time.kind==='date'?time.date:`${time.instant}（${time.timezone}）`;
 }
 function TimeInput({label,value,onChange}:{label:string;
@@ -160,12 +161,13 @@ setRevision(state.result.current.revision);
 </ol>}
 </article>;
 }
-function EmploymentEditor({id,request}:PageProps&{id:string}) {
+function EmploymentEditor({id,request,purgeNotice}:PageProps&{id:string}) {
  const client=useQueryClient();
 const query=useQuery({queryKey:['employment',id],queryFn:async()=>{const result=await request({operation:'read',id});
 if(result.kind!=='employment')throw new Error('read_failed');
 return result;
 },retry:false});
+ useEffect(()=>{if(purgeNotice?.references.some(ref=>ref.owner==='person'))void query.refetch();},[purgeNotice?.sequence]);
  if(query.isPending)return <p>读取任职中
 </p>;
 if(!query.data)return <div role="alert">指定任职暂时无法读取。
@@ -177,7 +179,7 @@ if(!query.data)return <div role="alert">指定任职暂时无法读取。
 <button onClick={()=>void query.refetch()}>重新读取
 </button>
 </p>}
-<EmploymentDetails employment={query.data.employment} people={query.data.people} request={request} onSaved={()=>{void client.invalidateQueries({queryKey:['employment',id]});
+<EmploymentDetails employment={query.data.employment} people={query.data.people.filter(person=>!wasPurged(purgeNotice,'person',person.id))} request={request} onSaved={()=>{void client.invalidateQueries({queryKey:['employment',id]});
 void client.invalidateQueries({queryKey:['employments']});
 }}/></>;
 }
@@ -271,7 +273,7 @@ setRevision(current.revision);
 <PersonEditor employmentId={employment.id} request={request} onSaved={onSaved}/>
 </section>;
 }
-export function EmploymentPage({request}:PageProps) {
+export function EmploymentPage({request,purgeNotice}:PageProps) {
  const client=useQueryClient();
 const list=useQuery({queryKey:['employments'],queryFn:async()=>{const result=await request({operation:'list'});
 if(result.kind!=='list')throw new Error('read_failed');
@@ -281,6 +283,7 @@ const [selected,setSelected]=useState
 <string>();
 const [opened,setOpened]=useState<string[]>([]);
 const [creating,setCreating]=useState(false);
+ useEffect(()=>{if(!purgeNotice)return;const removed=opened.filter(id=>wasPurged(purgeNotice,'employment',id));setOpened(old=>old.filter(id=>!removed.includes(id)));if(selected&&removed.includes(selected))setSelected(undefined);void list.refetch();},[purgeNotice?.sequence]);
  function open(id:string){setSelected(id);
 setOpened(old=>old.includes(id)?old:[...old,id]);
 }
@@ -308,7 +311,7 @@ void client.invalidateQueries({queryKey:['employments']});
 <button onClick={()=>setSelected(undefined)}>返回任职列表（保留输入）
 </button>}{opened.map(id=>
 <div key={id} hidden={id!==selected}>
-<EmploymentEditor id={id} request={request}/>
+<EmploymentEditor purgeNotice={purgeNotice} id={id} request={request}/>
 </div>)}
 </section>;
 }

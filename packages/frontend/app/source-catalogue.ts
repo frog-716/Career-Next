@@ -23,3 +23,5 @@ export async function readSourceVersion(ref:SourceRef){
  if(ref.owner==='interview'){const result=InterviewResult.parse(await window.career.request('interview',{operation:'interview.read',id:ref.objectId}));return result.kind==='session'&&result.session.opportunityId===ref.opportunityId&&result.session.transcript?.version===ref.revision?result.session.transcript.text:undefined;}
  const result=CommunicationResult.parse(await window.career.request('communication',{operation:'communication.read',id:ref.objectId}));return result.kind==='communication'&&JSON.stringify(result.communication.source)===JSON.stringify(ref)?result.communication.text:undefined;
 }
+
+export async function scopeCatalogue(){const {Result}=await import('../../contracts/application/schema');const result=Result.parse(await window.career.request('application',{operation:'data.targets'}));if(result.kind!=='data_targets')throw Error('scope_list_unavailable');return result.targets.filter(item=>['project','employment','person','opportunity'].includes(item.owner)).map(item=>({scope:item.owner as 'project'|'employment'|'person'|'opportunity',scopeId:item.objectId,label:item.label}));}
