@@ -4,6 +4,12 @@ import { randomUUID } from 'node:crypto';
 import { ledgerMigration } from './ledger';
 import { applyReleases, type MigrationBatch } from './migrations';
 
+/** The same initial DDL is used for active creation and isolated schema verification. */
+export function workspaceBaseSql(domainMigration:string){return `CREATE TABLE platform_workspace (instance TEXT PRIMARY KEY);
+        CREATE TABLE platform_blobs (id TEXT PRIMARY KEY, digest TEXT NOT NULL, size INTEGER NOT NULL, state TEXT NOT NULL CHECK(state IN ('held','published','delete_claimed','deleted')));
+        ${ledgerMigration}
+        ${domainMigration}`;}
+
 export async function openWorkspace(root: string, domainMigration: string, releases: readonly MigrationBatch[] = []) {
   // Separate lock file uses actual SQLite OS locks, held until this worker/connection exits.
   const lock = new Database(path.join(root, 'writer-lock.sqlite'));
@@ -16,10 +22,7 @@ export async function openWorkspace(root: string, domainMigration: string, relea
     const version = database.pragma('user_version', { simple: true });
     if (typeof version !== 'number' || version < 0 || version > releases.length + 1) throw new Error('db_failed');
     if (version === 0) database.transaction(() => {
-      database.exec(`CREATE TABLE platform_workspace (instance TEXT PRIMARY KEY);
-        CREATE TABLE platform_blobs (id TEXT PRIMARY KEY, digest TEXT NOT NULL, size INTEGER NOT NULL, state TEXT NOT NULL CHECK(state IN ('held','published','delete_claimed','deleted')));
-        ${ledgerMigration}
-        ${domainMigration}`);
+      database.exec(workspaceBaseSql(domainMigration));
       database.prepare('INSERT INTO platform_workspace VALUES (?)').run(randomUUID());
       database.pragma('user_version = 1');
     })();

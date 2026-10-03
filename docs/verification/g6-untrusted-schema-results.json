@@ -1,0 +1,226 @@
+{
+  "status": "PASS_LOCAL_UNTRUSTED_SCHEMA_REGRESSION",
+  "evidenceDate": "2026-10-03",
+  "scope": "isolated synthetic registered v5/v6 backups; public writer commands and actual SQLite files",
+  "triggerAttack": {
+    "validMigrationRowsUnchanged": true,
+    "digestRecomputed": true,
+    "integrityCheck": "ok",
+    "foreignKeyCheck": [],
+    "clonePendingProposalSchemaValidated": true,
+    "cloneActualOpportunityPhase": "offer",
+    "initialRedReceived": "restore_candidate ready",
+    "expectedAndFixedResponse": "backup_schema_untrusted"
+  },
+  "schemaComparison": {
+    "trustedDefinition": "shared workspaceBaseSql(materialsMigration) and immutable release fragments, independent :memory: SQLite",
+    "comparison": "all sqlite_schema type/name/tbl_name/sql, including FTS shadow objects and autoindexes",
+    "allowedVariations": "unquoted SQL case and whitespace; quoted tokens/comments preserved; optional exact SQLite-generated sqlite_stat1/sqlite_stat4 structures",
+    "secondActiveWriter": false,
+    "candidateDdlBound": "Known object names/types checked before tokenization; each object SQL at most max(16384, 4 * trusted SQL length)."
+  },
+  "remaining": "Root coordinator must rebuild normal packaged app and include this guard in final G6 packaged verification; no whole-G6 PASS claim.",
+  "logs": {
+    "trigger_red": {
+      "path": "/tmp/g6-untrusted-schema-red.log",
+      "exitCode": 1,
+      "sha256": "1daaec3bfb431f6474c38486ba74b93cb1971333020e44e33fb00ad332e817a6",
+      "failed": 2,
+      "command": "node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/integration/g6-untrusted-schema.test.ts (initial two-case test before guard)"
+    },
+    "ordering_red": {
+      "path": "/tmp/g6-untrusted-schema-order-red.log",
+      "exitCode": 1,
+      "sha256": "352db29b32f8810b2e19b2eea6d4289edad34526fe89c58dd772fbded4fe7b34",
+      "failed": 1,
+      "skipped": 13,
+      "command": "node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/integration/g6-untrusted-schema.test.ts -t 'executable artifact views'"
+    },
+    "compatible_green": {
+      "path": "/tmp/g6-untrusted-schema-green.log",
+      "exitCode": 0,
+      "sha256": "105d471824b22a609dd9d26cc70ee497ed02a6ce7737914f16402f6973fede1e",
+      "passed": 13,
+      "command": "node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/integration/g6-untrusted-schema.test.ts (13 cases before final ordering case was added)"
+    },
+    "regression": {
+      "path": "/tmp/g6-untrusted-schema-regression.log",
+      "exitCode": 0,
+      "sha256": "a05c266a538a7aa396a169cbf9d3391eabdab544449b19567dedf6455a050b57",
+      "files": 5,
+      "passed": 16,
+      "command": "node_modules/node/bin/node node_modules/vitest/vitest.mjs run tests/integration/g4-data-backup.test.ts tests/integration/g4-data-lifecycle.test.ts tests/integration/g1-upgrade.test.ts tests/integration/g2-upgrade.test.ts tests/integration/g6-search-lifecycle.test.ts"
+    },
+    "typecheck": {
+      "path": "/tmp/g6-untrusted-schema-typecheck.log",
+      "exitCode": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "node_modules/node/bin/node node_modules/typescript/bin/tsc --noEmit"
+    },
+    "combined_green": {
+      "path": "/tmp/g6-backup-guard-order-green.log",
+      "exitCode": 0,
+      "files": 5,
+      "passed": 42,
+      "includesUntrustedCases": 14,
+      "sha256": "c1cd9d8cf302835dd5dcb90aa184b0b3aaada8859b4f5a429fc99db91c1e46a4",
+      "filesUnderTest": [
+        "tests/integration/g6-untrusted-schema.test.ts",
+        "tests/integration/g4-data-backup.test.ts",
+        "tests/integration/g6-f3-recovery.test.ts",
+        "tests/integration/g6-f3-backup-faults.test.ts",
+        "tests/integration/g6-f3-restore-runtime.test.ts"
+      ]
+    }
+  },
+  "notCovered": [
+    "packaged desktop execution of this new guard",
+    "external AI/Search/Feishu",
+    "system disk exhaustion",
+    "old Career"
+  ],
+  "orderingFix": {
+    "commit": "60c04fd",
+    "owner": "G6 F3 Platform backup",
+    "behavior": "readonly verify validates released structure and owner relations before any candidate integrity/FK/artifact queries",
+    "redReceived": "data_operation_failed",
+    "greenReceived": "backup_schema_untrusted"
+  },
+  "cases": {
+    "untrusted": 11,
+    "compatible": 3,
+    "total": 14,
+    "allPassed": true,
+    "attackKinds": [
+      "new proposal trigger on v5/v6",
+      "known table constraint changed",
+      "known table replaced by view",
+      "unknown view appended",
+      "existing trigger replaced by owner mutation",
+      "quoted literal case changed",
+      "FTS tokenizer replaced",
+      "FTS shadow definition changed",
+      "schema rejection before malformed owner JSON decode",
+      "executable artifact view rejected before FK/artifact inspection"
+    ],
+    "compatibleKinds": [
+      "normal v5 backup",
+      "normal v6 backup",
+      "keyword/whitespace variation with SQLite ANALYZE statistics"
+    ]
+  },
+  "frozen": {
+    "docs/product-spec/": {
+      "total": 12,
+      "unchanged": 12,
+      "files": [
+        {
+          "path": "docs/product-spec/SHA256SUMS.txt",
+          "sha256": "cc2f737350e2378801860e8b861fb9850371ef15a67764f27672697a8d364527",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/audit/R1-RECONCILIATION.md",
+          "sha256": "be13e01e36e2867e198b8f4e028657d413eb02bfa0fbedd27d6f788022c46597",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/audit/R2-FREEZE-REVIEW.md",
+          "sha256": "77ea51ff4663afd3987cdf6f345bcb063bce1c9ffc0eb0593e16c425d3a8a26e",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/audit/RECONCILIATION.md",
+          "sha256": "854ca619dd0541e66588e8137c6fc3b4790406a7adb857ac769d7904afa32a09",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/ACCEPTANCE.md",
+          "sha256": "66aae47a376b0fd62f774739d304bf91058a97ea4662c37be6602d56a47c66ee",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/AI.md",
+          "sha256": "3ee7fa44b1d671779b5f6f61d1a65d8b221112511823085e5348347846ef492a",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/DOMAIN.md",
+          "sha256": "a356182edbc9aa1a350f8ad010dc83c18a69d6e614ca492f57cdf1ab1320f463",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/JOURNEYS.md",
+          "sha256": "dfa9c5314403d68453e514860c309bd4bebdcb97e0978b536e614d6364eb6ace",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/MIGRATION.md",
+          "sha256": "dd3191d34ac5d8ecdce5127168d0a9f1724730c1d1752cc322194dba4995f0e5",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/PRODUCT.md",
+          "sha256": "fd74055806a56a4375eeae4a5a1ae41e2638aebc0b1588169e3284869f4b0c46",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/README.md",
+          "sha256": "2628c165a246c4bef2a63b74e26a8bb78a1b8a015e0aafe23a6f74d1e4eeca8b",
+          "unchanged": true
+        },
+        {
+          "path": "docs/product-spec/rebuild-spec/UX.md",
+          "sha256": "931410fde8726b8ef14374923856592a82e8b13122cd628a329557f22cee54be",
+          "unchanged": true
+        }
+      ]
+    },
+    "docs/architecture/": {
+      "total": 8,
+      "unchanged": 8,
+      "files": [
+        {
+          "path": "docs/architecture/ADR/001-LOCAL-TRANSACTIONS-AND-OWNERSHIP.md",
+          "sha256": "e9b1b81406b556cc6b722c4b83e430ca78bd098901003207ee64746c3c2f6250",
+          "unchanged": true
+        },
+        {
+          "path": "docs/architecture/ADR/002-DOCUMENTS-SOURCES-AND-FROZEN-HISTORY.md",
+          "sha256": "399a10cb0e42feba44f76f800674cb2825d5360b1a812f8e8245e1d2b50ddd9a",
+          "unchanged": true
+        },
+        {
+          "path": "docs/architecture/ADR/003-AUTHORITY-IS-NOT-RECOVERED-CONTENT.md",
+          "sha256": "f731ddbaab767cf1147e52351b2d112e371d392872e6a58166d84c78aaa2cfde",
+          "unchanged": true
+        },
+        {
+          "path": "docs/architecture/AI-RUNTIME.md",
+          "sha256": "e6b56f05a6ae9b2fa5e5cafd41507574bbc017afc273c80bb55c5676eddb0277",
+          "unchanged": true
+        },
+        {
+          "path": "docs/architecture/ARCHITECTURE.md",
+          "sha256": "ce3126f76975648d9af14389e5c01512309b7a801953579d8ef3ccd1747bdb49",
+          "unchanged": true
+        },
+        {
+          "path": "docs/architecture/DATA.md",
+          "sha256": "f9fa74b31f3344ace997e15b721848666d2dc5e895e33f6c9eef07c220349605",
+          "unchanged": true
+        },
+        {
+          "path": "docs/architecture/DELIVERY.md",
+          "sha256": "cc73f21585b44740c553ec8bf63778440ef8cad3b069e7b443732830f06ac702",
+          "unchanged": true
+        },
+        {
+          "path": "docs/architecture/MODULES.md",
+          "sha256": "c2e0739b22ed8805b05baf09c2700175c642374148cf007017984e144109d811",
+          "unchanged": true
+        }
+      ]
+    }
+  }
+}
