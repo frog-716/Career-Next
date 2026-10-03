@@ -39,6 +39,14 @@ export function createLedger(db: Database.Database) {
     },
     retainedArtifacts() {return db.prepare(`SELECT DISTINCT b.id,b.digest,b.size FROM platform_blobs b JOIN ${retention} r ON r.blob_id=b.id`).all() as {id:string;digest:string;size:number}[];},
     heldArtifact(commandId:string){const row=db.prepare(`SELECT b.id,b.digest,b.size FROM platform_blobs b JOIN ${holds} h ON h.blob_id=b.id WHERE h.command_id=?`).get(commandId) as {id:string;digest:string;size:number}|undefined;return row;},
+    /** Only an exact Materials intent digest may identify an import's pending holds. */
+    describeOperation(operation:'materials.confirm',payloadDigest:string){
+      return db.prepare(`SELECT r.command_id AS commandId,r.status,h.blob_id AS blobId FROM ${receipts} r LEFT JOIN ${holds} h ON h.command_id=r.command_id WHERE r.operation=? AND r.payload_digest=?`).all(operation,payloadDigest) as {commandId:string;status:'pending'|'committed'|'failed';blobId:string|null}[];
+    },
+    /** Import cleanup never revokes an independently committed Raw retention. */
+    purgeOperation(operation:'materials.confirm',payloadDigest:string){
+      db.transaction(()=>{for(const row of this.describeOperation(operation,payloadDigest))if(row.status==='pending')this.fail(row.commandId,'invalid_capability');})();
+    },
     describe(blobId: string) {return db.prepare('SELECT digest,size,state FROM platform_blobs WHERE id=?').get(blobId) as {digest:string;size:number;state:string}|undefined;},
     verifyHold(blobId: string, commandId: string, generation: string) {
       if (!db.prepare(`SELECT 1 FROM platform_blobs b JOIN ${holds} h ON b.id=h.blob_id WHERE b.id=? AND b.state='published' AND h.command_id=? AND h.generation=?`).get(blobId,commandId,generation)) throw new Error('invalid_capability');

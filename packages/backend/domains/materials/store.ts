@@ -27,6 +27,25 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
     return row;
   }
   return {
+    pendingImports(){return db.prepare("SELECT id,name,revision FROM materials_imports WHERE state IN ('preparing','preview') ORDER BY id").all() as {id:string;name:string;revision:1}[];},
+    importPurgeImpact(id:string){
+      const row=db.prepare('SELECT * FROM materials_imports WHERE id=?').get(id) as ImportRow|undefined;
+      if(!row||row.state==='consumed')return undefined;
+      const payload=createHash('sha256').update(JSON.stringify([id,row.revision,row.digest])).digest('hex');
+      const held=ledger.describeOperation('materials.confirm',payload).filter(value=>value.status==='pending');
+      const blobIds=held.flatMap(value=>value.blobId?[value.blobId]:[]);
+      return {id,revision:row.revision,name:row.name,producerIds:[id],commandIds:held.map(value=>value.commandId),holdIds:blobIds,blobIds,retentions:[]};
+    },
+    purgeImport(id:string){
+      db.transaction(()=>{
+        const row=db.prepare('SELECT * FROM materials_imports WHERE id=?').get(id) as ImportRow|undefined;
+        if(!row||row.state==='consumed')return;
+        const payload=createHash('sha256').update(JSON.stringify([id,row.revision,row.digest])).digest('hex');
+        ledger.purgeOperation('materials.confirm',payload);
+        // Missing capability blocks late preview/publish/commit and contains no residual import name.
+        db.prepare('DELETE FROM materials_imports WHERE id=?').run(id);
+      })();
+    },
     purgeImpact(id:string){const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(id) as RawRow|undefined;return row?{id,revision:1,name:row.name,blobIds:[row.blob_id],retentions:[{owner:'materials',objectId:id}]}:undefined;},
     purge(id:string){const row=db.prepare('SELECT digest FROM materials_raw WHERE id=?').get(id) as {digest:string}|undefined;if(row)db.prepare("UPDATE materials_imports SET name='cleared',digest='',size=0,validity=validity+1,state='revoked' WHERE digest=?").run(row.digest);db.prepare('DELETE FROM materials_raw WHERE id=?').run(id);},
     connect(): HumanSession {

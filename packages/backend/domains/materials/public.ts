@@ -31,6 +31,7 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
   let closing = false;
   const operations = new Set<Promise<unknown>>();
   const saves = new Map<string, Set<Promise<Receipt>>>();
+  const selections = new Map<string, Promise<Preview>>();
   function track<T>(job: Promise<T>) {
     operations.add(job);
     void job.finally(() => operations.delete(job)).catch(() => undefined);
@@ -45,7 +46,7 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
   async function selectFile(session: HumanSession, filename: string) {
     if (!['.txt', '.md'].includes(path.extname(filename).toLowerCase())) throw new Error('unsupported_file');
     const id = await writer.call('begin', session, path.basename(filename));
-    try {
+    const job=(async()=>{try {
       const file = await files.select(id, filename, () => writer.call('valid', session, id),await sinkFor?.(id));
       const preview = Preview.parse({ ...file, importId: id, revision: 1, saved: false });
       await writer.call('preview', session, preview);
@@ -54,9 +55,19 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
       await writer.call('cancel', session, id).catch(() => undefined);
       await files.remove(id).catch(() => undefined);
       throw new Error(error instanceof Error && ['unsupported_file', 'invalid_capability'].includes(error.message) ? error.message : 'file_failed');
-    }
+    }})();
+    selections.set(id,job);
+    try{return await job;}finally{selections.delete(id);}
   }
   return {
+    pendingImports:()=>writer.call('pendingImports'),
+    importPurgeImpact:(id:string)=>writer.call('importPurgeImpact',id),
+    async purgeImport(id:string){
+      await writer.call('purgeImport',id);
+      await Promise.allSettled([...(saves.get(id)??[]),...(selections.has(id)?[selections.get(id)!]:[])]);
+      await files.remove(id);
+      await collectGarbage();
+    },
     async connectHuman() {
       if (closing) throw new Error('disconnected');
       const session = await writer.call('connect');
