@@ -3,7 +3,7 @@ import path from 'node:path';
 import { LocalSearchRequest, LocalSearchResult } from '../../../contracts/application/local-search';
 export interface LocalSearchBudget { rows: number; bytes: number; comparisons: number; results: number; timeoutMs: number }
 export const defaultLocalSearchBudget: LocalSearchBudget = { rows: 256, bytes: 256 * 1024, comparisons: 500000, results: 50, timeoutMs: 1500 };
-export interface ReadProcessInput { filename: string; request: LocalSearchRequest; budget: LocalSearchBudget }
+export interface ReadProcessInput { filename: string; request: LocalSearchRequest; budget: LocalSearchBudget; hostParentPid: number }
 /** Trusted Main can replace Node fork with a fixed utilityProcess launcher. */
 export interface ReadProcess {
   send(input: ReadProcessInput): void;
@@ -49,7 +49,7 @@ export function createLocalSearch(directory: string, workerArtifact = path.join(
         signal?.addEventListener('abort', abort, { once: true });
         reader.onFailure(() => { void finish(failure(closed ? 'disconnected' : 'index_unavailable')); });
         reader.onMessage(value => { const result = LocalSearchResult.safeParse(value); void finish(result.success ? result.data : failure('index_unavailable')); });
-        try { reader.send({ filename: path.join(directory, 'career.sqlite'), request: parsed.data, budget }); }
+        try { reader.send({ filename: path.join(directory, 'career.sqlite'), request: parsed.data, budget, hostParentPid: process.pid }); }
         catch { void finish(failure('index_unavailable')); }
       });
     },

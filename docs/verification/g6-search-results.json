@@ -16,14 +16,33 @@
       "exit_code": 1,
       "command": "npx vitest run tests/integration/g6-search-query.test.ts --maxWorkers=1 (pre-fix cursor implementation)",
       "output": "\n RUN  v5.0.3 /Users/frog/.codex/worktrees/g6-f4-desktop/Career-Next\n\n ❯ tests/integration/g6-search-query.test.ts (5 tests | 1 failed) 1017ms\n   × a row-budget boundary between documents gives a usable continuation instead of restarting at the same first results 67ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  tests/integration/g6-search-query.test.ts > a row-budget boundary between documents gives a usable continuation instead of restarting at the same first results\nAssertionError: expected undefined to be defined\n ❯ tests/integration/g6-search-query.test.ts:100:29\n     98|       for (const item of result.items) found.add(item.id);\n     99|       if (!result.partial) break;\n    100|       expect(result.cursor).toBeDefined(); cursor = result.cursor;\n       |                             ^\n    101|     }\n    102|     expect([...found].sort()).toEqual(ids);\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 4 passed (5)\n   Start at  17:30:38\n   Duration  1.30s (tests 84%, import 12%, transform 4%)\n\n"
+    },
+    {
+      "case": "parent SIGKILL native reader orphan",
+      "exit_code": 1,
+      "command": "npx vitest run tests/integration/g6-search-parent-death.test.ts --maxWorkers=1 (pre-watchdog)",
+      "output": "\n RUN  v5.0.3 /Users/frog/.codex/worktrees/g6-f4-desktop/Career-Next\n\n ❯ tests/integration/g6-search-parent-death.test.ts (1 test | 1 failed) 687ms\n   × actual parent SIGKILL cannot leave a readonly helper orphaned in native SQL 629ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  tests/integration/g6-search-parent-death.test.ts > actual parent SIGKILL cannot leave a readonly helper orphaned in native SQL\nAssertionError: expected true to be false // Object.is equality\n\n- Expected\n+ Received\n\n- false\n+ true\n\n ❯ tests/integration/g6-search-parent-death.test.ts:39:38\n\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed (1)\n   Start at  17:36:19\n   Duration  906ms (tests 85%, import 12%, transform 2%)\n\n",
+      "observed": {
+        "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-parent-death-MjGgn6",
+        "parentPid": 61405,
+        "childPid": 61406,
+        "parentExit": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "elapsedMs": 503.08275000000003,
+        "helperAliveAfterDeadline": true,
+        "startedActualNativeSQL": true
+      },
+      "cleanup": "finally SIGKILL observed residual helper"
     }
   ],
   "final_tests": {
-    "command": "CAREER_SEARCH_PROBE_ELECTRON=/Users/frog/Projects/Career-Next/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron npx vitest run tests/g6-search.test.ts tests/integration/g6-search-query.test.ts tests/integration/g6-search-control.test.ts tests/integration/g6-search-electron-process.test.ts --maxWorkers=1",
+    "command": "CAREER_SEARCH_PROBE_ELECTRON=/Users/frog/Projects/Career-Next/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron npx vitest run tests/g6-search.test.ts tests/integration/g6-search-query.test.ts tests/integration/g6-search-control.test.ts tests/integration/g6-search-electron-process.test.ts tests/integration/g6-search-parent-death.test.ts --maxWorkers=1",
     "exit_code": 0,
-    "files": 4,
-    "passed": 11,
-    "output": "\n RUN  v5.0.3 /Users/frog/.codex/worktrees/g6-f4-desktop/Career-Next\n\n\n Test Files  4 passed (4)\n      Tests  11 passed (11)\n   Start at  17:33:00\n   Duration  4.07s (tests 88%, import 10%, transform 2%)\n\n    Isolate  4 workers spawned · ~88ms startup each (spawn + environment, per file)\n             at least ~264ms faster with isolate: false — reuses workers across files instead of one per file\n\n"
+    "files": 5,
+    "passed": 13,
+    "output": "\n RUN  v5.0.3 /Users/frog/.codex/worktrees/g6-f4-desktop/Career-Next\n\n\n Test Files  5 passed (5)\n      Tests  13 passed (13)\n   Start at  17:37:35\n   Duration  4.30s (tests 87%, import 11%, transform 2%)\n\n    Isolate  5 workers spawned · ~83ms startup each (spawn + environment, per file)\n             at least ~330ms faster with isolate: false — reuses workers across files instead of one per file\n\n"
   },
   "query": [
     {
@@ -34,7 +53,7 @@
         "items": [
           {
             "owner": "wiki",
-            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "id": "36bd0f7e-54b8-48c8-9353-f2e923c79aa2",
             "revision": 1,
             "title": "中文经验",
             "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
@@ -46,7 +65,7 @@
           "rows": 2,
           "bytes": 102,
           "comparisons": 8,
-          "elapsedMs": 2.3416659999999965
+          "elapsedMs": 2.5200419999999966
         }
       }
     },
@@ -58,7 +77,7 @@
         "items": [
           {
             "owner": "wiki",
-            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "id": "36bd0f7e-54b8-48c8-9353-f2e923c79aa2",
             "revision": 1,
             "title": "中文经验",
             "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
@@ -70,7 +89,7 @@
           "rows": 2,
           "bytes": 102,
           "comparisons": 8,
-          "elapsedMs": 2.3346659999999986
+          "elapsedMs": 2.4324999999999974
         }
       }
     },
@@ -82,7 +101,7 @@
         "items": [
           {
             "owner": "wiki",
-            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "id": "36bd0f7e-54b8-48c8-9353-f2e923c79aa2",
             "revision": 1,
             "title": "中文经验",
             "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
@@ -94,7 +113,7 @@
           "rows": 2,
           "bytes": 102,
           "comparisons": 8,
-          "elapsedMs": 3.199458
+          "elapsedMs": 2.386291
         }
       }
     },
@@ -106,7 +125,7 @@
         "items": [
           {
             "owner": "wiki",
-            "id": "5aa93707-f383-47f8-8be8-ff00a7b1b5d9",
+            "id": "36bd0f7e-54b8-48c8-9353-f2e923c79aa2",
             "revision": 1,
             "title": "中文经验",
             "snippet": "中文经验\n蒸牛蛙与中文输入。abc123"
@@ -118,7 +137,7 @@
           "rows": 2,
           "bytes": 102,
           "comparisons": 20,
-          "elapsedMs": 3.1456249999999955
+          "elapsedMs": 2.533166999999999
         }
       }
     },
@@ -134,7 +153,7 @@
           "rows": 1,
           "bytes": 56,
           "comparisons": 0,
-          "elapsedMs": 9.382291999999993
+          "elapsedMs": 2.286833999999999
         }
       }
     },
@@ -145,7 +164,7 @@
         "items": [
           {
             "owner": "wiki",
-            "id": "1b2ae22a-301c-4dce-9b7d-8ed757460a1a",
+            "id": "71f629cf-9b80-4efd-bb5b-b524084701ab",
             "revision": 1,
             "title": "另一个范围",
             "snippet": "另一个范围\n蒸牛蛙 unrelated scoped body"
@@ -157,7 +176,7 @@
           "rows": 2,
           "bytes": 106,
           "comparisons": 9,
-          "elapsedMs": 3.5431659999999994
+          "elapsedMs": 2.5594169999999963
         }
       }
     },
@@ -174,14 +193,14 @@
         "partial": true,
         "notice": "结果未完整检索",
         "cursor": {
-          "objectId": "5000bcde-c33c-45d6-af5d-ff52fadbf142",
+          "objectId": "0122fb8b-19bd-417c-a992-4e4d0b0362ee",
           "ordinal": 15
         },
         "observed": {
           "rows": 16,
           "bytes": 61478,
           "comparisons": 20476,
-          "elapsedMs": 4.2386669999999995
+          "elapsedMs": 4.076834000000005
         }
       }
     },
@@ -198,14 +217,14 @@
         "partial": true,
         "notice": "结果未完整检索",
         "cursor": {
-          "objectId": "5000bcde-c33c-45d6-af5d-ff52fadbf142",
+          "objectId": "0122fb8b-19bd-417c-a992-4e4d0b0362ee",
           "ordinal": 1
         },
         "observed": {
           "rows": 2,
           "bytes": 4148,
           "comparisons": 1366,
-          "elapsedMs": 2.611791999999994
+          "elapsedMs": 2.5588339999999974
         }
       }
     },
@@ -222,14 +241,14 @@
         "partial": true,
         "notice": "结果未完整检索",
         "cursor": {
-          "objectId": "5000bcde-c33c-45d6-af5d-ff52fadbf142",
+          "objectId": "0122fb8b-19bd-417c-a992-4e4d0b0362ee",
           "ordinal": 0
         },
         "observed": {
           "rows": 2,
           "bytes": 4148,
           "comparisons": 100,
-          "elapsedMs": 3.3177909999999997
+          "elapsedMs": 2.218499999999999
         }
       }
     },
@@ -240,7 +259,7 @@
         "items": [
           {
             "owner": "project",
-            "id": "718b4f44-cfea-4da6-b5fd-4d4d77dadaac",
+            "id": "390fac2f-3c14-4b8a-942c-66614c90aed1",
             "revision": 1,
             "title": "X",
             "snippet": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa蒸牛蛙 abc123"
@@ -252,7 +271,7 @@
           "rows": 2,
           "bytes": 124,
           "comparisons": 66,
-          "elapsedMs": 3.664041999999995
+          "elapsedMs": 2.3659999999999997
         }
       },
       "old": {
@@ -264,7 +283,7 @@
           "rows": 1,
           "bytes": 47,
           "comparisons": 0,
-          "elapsedMs": 2.8743750000000006
+          "elapsedMs": 2.2874579999999938
         }
       },
       "removed": {
@@ -276,7 +295,7 @@
           "rows": 0,
           "bytes": 0,
           "comparisons": 0,
-          "elapsedMs": 2.1840839999999986
+          "elapsedMs": 2.182583000000001
         }
       }
     },
@@ -302,11 +321,11 @@
     {
       "scenario": "document boundary cursor",
       "expectedIds": [
-        "121f3d45-3af1-4fc0-bca2-5733eb866a46",
-        "5597d9aa-a3c2-4e42-a4cf-554b1627a9bd",
-        "5731f4f8-be6e-42f0-a180-0ee4f8e3f10b",
-        "912db082-890e-4e9d-b6bc-ea4917eca7e7",
-        "dcbe0c26-60b0-44de-85f1-61be8a050f59"
+        "1fd76fe4-896b-434a-9def-a7ff8a2c103a",
+        "402e8d8f-93c7-42e4-b577-465a58c5cae0",
+        "4cacdcea-92d2-43da-baa9-c80663ab46a2",
+        "a7cbd0d0-0dfb-4c0d-ba13-c647f0c5003e",
+        "cf6f33f1-522b-4455-b039-ed2c4d1bd9a5"
       ],
       "pages": [
         {
@@ -314,14 +333,14 @@
           "items": [
             {
               "owner": "project",
-              "id": "121f3d45-3af1-4fc0-bca2-5733eb866a46",
+              "id": "1fd76fe4-896b-434a-9def-a7ff8a2c103a",
               "revision": 1,
               "title": "中",
               "snippet": "中\n中"
             },
             {
               "owner": "project",
-              "id": "5597d9aa-a3c2-4e42-a4cf-554b1627a9bd",
+              "id": "402e8d8f-93c7-42e4-b577-465a58c5cae0",
               "revision": 1,
               "title": "中",
               "snippet": "中\n中"
@@ -330,14 +349,14 @@
           "partial": true,
           "notice": "结果未完整检索",
           "cursor": {
-            "objectId": "5597d9aa-a3c2-4e42-a4cf-554b1627a9bd",
+            "objectId": "402e8d8f-93c7-42e4-b577-465a58c5cae0",
             "ordinal": 9007199254740991
           },
           "observed": {
             "rows": 4,
             "bytes": 108,
             "comparisons": 2,
-            "elapsedMs": 2.7473750000000052
+            "elapsedMs": 2.47025
           }
         },
         {
@@ -345,7 +364,7 @@
           "items": [
             {
               "owner": "project",
-              "id": "5731f4f8-be6e-42f0-a180-0ee4f8e3f10b",
+              "id": "4cacdcea-92d2-43da-baa9-c80663ab46a2",
               "revision": 1,
               "title": "中",
               "snippet": "中\n中"
@@ -354,14 +373,14 @@
           "partial": true,
           "notice": "结果未完整检索",
           "cursor": {
-            "objectId": "912db082-890e-4e9d-b6bc-ea4917eca7e7",
+            "objectId": "a7cbd0d0-0dfb-4c0d-ba13-c647f0c5003e",
             "ordinal": 0
           },
           "observed": {
             "rows": 4,
             "bytes": 148,
             "comparisons": 1,
-            "elapsedMs": 3.484250000000003
+            "elapsedMs": 2.2974999999999994
           }
         },
         {
@@ -369,14 +388,14 @@
           "items": [
             {
               "owner": "project",
-              "id": "912db082-890e-4e9d-b6bc-ea4917eca7e7",
+              "id": "a7cbd0d0-0dfb-4c0d-ba13-c647f0c5003e",
               "revision": 1,
               "title": "中",
               "snippet": "中\n中"
             },
             {
               "owner": "project",
-              "id": "dcbe0c26-60b0-44de-85f1-61be8a050f59",
+              "id": "cf6f33f1-522b-4455-b039-ed2c4d1bd9a5",
               "revision": 1,
               "title": "中",
               "snippet": "中\n中"
@@ -385,14 +404,14 @@
           "partial": true,
           "notice": "结果未完整检索",
           "cursor": {
-            "objectId": "dcbe0c26-60b0-44de-85f1-61be8a050f59",
+            "objectId": "cf6f33f1-522b-4455-b039-ed2c4d1bd9a5",
             "ordinal": 9007199254740991
           },
           "observed": {
             "rows": 4,
             "bytes": 108,
             "comparisons": 2,
-            "elapsedMs": 6.483499999999992
+            "elapsedMs": 2.3716250000000016
           }
         },
         {
@@ -404,16 +423,16 @@
             "rows": 1,
             "bytes": 47,
             "comparisons": 0,
-            "elapsedMs": 2.4770420000000044
+            "elapsedMs": 2.164292000000003
           }
         }
       ]
     }
   ],
   "native_sql_timeout": {
-    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-control-M2YTM2",
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-control-o2IFn2",
     "timeoutMs": 300,
-    "closeMs": 0.028208000000063294,
+    "closeMs": 0.027582999999935964,
     "result": {
       "kind": "local-search.failure",
       "code": "index_unavailable",
@@ -422,9 +441,9 @@
     }
   },
   "sqlite_busy": {
-    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-busy-8gFUYj",
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-busy-DBpCvD",
     "journalMode": "DELETE (controlled read-lock fault)",
-    "localControlMs": 1.0069580000000542,
+    "localControlMs": 0.8556250000000318,
     "result": {
       "kind": "local-search.failure",
       "code": "index_unavailable",
@@ -436,7 +455,7 @@
       "items": [
         {
           "owner": "wiki",
-          "id": "048ed617-bcf1-4d5c-9ca8-ad6fd252ab60",
+          "id": "dae49478-729b-4e2f-8b2c-6dbb7bd725ac",
           "revision": 1,
           "title": "中文",
           "snippet": "中文\n蒸牛蛙"
@@ -448,12 +467,12 @@
         "rows": 2,
         "bytes": 66,
         "comparisons": 6,
-        "elapsedMs": 2.302166999999997
+        "elapsedMs": 2.311582999999999
       }
     }
   },
   "backup_fts_cancel": {
-    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-concurrent-DkK9pm",
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-concurrent-Nf2oMG",
     "backupPendingAtRevoke": true,
     "progressCalls": 1411,
     "maintenance": {
@@ -461,7 +480,7 @@
       "failed": 0,
       "pending": true
     },
-    "revokeToExitMs": 1.6946249999999736,
+    "revokeToExitMs": 2.243208999999979,
     "result": {
       "kind": "local-search.failure",
       "code": "cancelled",
@@ -471,7 +490,7 @@
     "backupIntegrity": "ok"
   },
   "electron_utility_helper": {
-    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-electron-RIe0h3",
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-electron-r0HUT5",
     "result": {
       "utilityExecPath": "/Users/frog/Projects/Career-Next/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper",
       "helper": {
@@ -501,5 +520,40 @@
     "normal App stop/revoke while search/FTS/backup active",
     "release6 owner dirty notifications",
     "purge / filtered backup / restore rebuild"
-  ]
+  ],
+  "parent_sigkill": {
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-parent-death-627wE9",
+    "parentPid": 63083,
+    "childPid": 63084,
+    "parentExit": {
+      "code": null,
+      "signal": "SIGKILL"
+    },
+    "elapsedMs": 73.193334,
+    "helperAliveAfterDeadline": false,
+    "startedActualNativeSQL": true
+  },
+  "child_self_deadline": {
+    "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-search-self-deadline-GFtTmh",
+    "parentPid": 63085,
+    "childPid": 63086,
+    "helperExit": {
+      "code": null,
+      "signal": "SIGKILL"
+    },
+    "elapsedMs": 435.23175,
+    "hostAlive": true,
+    "hostTimer": false,
+    "childDeadlineMs": 300
+  },
+  "watchdog": {
+    "kind": "fixed branch in same artifact Worker",
+    "poll_ms": 50,
+    "maximum_helpers": 2,
+    "watchdogs_per_helper": 1,
+    "database_connections": 0,
+    "eval": false,
+    "parent_death": "OS ppid mismatch or original parent no longer exists",
+    "self_deadline": "trusted timeout capped at 5000ms; production default 1500ms"
+  }
 }

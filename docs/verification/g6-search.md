@@ -7,7 +7,7 @@
 - `platform/search/public.ts` 暴露 `createLocalSearch`、`createLocalSearchIndex` 和 `localSearchMigration`。固定 owner 为 Wiki / Opportunity / Project；Renderer 仅提交查询、已注册范围和主键游标，不能提供 SQL、表名、文件路径、执行预算或脚本。
 - 唯一 writer 从公开 owner DTO 建立可重建投影，dirty queue 只记录 owner / ID。维护每批最多 8 个 DTO，单个正文 UTF-8 上限 768000 bytes，chunk 上限 4096 bytes；固定 63 字符重叠保留所有支持的跨块查询。增量 FTS merge 限为 2 pages。维护失败不得改变正式业务 receipt；组合层负责独立调度及重新检查正式 owner 的范围 / revision。
 - 候选使用 owner / scope / scopeId / active 索引和 UUID 主键范围游标；chunk 使用 owner / ID / ordinal 范围。中文 1、2 字使用有界 chunk 比较，3 字及以上使用真实 trigram FTS 后精确比较。不会查询 `json_extract` 或扫描整个 owner JSON 正文。
-- 固定只读子进程打开 `readonly:true`、`query_only=ON` 的连接，不成为新 writer。最多 2 个并发查询；超时 / 取消 / close 发送 SIGKILL，等待实际 exit 才释放查询槽并返回。`ReadProcessSpawner` 允许可信 Main 换成固定 utilityProcess launcher，无任意执行接口。
+- 固定只读子进程打开 `readonly:true`、`query_only=ON` 的连接，不成为新 writer。最多 2 个并发查询；超时 / 取消 / close 发送 SIGKILL，等待实际 exit 才释放查询槽并返回。每个 helper 另有同 artifact 的固定 Worker watchdog，仅用 50ms timer 检查 OS 父 PID / 存活及自身 deadline，不打开 DB。在主线程阻塞于原生 SQL 时也能 SIGKILL 本 helper；不依赖父计时器或 IPC disconnect 回调。`ReadProcessSpawner` 允许可信 Main 换成固定 utilityProcess launcher，无任意执行接口；跨进程 launcher 必须提供真正 OS 父 PID。
 - 当前 Forge RunAsNode fuse 基线开启；真实 Electron 44.5.1 Main → utility → 固定 helper 启动已验证，继承的 `process.execPath` 是 Electron Helper。生产打包行为仍由主线 packaged smoke 确认。
 - 默认预算：256 返回投影行、262144 UTF-8 payload bytes、500000 次精确字符比较、50 个结果、1500ms。超预算、dirty 投影、读锁或超时均显示“结果未完整检索”，不能把不完整空结果写成全库无匹配。
 
@@ -15,12 +15,13 @@
 
 1. 原生 SQLite 长读：隔离 readonly worker 真实执行 10000000 次递归 CTE。原先 Node Worker thread 在请求 terminate 后仍等待原生 SQL，`close()` 实测 **943.579959ms**，违反 `<500ms`，测试 exit 1。改为专用子进程 SIGKILL 后相同真实 SQL 提前终止，等待实际退出，再 `close()` 无 SQL 等待，测试 exit 0。启动 marker 证明 SQL 已实际开始，未以抛 Error 模拟卡顿。
 2. 文档间预算边界：5 个 Project 投影、每页 4 行预算，真实查询返回 partial 却缺 cursor，续查测试 exit 1。修复为已完成文档记录最大 ordinal；确认完整结束才清除 cursor。测试续查取得全部 5 个 ID，exit 0。
+3. 父进程异常退出：进一步把隔离 SQL 强化为 100000000 次递归，真实 SIGKILL 父进程后 503.08275ms helper 仍存活，测试 exit 1（finally 主动回收残留）。增加独立 watchdog 后，真实父 SIGKILL 到 helper 不再存在实测 **73.193334ms**。另用存活但没有任何 host timeout 的父进程证明 helper 自身 300ms deadline，实际退出信号 SIGKILL，含启动总耗时 **435.23175ms**。两项测试 exit 0。
 
-两次红灯原始输出及最终命令 / exit 保存在 [g6-search-results.json](g6-search-results.json)；本机原始日志为 `/tmp/g6-search-native-sql-red.log` 和 `/tmp/g6-search-cursor-red.log`。
+三次红灯原始输出及最终命令 / exit 保存在 [g6-search-results.json](g6-search-results.json)；本机原始日志为 `/tmp/g6-search-native-sql-red.log`、`/tmp/g6-search-cursor-red.log` 和 `/tmp/g6-search-parent-death-red.log`。
 
 ## 自动回归证据
 
-4 个测试文件，11 项 PASS，最终命令 exit 0；`npm run typecheck` exit 0。测试使用实际 SQLite 文件、实际 FTS、实际子进程和实际 SQLite Backup API。
+5 个测试文件，13 项 PASS，最终命令 exit 0；`npm run typecheck` exit 0。测试使用实际 SQLite 文件、实际 FTS、实际子进程和实际 SQLite Backup API。
 
 - 中文“蛙 / 牛蛙 / 蒸牛蛙”、英文大小写、真正无匹配、scope / scopeId / active 边界、拒绝额外 SQL 字段：PASS。
 - 8 个各 64000 字中文正文的行 / UTF-8 字节 / 比较预算：PASS；实际返回行与 payload bytes、实际执行比较数逐项记录，超限显示 incomplete 并提供 chunk 游标。
@@ -29,6 +30,7 @@
 - 受控 `journal_mode=DELETE` + `BEGIN EXCLUSIVE` 产生实际读锁失败；独立本地控制 callback 继续响应；ROLLBACK 后重新查到真实命中：PASS。此 callback 仅是独立事件循环响应证据，正常应用 revoke/stop 验收见主线报告。
 - 真实 WAL fixture、64 个大正文投影、原生长读 + SQLite backup（每次 1 page）+ dirty batch 8 / FTS merge 2 同时运行；backup 尚未完成时 AbortController 取消实际读进程，等待其 exit，backup 最终 `integrity_check=ok`：PASS。
 - 独立实际 Electron utility execPath 固定 helper 启动：PASS；未触碰应用用户数据、钥匙串或 UI。
+- 真实 native SQL 中 SIGKILL 父进程，helper 被独立 watchdog 回收；父存活无 host timer 时 helper 自身 deadline 强制终止：PASS。固定 watchdog 分支没有查询执行能力。
 
 最新实测数值、fixture 路径、query plans、完整结果和命令输出见 JSON。时间只是本机受控样本，不作为吞吐量承诺。
 
