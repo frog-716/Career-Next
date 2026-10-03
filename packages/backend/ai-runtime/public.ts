@@ -29,6 +29,9 @@ export function createAiRuntime(db:Database.Database,ports:AiPorts){
  }
  function read(id:string):Task{
   const value=task(id);const operations=(db.prepare('SELECT data_json FROM ai_operations WHERE task_id=? ORDER BY rowid').all(id) as {data_json:string}[]).map(row=>JSON.parse(row.data_json) as Operation);
+  // Re-establish public source locators after restart, without resurrecting execution grants.
+  for(const ref of value.sources){try{ports.sources.current(ref);}catch{/* Body projection below fails closed. */}}
+  for(const op of operations)for(const input of op.provenance)if(input.owner==='wiki'){try{ports.wiki.read(input.objectId);}catch{/* Current permission is still checked below. */}}
   let unavailable=false;const canRead=(provenance:Proposal['provenance'])=>provenance.every(item=>{try{return ports.sources.provenanceCurrent(item)?.read===true;}catch{return false;}});
   for(const op of operations)if(!canRead(op.provenance)){delete op.manifest;unavailable=true;}
   const proposals=(db.prepare('SELECT data_json FROM ai_proposals WHERE task_id=? ORDER BY rowid').all(id) as {data_json:string}[]).flatMap(row=>{const proposal=JSON.parse(row.data_json) as Proposal;if(!canRead(proposal.provenance)){unavailable=true;return [];}if(proposal.state==='pending'){try{validateProposal(proposal);proposal.validity='current';}catch(error){const reason=error instanceof Error?error.message:'source_unavailable';proposal.validity=reason==='conflict'?'conflict':reason==='stale'?'stale':'source_unavailable';}}return [proposal];});
@@ -91,7 +94,7 @@ export function createAiRuntime(db:Database.Database,ports:AiPorts){
      validateProposal(proposal);
      const before=proposal.change.kind==='create'?undefined:ports.wiki.read(proposal.change.itemId);
      const token=freshFence(`human-apply:${request.commandId}`,proposal,proposal.change.kind==='create'?undefined:proposal.change.itemId);ports.fence.assert(token);
-     ports.wiki.apply({commandId:request.commandId,proposalId:proposal.id,target:proposal.target,change:proposal.change,before,sources:proposal.sources,edited:request.edited});
+     ports.wiki.apply({commandId:request.commandId,proposalId:proposal.id,target:proposal.target,change:proposal.change,before,sources:proposal.sources,provenance:proposal.provenance,edited:request.edited});
      ports.fence.assert(token);if(!ports.humanAllowed())throw Error('permission_revoked');
      proposal.state='accepted';proposal.receiptId=request.commandId;put('ai_proposals',proposal.id,proposal);return {kind:'decided',proposalId:proposal.id,state:'accepted',receiptId:request.commandId};
     }
@@ -158,4 +161,5 @@ export function createAiRuntime(db:Database.Database,ports:AiPorts){
 export function sanitizeAiCandidate(db:Database.Database){
  for(const row of db.prepare('SELECT id,data_json FROM ai_operations').all() as {id:string;data_json:string}[]){const op=JSON.parse(row.data_json) as Operation;op.authorized=false;delete op.manifest;if(['processing','dispatching'].includes(op.state)){op.state='outcome_unknown';op.reason='restored_handoff_unconfirmed';}db.prepare('UPDATE ai_operations SET data_json=? WHERE id=?').run(JSON.stringify(op),row.id);}
  redactedCommandResults(db,'ai',result=>Result.safeParse(result).success&&(result as Result).kind==='task',{kind:'failure',code:'historical_receipt_body_unavailable'});
+ db.prepare('UPDATE ai_operations SET fence_json=?').run('{}');
 }

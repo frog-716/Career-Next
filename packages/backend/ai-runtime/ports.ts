@@ -6,7 +6,7 @@ export interface FenceToken {id:string;producerId:string;workspaceInstance:strin
 export interface AiPorts {
  identity:{workspaceInstance:string;backendGeneration:string};
  sources:{read(ref:SourceRef):SourceSnapshot|undefined;current(ref:SourceRef):SourceSnapshot|undefined;provenanceCurrent(input:Provenance):{revision:number;read:boolean;egress:boolean}|undefined};
- wiki:{validateTarget(target:Target):boolean;list(target:Target):WikiSnapshot[];read(id:string):WikiSnapshot|undefined;apply(input:{commandId:string;proposalId:string;target:Target;change:Change;before?:WikiSnapshot;sources:SourceRef[];edited?:Content}):void};
+ wiki:{validateTarget(target:Target):boolean;list(target:Target):WikiSnapshot[];read(id:string):WikiSnapshot|undefined;apply(input:{commandId:string;proposalId:string;target:Target;change:Change;before?:WikiSnapshot;sources:SourceRef[];provenance:Provenance[];edited?:Content}):void};
  fence:{capture(input:{producerId:string;inputs:{owner:string;objectId:string;revision?:number}[];targets:{owner:string;objectId:string}[]}):FenceToken;assert(token:FenceToken):void;revoke(producerId:string):void};
  humanAllowed():boolean;
 }
