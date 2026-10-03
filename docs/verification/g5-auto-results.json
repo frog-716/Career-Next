@@ -1,0 +1,723 @@
+{
+  "recordedAt": "2026-10-03T08:29:26.639408+00:00",
+  "g5Status": "PARTIAL",
+  "g5LocalProductFlow": "PASS",
+  "manualDesktop": "PASS",
+  "remainingGate": "J-07 real external evidence only",
+  "baseline": "66ede4cd2f51787b5375caa8489512972edb28d0",
+  "preCheckpointHead": "0f8cd658901f2485666121fb932f83d68c458202",
+  "sourceDigest": "7268e15e5441d9987864161d7e61f3df694fa81cc2c46375a4d0f9fb897a9057",
+  "sourceFiles": 328,
+  "commands": [
+    {
+      "command": "npm ci",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/npm-ci.log",
+      "logSha256": "c8414dc0b9f8b26a1caedfd117584670ec80a0e8a001659755c4f37e27c70f9e",
+      "summary": [
+        "found 0 vulnerabilities"
+      ]
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/typecheck.log",
+      "logSha256": "ce31c06d44db372d7ffaac4fd8fb58dd89015c5ebc06e7293a3f5f882e13d1e9",
+      "summary": []
+    },
+    {
+      "command": "npm test -- --maxWorkers=2",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/unit.log",
+      "logSha256": "47565c73806f5e8bdab39c5e6197c2df776d2f6a105c3194c852a886b32d04b2",
+      "summary": [
+        "Test Files  38 passed (38)",
+        "Tests  82 passed (82)",
+        "Duration  53.93s (tests 93%, import 6%, transform 1%)"
+      ]
+    },
+    {
+      "command": "npm run test:integration -- --maxWorkers=2",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/integration.log",
+      "logSha256": "c47238a8e6ba3ebabfad9fedd61daecc8203443c3f508627ab5efc69947b979d",
+      "summary": [
+        "Test Files  59 passed (59)",
+        "Tests  239 passed (239)",
+        "Duration  29.42s (tests 80%, import 15%, transform 5%)"
+      ]
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/build.log",
+      "logSha256": "4578c8bf790d2238a5c0e6905741403d15e086042e64c2c66dd5254b46c079ae",
+      "summary": []
+    },
+    {
+      "command": "npm run test:g0",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/g0-unit.log",
+      "logSha256": "bee4020c981fd7d5aa958194a8a1b92311c214a9c15c25f88659e96d0af94cae",
+      "summary": [
+        "Test Files  1 passed (1)",
+        "Tests  3 passed (3)",
+        "Duration  242ms (import 76%, transform 15%, tests 7%, worker 2%)"
+      ]
+    },
+    {
+      "command": "npm run build:g0",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/g0-build.log",
+      "logSha256": "e0c3f43ab308e51f7bb822504222b711dce7704caba9a9f1611fab5497222d67",
+      "summary": []
+    },
+    {
+      "command": "npm run smoke:g0",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/g0-smoke.log",
+      "logSha256": "88c4492c687ffc69447fc95d6d3a5c8a479587f22c21f384af41fae895f63a48",
+      "summary": [
+        "Test Files  1 passed (1)",
+        "Tests  1 passed (1)",
+        "Duration  11.55s (tests 98%, import 2%)"
+      ]
+    },
+    {
+      "command": "npx vitest run tests/desktop --maxWorkers=1",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/desktop-dev-release.log",
+      "logSha256": "a67789b4cf566012a92dff9cc2f90a43f8dbc1d6debc11c66a911980d65eb8d5",
+      "summary": [
+        "Test Files  10 passed (10)",
+        "Tests  11 passed (11)",
+        "Duration  94.07s (tests 97%, import 3%)"
+      ]
+    },
+    {
+      "command": "CAREER_PACKAGED=1 CAREER_PACKAGED_EXECUTABLE=<final arm64 executable> npx vitest run tests/desktop --maxWorkers=1",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/desktop-packaged-final.log",
+      "logSha256": "eb177428b42c206ff4661b745cb7949c1e5895cc3ac4c74bb1c26f802fed500e",
+      "summary": [
+        "Test Files  10 passed (10)",
+        "Tests  11 passed (11)",
+        "Duration  93.50s (tests 97%, import 3%)"
+      ]
+    },
+    {
+      "command": "ForgeAPI.package({outDir:out/g5-final,arch:arm64,platform:darwin})",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/package.log",
+      "logSha256": "8fa66cf49572b013f48f2ff32e70410d8a7cc233eb29ca01e4be5e4280146b17",
+      "summary": [
+        "❯ Packaging for arm64 on darwin",
+        "✔ Packaging for arm64 on darwin"
+      ]
+    },
+    {
+      "command": "codesign --verify --deep --strict <final app>",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-final/codesign.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": []
+    }
+  ],
+  "packaged": {
+    "app": "/Users/frog/Projects/Career-Next/out/g5-final/CareerNext-darwin-arm64/CareerNext.app",
+    "arch": "arm64",
+    "asarSha256": "1926e4d87093f5699a31421430d12a9f27c32cab5108689cf89d927b70f88af5",
+    "exactDistFilesMatched": 7,
+    "files": [
+      {
+        "file": "dist/application/main.cjs",
+        "sha256": "4b8873ad066644f7e592885e4f9cb48961a0c0f961bed63b585ff587738f6527"
+      },
+      {
+        "file": "dist/application/preload.cjs",
+        "sha256": "8468df2e16b7517cd018754e6d84dbcb3aaec04689a1644d5fde734b72790317"
+      },
+      {
+        "file": "dist/application/utility.cjs",
+        "sha256": "66b81dc3b6a580be4a218a4ab4e09317be49d2e27d03ef05b1c62785813773db"
+      },
+      {
+        "file": "dist/application/writer.cjs",
+        "sha256": "b1dd7ddf897fb8be97fc28db86b04c693c51a0bfdb348360b5c0dce4f66cae46"
+      },
+      {
+        "file": "dist/materials-renderer/assets/index-CAjya1a2.css",
+        "sha256": "6d72d3e447d3e1807c9464d548c06511c60e1b534994d0bc7ae61a90b11c9c25"
+      },
+      {
+        "file": "dist/materials-renderer/assets/index-DbP_S10k.js",
+        "sha256": "c3b9d509c5f2b14986165cc2cc7f807f5dd056c050b740a26fff6aaf3958ea5e"
+      },
+      {
+        "file": "dist/materials-renderer/index.html",
+        "sha256": "923f4d92e1af01431cf8939a37324d7b0d167284957b9b6e68e1cf8e0b81aeab"
+      }
+    ],
+    "normalProductionBuild": true,
+    "testOnlyBridge": false,
+    "signing": "local ad-hoc only"
+  },
+  "acceptance104": {
+    "DEFER_G6": 28,
+    "PASS_ALREADY": 38,
+    "PASS_G5": 31,
+    "CONDITIONAL": 1,
+    "EXTERNAL_LIVE_PENDING": 1,
+    "DEFER_M": 5
+  },
+  "acceptanceIDsExact": true,
+  "evidenceLinksValid": true,
+  "frozen": {
+    "docs/product-spec": {
+      "files": 12,
+      "unchanged": true
+    },
+    "docs/architecture": {
+      "files": 8,
+      "unchanged": true
+    }
+  },
+  "review": {
+    "standards": "PASS G5 increment; 0 unresolved incremental blockers; 1 observed baseline P2 Wiki late-open risk deferred to G6",
+    "spec": "PASS code; original Offer P2 resolved, J-07 external gate preserved",
+    "architecture": "PASS; no boundary/owner violation"
+  },
+  "ready": [
+    "Developer ID",
+    "Notarization",
+    "x64"
+  ],
+  "realProvider": "NOT TESTED",
+  "realSearch": "NOT TESTED",
+  "realFeishu": "NOT TESTED",
+  "oldCareerRead": false,
+  "manualSession": {
+    "result": "PASS",
+    "evidence": "g5-manual-desktop-final.md",
+    "snapshot": {
+      "snapshotDir": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g5-final-human-evidence-28cuw7zj",
+      "manualApp": {
+        "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g5-version-format-retest-Nljr8l",
+        "profile": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g5-version-format-retest-Nljr8l/profile",
+        "opportunityId": "b7f3b333-faa5-4992-a486-cd3034ed9fe3",
+        "resumeId": "8bee44cb-d2ab-497d-a08b-8ee9b7c2360a",
+        "taskId": "4acbeeac-f1d5-4f81-abc4-5636638a67a9",
+        "proposalId": "e97b7ee7-764a-4113-b674-28ec990a0e49",
+        "selectedBlockId": "f79a1e97-0420-4626-9c47-153cfc02c599",
+        "preparedAt": "2026-10-03T07:30:02.451Z",
+        "manual": "PENDING RETEST",
+        "testDataOnly": true,
+        "app": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g5-version-format-package-KzIezf/CareerNext-darwin-arm64/CareerNext.app",
+        "executablePath": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g5-version-format-package-KzIezf/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+        "asarSHA256": "04b1fbda5936d8be8a931e445b68344be7ce4f7ce8b7c24d195049dbceb4ab3f",
+        "normalLaunchPending": false,
+        "normalLaunchAt": "2026-10-03T07:31:08.826893+00:00",
+        "pid": 16346,
+        "manualReady": true,
+        "proposalLoadedThroughUI": true,
+        "aiPanelCollapsedForInput": true
+      },
+      "pdfs": [
+        {
+          "versionId": "07bff082-71e3-428f-af7d-5be7be055944",
+          "digest": "091be44ac9480e56cf84b3fecdfb9e35f371fbae96770fb78b3de28bcab3854c",
+          "size": 61299
+        }
+      ],
+      "currentRevision": 43,
+      "versionCount": 1
+    },
+    "bugsFoundFixed": 2
+  },
+  "uxBacklog": "docs/backlog/g5-ux-polish.md",
+  "checkpointEvidence": "Final checkpoint identity and push/remote equality are recorded in Git and Issue closing report; this JSON is part of that checkpoint.",
+  "historicalEvidence": {
+    "recordedAt": "2026-10-03T05:10:59.643Z",
+    "g5Status": "PARTIAL",
+    "manualDesktop": "PENDING",
+    "baseline": "66ede4cd2f51787b5375caa8489512972edb28d0",
+    "head": "0f8cd658901f2485666121fb932f83d68c458202",
+    "uncommittedSourceDigest": "b51ac5cce998528778557e87658fbdd42388112896feb072a217d9b482ff8e7f",
+    "sourceFiles": 326,
+    "commands": [
+      {
+        "command": "npm ci",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-ci.log",
+        "logSha256": "98b99b93ef4bd2591a4ddb6bad4127614a17efbc863327d04b3aa4b50cadd0f0",
+        "summary": [
+          "found 0 vulnerabilities"
+        ]
+      },
+      {
+        "command": "npm run typecheck",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-typecheck-final.log",
+        "logSha256": "ce31c06d44db372d7ffaac4fd8fb58dd89015c5ebc06e7293a3f5f882e13d1e9",
+        "summary": []
+      },
+      {
+        "command": "npm test -- --maxWorkers=2",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-unit-final.log",
+        "logSha256": "fb5b15596721725ab3fead4cf95d323932fbf7ed88d7f4e0d089ab183ae68492",
+        "summary": [
+          "Test Files  37 passed (37)",
+          "Tests  79 passed (79)",
+          "Start at  13:05:38",
+          "Duration  39.03s (tests 92%, import 7%, transform 1%)"
+        ]
+      },
+      {
+        "command": "npm run test:integration -- --maxWorkers=2",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-integration-current.log",
+        "logSha256": "351e73dea71895b24eb07dd56e4bfd5b43e6dee10e09e554770b940f05c2e056",
+        "summary": [
+          "Test Files  59 passed (59)",
+          "Tests  239 passed (239)",
+          "Start at  12:53:35",
+          "Duration  20.12s (tests 85%, import 12%, transform 2%)"
+        ]
+      },
+      {
+        "command": "npm run build",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-build.log",
+        "logSha256": "8036556fb1bd8920996b5aff46dbb2bd1cfa7d74b277db59110afd6cb525dc35",
+        "summary": []
+      },
+      {
+        "command": "npm run test:g0",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-g0-unit.log",
+        "logSha256": "c906deef036eac393b02737a20964e9c1873c6b885270232b7fec5a28f507cb2",
+        "summary": [
+          "Test Files  1 passed (1)",
+          "Tests  3 passed (3)",
+          "Start at  12:50:33",
+          "Duration  222ms (import 71%, transform 18%, tests 9%, worker 2%)"
+        ]
+      },
+      {
+        "command": "npm run build:g0",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-g0-build.log",
+        "logSha256": "5499c61cb4c6201f3a567e23d8b36b57146b6f9b23c76955fc7e5fca1ec35134",
+        "summary": []
+      },
+      {
+        "command": "npm run smoke:g0",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-g0-desktop.log",
+        "logSha256": "d1dcde7d66d68876f0f9d9120a7ce864df2e3571c9bce0e26adf27ea8364ab09",
+        "summary": [
+          "Test Files  1 passed (1)",
+          "Tests  1 passed (1)",
+          "Start at  12:57:54",
+          "Duration  6.69s (tests 96%, import 3%)"
+        ]
+      },
+      {
+        "command": "npx vitest run tests/desktop --maxWorkers=1",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-desktop-all-dev.log",
+        "logSha256": "3a9ad4dc181b9318838af7fc8c9fda34f16348ceced75b762d853c60d5e0d5ea",
+        "summary": [
+          "Test Files  8 passed (8)",
+          "Tests  8 passed (8)",
+          "Start at  13:01:03",
+          "Duration  77.73s (tests 97%, import 2%)"
+        ]
+      },
+      {
+        "command": "npx vitest run tests/desktop/g5.electron.test.ts tests/desktop/g5-work-accumulation.electron.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-desktop-additional-dev.log",
+        "logSha256": "80d89b777d83a83715e1c91548afab9569f3f915569c9462fe8555605da23f6d",
+        "summary": [
+          "Test Files  2 passed (2)",
+          "Tests  2 passed (2)",
+          "Start at  13:02:51",
+          "Duration  21.37s (tests 97%, import 2%)"
+        ]
+      },
+      {
+        "command": "CAREER_PACKAGED=1 npx vitest run tests/desktop --maxWorkers=1",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-desktop-all-packaged.log",
+        "logSha256": "ea96342e286f8e96db1364fbb144d84d85b1fd4ac88ff13049d07c6310b7ee83",
+        "summary": [
+          "Test Files  8 passed (8)",
+          "Tests  8 passed (8)",
+          "Start at  13:03:13",
+          "Duration  82.21s (tests 97%, import 2%)"
+        ]
+      },
+      {
+        "command": "npx vitest run tests/desktop/g5-work-accumulation.electron.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-work-final-dev.log",
+        "logSha256": "b8190091d0c55defb4c6b3944f6bf0b4eccf4757e97bff1e94db0ce117e429a3",
+        "summary": [
+          "Test Files  1 passed (1)",
+          "Tests  1 passed (1)",
+          "Start at  13:05:21",
+          "Duration  7.90s (tests 96%, import 3%, transform 1%)"
+        ]
+      },
+      {
+        "command": "CAREER_PACKAGED=1 npx vitest run tests/desktop/g5-work-accumulation.electron.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-work-final-packaged.log",
+        "logSha256": "7de27cb150168d4fe19a3d6925b5519eb719a10d3994d578ce3106ab02cb77d7",
+        "summary": [
+          "Test Files  1 passed (1)",
+          "Tests  1 passed (1)",
+          "Start at  13:05:30",
+          "Duration  7.54s (tests 96%, import 4%, transform 1%)"
+        ]
+      },
+      {
+        "command": "npx vitest run tests/desktop/g5.electron.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-stop-ui-dev.log",
+        "logSha256": "1d208682d54292f438441823ce263b52514c627afe488077078f4c8a43e9a4a8",
+        "summary": [
+          "Test Files  1 passed (1)",
+          "Tests  1 passed (1)",
+          "Start at  13:09:41",
+          "Duration  14.06s (tests 98%, import 2%)"
+        ]
+      },
+      {
+        "command": "CAREER_PACKAGED=1 npx vitest run tests/desktop/g5.electron.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-stop-ui-packaged.log",
+        "logSha256": "d584353d3b0eb7c80bb9ee93463226e82e1d055cc4f0014e8e2f72f1ada377c3",
+        "summary": [
+          "Test Files  1 passed (1)",
+          "Tests  1 passed (1)",
+          "Start at  13:09:56",
+          "Duration  12.77s (tests 98%, import 2%)"
+        ]
+      },
+      {
+        "command": "npm run native:rebuild",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-native-final.log",
+        "logSha256": "b2d7e569bb870be60457462023ff77cf4caf835506cfb45338faaa748b4ce61b",
+        "summary": [
+          "✔ Rebuild Complete"
+        ]
+      },
+      {
+        "command": "npm run package",
+        "exitCode": 0,
+        "log": "/tmp/career-g5-package.log",
+        "logSha256": "d42cef7fa8fcaa4f1a6b446e76a2dbe496fc2cb6cbaaafa4382d7d9886e3df38",
+        "summary": [
+          "❯ Packaging application",
+          "❯ Packaging for arm64 on darwin",
+          "✔ Packaging for arm64 on darwin",
+          "✔ Packaging application"
+        ]
+      }
+    ],
+    "packaged": {
+      "path": "out/CareerNext-darwin-arm64/CareerNext.app",
+      "arch": "arm64",
+      "normalProductionBuild": true,
+      "testOnlyBridge": false,
+      "signing": "local ad-hoc only",
+      "asarSha256": "92cf58a7965bef731a162afeac55f6b10006be8a7ec15afd3457fb202ac3c690",
+      "exactDistFilesMatched": 7
+    },
+    "artifacts": {
+      "career-next-g2-dev.json": {
+        "writtenAt": "2026-10-03T05:01:13.274Z",
+        "result": {
+          "mode": "dev",
+          "sixJourneys": true,
+          "realPdfSelectableEnglish": true,
+          "immutableVersion": true,
+          "durableRestart": true,
+          "protectedQuit": true,
+          "ime": "pending-real-human-system-input"
+        }
+      },
+      "career-next-g2-packaged.json": {
+        "writtenAt": "2026-10-03T05:04:09.395Z",
+        "result": {
+          "mode": "packaged",
+          "sixJourneys": true,
+          "realPdfSelectableEnglish": true,
+          "immutableVersion": true,
+          "durableRestart": true,
+          "protectedQuit": true,
+          "ime": "pending-real-human-system-input"
+        }
+      },
+      "career-next-g3-dev.json": {
+        "writtenAt": "2026-10-03T05:01:51.716Z",
+        "result": {
+          "mode": "dev",
+          "researchPromotionUniqueOwner": true,
+          "wikiReadOnly": true,
+          "unknownDates": true,
+          "rescheduleRebookComplete": true,
+          "directOffer": true,
+          "realProtectedOriginal": true,
+          "immutableAcceptance": true,
+          "noSyntheticSubmissionOrEmployment": true,
+          "durableRestart": true,
+          "errors": []
+        }
+      },
+      "career-next-g3-packaged.json": {
+        "writtenAt": "2026-10-03T05:04:31.925Z",
+        "result": {
+          "mode": "packaged",
+          "researchPromotionUniqueOwner": true,
+          "wikiReadOnly": true,
+          "unknownDates": true,
+          "rescheduleRebookComplete": true,
+          "directOffer": true,
+          "realProtectedOriginal": true,
+          "immutableAcceptance": true,
+          "noSyntheticSubmissionOrEmployment": true,
+          "durableRestart": true,
+          "errors": []
+        }
+      },
+      "career-next-g4-dev.json": {
+        "writtenAt": "2026-10-03T05:01:44.836Z",
+        "result": {
+          "mode": "dev",
+          "realPdfFrozenA": true,
+          "currentBUnchangedHistory": true,
+          "oneFirstSubmission": true,
+          "realExternalResendFile": true,
+          "humanPreviewAuthorizeIgnoreEditAccept": true,
+          "provider": "deterministic fake only",
+          "backupRestorePurge": true,
+          "activePointerDurable": true,
+          "errors": []
+        }
+      },
+      "career-next-g4-packaged.json": {
+        "writtenAt": "2026-10-03T05:04:18.217Z",
+        "result": {
+          "mode": "packaged",
+          "realPdfFrozenA": true,
+          "currentBUnchangedHistory": true,
+          "oneFirstSubmission": true,
+          "realExternalResendFile": true,
+          "humanPreviewAuthorizeIgnoreEditAccept": true,
+          "provider": "deterministic fake only",
+          "backupRestorePurge": true,
+          "activePointerDurable": true,
+          "errors": []
+        }
+      },
+      "career-next-g5-dev.json": {
+        "writtenAt": "2026-10-03T05:09:55.226Z",
+        "result": {
+          "mode": "dev",
+          "ordinaryProgressStopResumeNewPreview": true,
+          "noAiPersonalAndCognition": true,
+          "emptyCancelNoRecord": true,
+          "resumeProposalUndoHistoryExport": true,
+          "dialogFocusReturn": true,
+          "greetingDraftNotSent": true,
+          "feedbackScreenshotDirtyReturn": true,
+          "controlledObjectImport": true,
+          "controlledSearch": true,
+          "backupRestoreRestart": true,
+          "zoomNarrowReachable": true,
+          "persistentPinnedHomepageExplicitTargetAndUnpin": true,
+          "realIME": "pending human",
+          "realServices": "NOT TESTED",
+          "errors": []
+        }
+      },
+      "career-next-g5-packaged.json": {
+        "writtenAt": "2026-10-03T05:10:08.942Z",
+        "result": {
+          "mode": "packaged",
+          "ordinaryProgressStopResumeNewPreview": true,
+          "noAiPersonalAndCognition": true,
+          "emptyCancelNoRecord": true,
+          "resumeProposalUndoHistoryExport": true,
+          "dialogFocusReturn": true,
+          "greetingDraftNotSent": true,
+          "feedbackScreenshotDirtyReturn": true,
+          "controlledObjectImport": true,
+          "controlledSearch": true,
+          "backupRestoreRestart": true,
+          "zoomNarrowReachable": true,
+          "persistentPinnedHomepageExplicitTargetAndUnpin": true,
+          "realIME": "pending human",
+          "realServices": "NOT TESTED",
+          "errors": []
+        }
+      },
+      "career-next-g5-work-dev.json": {
+        "writtenAt": "2026-10-03T05:05:29.624Z",
+        "result": {
+          "mode": "dev",
+          "journey": "J-02",
+          "realProjectScopedFile": true,
+          "personRoleAndHistoricalContext": true,
+          "sameSessionListFilterPreserved": true,
+          "meaningfulSelectedKnowledgePreserved": true,
+          "rejectAccept": true,
+          "unchangedRawCorrectedTranscriptBasis": true,
+          "derivedReviewRequired": true,
+          "rawPurgeOwnerPreserved": true,
+          "provider": "deterministic fake only"
+        }
+      },
+      "career-next-g5-work-packaged.json": {
+        "writtenAt": "2026-10-03T05:05:37.822Z",
+        "result": {
+          "mode": "packaged",
+          "journey": "J-02",
+          "realProjectScopedFile": true,
+          "personRoleAndHistoricalContext": true,
+          "sameSessionListFilterPreserved": true,
+          "meaningfulSelectedKnowledgePreserved": true,
+          "rejectAccept": true,
+          "unchangedRawCorrectedTranscriptBasis": true,
+          "derivedReviewRequired": true,
+          "rawPurgeOwnerPreserved": true,
+          "provider": "deterministic fake only"
+        }
+      },
+      "career-next-g5-sagas-dev.json": {
+        "writtenAt": "2026-10-03T05:01:35.532Z",
+        "result": {
+          "J05": "controlled local product flow",
+          "multipleSimulations": 2,
+          "selectedRealExperienceOnly": true,
+          "transcriptCorrectionReviewResearch": true,
+          "J06": "controlled local product flow",
+          "actualCommunications": true,
+          "immutableAcceptance35k": true,
+          "laterOfficial32k": true,
+          "recruiterWithdrawal": true,
+          "humanEmploymentOnly": true,
+          "realServices": "NOT TESTED",
+          "errors": []
+        }
+      },
+      "career-next-g5-sagas-packaged.json": {
+        "writtenAt": "2026-10-03T05:03:59.500Z",
+        "result": {
+          "J05": "controlled local product flow",
+          "multipleSimulations": 2,
+          "selectedRealExperienceOnly": true,
+          "transcriptCorrectionReviewResearch": true,
+          "J06": "controlled local product flow",
+          "actualCommunications": true,
+          "immutableAcceptance35k": true,
+          "laterOfficial32k": true,
+          "recruiterWithdrawal": true,
+          "humanEmploymentOnly": true,
+          "realServices": "NOT TESTED",
+          "errors": []
+        }
+      },
+      "career-next-g5-windows-dev.json": {
+        "writtenAt": "2026-10-03T05:02:17.149Z",
+        "result": {
+          "normalMenuTwoWindows": true,
+          "sharedSingleWriter": true,
+          "dirtyIdentityPreservedWithFormalComparison": true,
+          "remoteUnrelatedPreserved": true,
+          "conflictDraftComparison": true,
+          "refreshSavedOnly": true,
+          "ordinaryLongBody": true,
+          "protectedClose": true,
+          "restoreOldWindowRebindDenied": true,
+          "crossWindowPurgeInvalidation": true,
+          "realIME": "pending human"
+        }
+      },
+      "career-next-g5-windows-packaged.json": {
+        "writtenAt": "2026-10-03T05:03:36.359Z",
+        "result": {
+          "normalMenuTwoWindows": true,
+          "sharedSingleWriter": true,
+          "dirtyIdentityPreservedWithFormalComparison": true,
+          "remoteUnrelatedPreserved": true,
+          "conflictDraftComparison": true,
+          "refreshSavedOnly": true,
+          "ordinaryLongBody": true,
+          "protectedClose": true,
+          "restoreOldWindowRebindDenied": true,
+          "crossWindowPurgeInvalidation": true,
+          "realIME": "pending human"
+        }
+      }
+    },
+    "frozen": {
+      "docs/product-spec": {
+        "files": 12,
+        "unchanged": true
+      },
+      "docs/architecture": {
+        "files": 8,
+        "unchanged": true
+      }
+    },
+    "review": {
+      "standards": "no unresolved finding",
+      "architecture": "no unresolved finding",
+      "spec": "104 IDs and evidence links audited; no unresolved product finding; real manual pending"
+    },
+    "ready": [
+      "Developer ID",
+      "Notarization",
+      "x64"
+    ],
+    "realProvider": "NOT TESTED",
+    "realSearch": "NOT TESTED",
+    "realFeishu": "NOT TESTED",
+    "oldCareerRead": false,
+    "finalCheckpoint": false,
+    "push": false,
+    "manualSession": {
+      "preparedAt": "2026-10-03T05:11:04.130Z",
+      "normalLaunchAt": "2026-10-03T05:11:40.242Z",
+      "manualReady": true,
+      "manualResult": "PENDING",
+      "testCompany": "G5 Manual Test",
+      "testRole": "Desktop Review",
+      "baselineVersion": "G5 manual baseline",
+      "existingG2Preserved": true,
+      "inspectorEnabled": false,
+      "normalPackage": true
+    }
+  },
+  "finalRetryEvidence": {
+    "initialDevLog": "/tmp/career-g5-final/desktop-dev.log",
+    "initialPackagedLog": "/tmp/career-g5-final/desktop-packaged.log",
+    "g3Diagnostic": "/tmp/career-g5-final/g3-isolated-debug.log",
+    "intermediateUnhandledLog": "/tmp/career-g5-final/desktop-dev-final.log",
+    "intermediateIncorrectHistoryExpectationLog": "/tmp/career-g5-final/desktop-dev-clean.log",
+    "intermediateImmediateFocusLog": "/tmp/career-g5-final/desktop-dev-verified.log",
+    "redundantReopenRaceLog": "/tmp/career-g5-final/desktop-dev-reopen-race.log",
+    "reason": "G3 all business assertions succeeded but unhandled protected-close dialog blocked test restart; explicit external-driver discard added. Wiki test redundantly reopened the already asserted current selection and immediately filled it during its read; remove the redundant reopen and wait for public corrected body read, then assert created original and corrected history independently. Esc focus check now boundedly waits for Modal focus restoration. No product behavior changed."
+  },
+  "offerEditedRegression": {
+    "redLog": "/tmp/career-g5-final/offer-edited-red.log",
+    "green": "integration and dev/packaged desktop saga; edited content survives accepted read and backup restore, formal Offer unchanged"
+  },
+  "finalWhitespaceCleanup": "Trimmed existing blank-line whitespace in product-composition and Markdown line endings; no behavior change after final tests."
+}

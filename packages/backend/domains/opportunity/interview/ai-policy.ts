@@ -1,0 +1,16 @@
+import {createHash} from 'node:crypto';
+import type {ProductPolicy} from '../../../../contracts/ai/task-policy';
+import type {ProductTarget} from '../../../../contracts/ai/product-context';
+import type {TaskEvidence as RelatedContext} from '../../../../contracts/ai/task-policy';
+import type {createInterviewDomain} from './public';
+export const interviewContextDigest=(session:NonNullable<ReturnType<ReturnType<typeof createInterviewDomain>['read']>>)=>createHash('sha256').update(JSON.stringify({kind:session.kind,title:session.title,state:session.state,confirmationTime:session.confirmationTime,scheduledTime:session.scheduledTime,preparation:session.preparation,transcript:session.transcript,finalReview:session.finalReview})).digest('hex');
+export function createInterviewAiPolicy(owner:ReturnType<typeof createInterviewDomain>,related:(opportunityId:string)=>RelatedContext,submission:(opportunityId:string)=>RelatedContext):ProductPolicy{
+ const target=(input:ProductTarget)=>{if(input.kind!=='interview-preparation'&&input.kind!=='interview-review')throw Error('invalid_policy');return input;};
+ return {
+  targets:input=>[{owner:'interview',objectId:target(input).interviewId}],
+  prepare(input){const selected=target(input),session=owner.read(selected.interviewId);if(!session||selected.kind==='interview-preparation'&&session.kind!=='real'||selected.kind==='interview-review'&&!session.transcript?.text.trim())throw Error('target_unavailable');const context=related(session.opportunityId),sent=submission(session.opportunityId);return {context:{target:input,...sent.sentFiles?{sentFiles:sent.sentFiles}:{},body:context.body+'\n轮次：'+session.title+'\n性质：'+(session.kind==='real'?'真实面试':'模拟练习，不能视为真实面试')+'\n状态：'+session.state+'\n实际投递：'+sent.body+'\n当前准备：'+(session.preparation??'缺少准备')+'\n当前 Transcript：'+(session.transcript?.text??'缺少 Transcript')+'\n当前复盘：'+(session.finalReview?.text??'缺少复盘'),missing:[...context.missing,...sent.missing],identityFields:[],dependencies:[...context.dependencies,...sent.dependencies,{owner:'interview',objectId:session.id,revision:session.revision,role:'target',locator:'session',digest:interviewContextDigest(session)}]},provenance:[...context.provenance,...sent.provenance,...session.preparationProvenance??[],...session.finalReview?.trustedProvenance??[],{owner:'interview',objectId:session.id,revision:session.transcript?.version??session.revision,scope:'opportunity',scopeId:session.opportunityId,kind:session.kind==='simulation'?'simulation':'real_interview_session',restrictions:{read:true,egress:true}}],sources:[]};},
+  validate(change){if(change.kind!=='create')throw Error('invalid_output');},
+  dependencies:(_change,context)=>context.dependencies,
+  apply({commandId,proposal,edited}){const selected=target(proposal.target),session=owner.read(selected.interviewId);if(!session||proposal.change.kind!=='create')throw Error('target_unavailable');const content=edited&&'body'in edited?edited:proposal.change.content;const saved=owner.applyDraft({commandId,id:session.id,expectedRevision:session.revision,document:selected.kind==='interview-preparation'?'preparation':'final-review',text:content.body,provenance:proposal.provenance});if(saved.kind!=='saved')throw Error(saved.kind==='failure'?saved.code:'storage_failed');return {owner:'interview',objectId:session.id};},
+ };
+}

@@ -1,3 +1,5 @@
+import {createImportTargets} from './targets';
+import type {ImportTarget} from '../../../contracts/materials/schema';
 import { Kysely, SqliteDialect } from 'kysely';
 import type Database from 'better-sqlite3';
 import { randomUUID, createHash } from 'node:crypto';
@@ -10,7 +12,10 @@ export type { HumanSession } from '../../platform/runtime/sessions';
 export type ImportRow = { id: string; generation: string; connection: string; validity: number; state: string; name: string; digest: string; size: number; revision: 1 };
 export function createMaterialsStore(db: Database.Database, workspaceInstance: string, backendGeneration: string, authority: SessionAuthority = createSessions(workspaceInstance, backendGeneration)) {
   const query = new Kysely<{ materials_raw: RawRow }>({dialect:new SqliteDialect({database:db})});
-  const ledger = createLedger(db);
+  const ledger = createLedger(db),targets=createImportTargets(db);
+  const summary=(row:RawRow)=>summarize(row,targets.read(row.id));
+  const matches=(input:SourceRef)=>{const current=sourceRef(input.objectId);return current.scope===input.scope&&current.scopeId===input.scopeId;};
+  const sourceRef=(id:string):SourceRef=>{const target=targets.read(id);return {owner:'materials',objectId:id,revision:1,locator:'whole',scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{}};};
 
   function receipt(commandId: string, payloadDigest?: string): Receipt {
     const row = ledger.receipt(commandId, payloadDigest);
@@ -27,6 +32,7 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
     return row;
   }
   return {
+    ownedBy(owner:string,id:string){return (db.prepare('SELECT id FROM materials_raw').all() as {id:string}[]).filter(row=>{const target=targets.read(row.id);return target.kind===owner&&'id'in target&&target.id===id;}).map(row=>row.id);},
     pendingImports(){return db.prepare("SELECT id,name,revision FROM materials_imports WHERE state IN ('preparing','preview') ORDER BY id").all() as {id:string;name:string;revision:1}[];},
     importPurgeImpact(id:string){
       const row=db.prepare('SELECT * FROM materials_imports WHERE id=?').get(id) as ImportRow|undefined;
@@ -43,19 +49,19 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
         const payload=createHash('sha256').update(JSON.stringify([id,row.revision,row.digest])).digest('hex');
         ledger.purgeOperation('materials.confirm',payload);
         // Missing capability blocks late preview/publish/commit and contains no residual import name.
-        db.prepare('DELETE FROM materials_imports WHERE id=?').run(id);
+        db.prepare('DELETE FROM materials_imports WHERE id=?').run(id);targets.purge(id,'import');
       })();
     },
     purgeImpact(id:string){const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(id) as RawRow|undefined;return row?{id,revision:1,name:row.name,blobIds:[row.blob_id],retentions:[{owner:'materials',objectId:id}]}:undefined;},
-    purge(id:string){const row=db.prepare('SELECT digest FROM materials_raw WHERE id=?').get(id) as {digest:string}|undefined;if(row)db.prepare("UPDATE materials_imports SET name='cleared',digest='',size=0,validity=validity+1,state='revoked' WHERE digest=?").run(row.digest);db.prepare('DELETE FROM materials_raw WHERE id=?').run(id);},
+    purge(id:string){const row=db.prepare('SELECT digest FROM materials_raw WHERE id=?').get(id) as {digest:string}|undefined;if(row)db.prepare("UPDATE materials_imports SET name='cleared',digest='',size=0,validity=validity+1,state='revoked' WHERE digest=?").run(row.digest);db.prepare('DELETE FROM materials_raw WHERE id=?').run(id);targets.purge(id);},
     connect(): HumanSession {
       db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1 WHERE state IN ('preparing','preview')").run();
       return authority.connect();
     },
-    begin(session: HumanSession, name: string) {
+    begin(session: HumanSession, name: string,target?:ImportTarget) {
       check(session); const id = randomUUID();
       db.prepare('INSERT INTO materials_imports(id,generation,connection,state,name) VALUES (?,?,?,\'preparing\',?)').run(id, backendGeneration, session.connectionGeneration, name);
-      return id;
+      targets.begin(id,target);return id;
     },
     valid,
     preview(session: HumanSession, input: Preview) {
@@ -77,12 +83,12 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
       return { ...summary(row), digest: row.digest, blobId: row.blob_id };
     },
     resolveSourceMetadata(input: SourceRef) {
-      if (input.owner !== 'materials' || input.revision !== 1 || input.scope !== 'personal' || input.locator !== 'whole') return undefined;
+      if (input.owner !== 'materials' || input.revision !== 1 || input.locator !== 'whole'||!matches(input)) return undefined;
       const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(input.objectId) as RawRow | undefined;
       return row ? summary(row) : undefined;
     },
     resolveSourceArtifact(input: SourceRef) {
-      if(input.owner!=='materials'||input.revision!==1||input.scope!=='personal'||input.locator!=='whole')return undefined;
+      if(input.owner!=='materials'||input.revision!==1||input.locator!=='whole'||JSON.stringify(sourceRef(input.objectId))!==JSON.stringify(input))return undefined;
       const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(input.objectId) as RawRow|undefined;
       return row?{...summary(row),digest:row.digest,blobId:row.blob_id}:undefined;
     },
@@ -107,7 +113,7 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
         if (row.digest !== input.digest || row.revision !== input.expectedRevision) throw new Error('conflict');
         ledger.verifyHold(blobId,input.commandId,backendGeneration);
         const id = randomUUID();
-        db.prepare("INSERT INTO materials_raw VALUES (?,?,?,?,?,1,'personal','evidence-original',?)").run(id,row.name,row.size,row.digest,blobId,new Date().toISOString());
+        db.prepare("INSERT INTO materials_raw(id,name,size,digest,blob_id,revision,scope,lifecycle,recorded_at) VALUES (?,?,?,?,?,1,?,'evidence-original',?)").run(id,row.name,row.size,row.digest,blobId,targets.read(input.importId,'import').kind,new Date().toISOString());targets.commit(input.importId,id);
         ledger.retain(blobId,id,input.commandId);
         db.prepare("UPDATE materials_imports SET state='consumed' WHERE id=?").run(input.importId);
         return receipt(input.commandId);
@@ -128,8 +134,6 @@ export type Store = ReturnType<typeof createMaterialsStore>;
 export type Call = { [K in keyof Store]: { method: K; args: Parameters<Store[K]> } }[keyof Store];
 
 type RawRow = { id: string; name: string; size: number; digest: string; blob_id: string; recorded_at: string };
-function summary(row: RawRow): RawSummary {
-  return { id: row.id, name: row.name, size: row.size, scope: 'personal', lifecycle: 'evidence-original', revision: 1, source: sourceRef(row.id), recordedAt: row.recorded_at };
+function summarize(row: RawRow,target:ImportTarget): RawSummary {
+ const source:SourceRef={owner:'materials',objectId:row.id,revision:1,locator:'whole',scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{}};return {id:row.id,name:row.name,size:row.size,scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{},lifecycle:'evidence-original',revision:1,source,recordedAt:row.recorded_at};
 }
-
-function sourceRef(id: string): SourceRef { return { owner: 'materials', objectId: id, revision: 1, locator: 'whole', scope: 'personal' }; }

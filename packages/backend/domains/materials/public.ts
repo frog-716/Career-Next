@@ -1,3 +1,4 @@
+import {controlledFeishuCandidates,controlledFeishuBody} from '../../platform/imports/controlled-feishu';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -43,12 +44,12 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
     await writer.call('read', session, id);
     return Raw.parse({ ...metadata, text });
   }
-  async function selectFile(session: HumanSession, filename: string) {
+  async function selectFile(session: HumanSession, filename: string,target?:import('../../../contracts/materials/schema').ImportTarget) {
     if (!['.txt', '.md'].includes(path.extname(filename).toLowerCase())) throw new Error('unsupported_file');
-    const id = await writer.call('begin', session, path.basename(filename));
+    const id = await writer.call('begin', session, path.basename(filename),target);
     const job=(async()=>{try {
       const file = await files.select(id, filename, () => writer.call('valid', session, id),await sinkFor?.(id));
-      const preview = Preview.parse({ ...file, importId: id, revision: 1, saved: false });
+      const preview = Preview.parse({ ...file, importId: id, revision: 1, saved: false,...target?{target}:{} });
       await writer.call('preview', session, preview);
       return preview;
     } catch (error) {
@@ -60,6 +61,8 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
     try{return await job;}finally{selections.delete(id);}
   }
   return {
+    fixtureCandidates(target:import('../../../contracts/materials/schema').ImportTarget){return {kind:'fixture-candidates' as const,target,adapter:'controlled-feishu-shaped-fixture; no network' as const,candidates:controlledFeishuCandidates()};},
+    fixtureBody(session:HumanSession,target:import('../../../contracts/materials/schema').ImportTarget,candidateId:string){return track((async()=>{const document=controlledFeishuBody(candidateId);if(!document)throw Error('not_found');const id=await writer.call('begin',session,document.title,target);try{const value=await files.text(id,document.title,document.body,()=>writer.call('valid',session,id),await sinkFor?.(id));const preview=Preview.parse({...value,importId:id,target,revision:1,saved:false});await writer.call('preview',session,preview);return preview;}catch(error){await writer.call('cancel',session,id).catch(()=>{});await files.remove(id).catch(()=>{});throw error;}})());},
     pendingImports:()=>writer.call('pendingImports'),
     importPurgeImpact:(id:string)=>writer.call('importPurgeImpact',id),
     async purgeImport(id:string){
@@ -75,9 +78,9 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
       await files.cleanupAbandoned();
       return session;
     },
-    selectFile(session: HumanSession, filename: string) {
+    selectFile(session: HumanSession, filename: string,target?:import('../../../contracts/materials/schema').ImportTarget) {
       if (closing) return Promise.reject(new Error('disconnected'));
-      return track(selectFile(session, filename));
+      return track(selectFile(session, filename,target));
     },
     async cancel(session: HumanSession, id: string) {
       await writer.call('cancel', session, id);
@@ -128,3 +131,5 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
 export type MaterialsBackend = Awaited<ReturnType<typeof createMaterialsBackend>>;
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+
+export {importTargetMigration} from './targets';

@@ -1,0 +1,15 @@
+import type {ProductPolicy} from '../../../../contracts/ai/task-policy';
+import type {ProductTarget} from '../../../../contracts/ai/product-context';
+import type {TaskEvidence as RelatedContext} from '../../../../contracts/ai/task-policy';
+import type {createResearchDomain} from './public';
+export function createResearchAiPolicy(owner:ReturnType<typeof createResearchDomain>,contextFor:(input:Extract<ProductTarget,{kind:'research-organize'|'research-promotion'}>)=>RelatedContext):ProductPolicy{
+ const target=(input:ProductTarget)=>{if(input.kind!=='research-organize'&&input.kind!=='research-promotion')throw Error('invalid_policy');return input;};
+ return {
+  targets(input){const selected=target(input);return selected.kind==='research-organize'?[{owner:selected.owner.kind,objectId:selected.owner.id}]:[{owner:'research',objectId:selected.itemId},{owner:'company',objectId:selected.companyId}];},
+  prepare(input){const evidence=contextFor(target(input));return {context:{target:input,...input.kind==='research-promotion'?{promotion:(()=>{const current=owner.resolveItem({id:input.itemId,viewer:{kind:'opportunity',id:input.opportunityId}});if(!current)throw Error('target_unavailable');return {id:current.item.id,revision:current.item.revision,title:current.item.title,body:current.item.body};})()}: {},body:evidence.body,missing:evidence.missing,dependencies:evidence.dependencies,identityFields:[]},provenance:evidence.provenance,sources:evidence.sourceRefs??[]};},
+  validate(change,context){if(change.kind!=='create')throw Error('invalid_output');if(context.target.kind==='research-promotion'&&(!context.promotion||change.content.title!==context.promotion.title||change.content.body!==context.promotion.body))throw Error('promotion_is_same_content_only');},dependencies:(_change,context)=>context.dependencies,
+  apply({commandId,proposal,edited}){const selected=target(proposal.target);if(proposal.change.kind!=='create')throw Error('invalid_output');if(selected.kind==='research-promotion'){const current=owner.resolveItem({id:selected.itemId,viewer:{kind:'opportunity',id:selected.opportunityId}}),shared=owner.handle({operation:'read',owner:{kind:'company',id:selected.companyId}});if(!current||shared.kind!=='document')throw Error('target_unavailable');const saved=owner.handle({operation:'promote',commandId,id:current.item.id,owner:{kind:'opportunity',id:selected.opportunityId},expectedRevision:current.item.revision,reason:proposal.change.reason,businessTime:{kind:'unknown'},companyId:selected.companyId,expectedCompanyDocumentRevision:shared.revision,sharingConfirmed:true});if(saved.kind!=='item')throw Error(saved.kind==='failure'?saved.code:'storage_failed');return {owner:'research',objectId:saved.item.id};}
+   const content=edited&&'body'in edited?edited:proposal.change.content;const saved=owner.applyProposal({commandId,owner:selected.owner,title:content.title,body:content.body,sources:proposal.sources.map(ref=>({ref,purpose:'实际受控任务输入',excerpt:'',assessment:'lead_only'})),provenance:proposal.provenance});if(saved.kind!=='item')throw Error('storage_failed');return {owner:'research',objectId:saved.item.id};
+  },
+ };
+}

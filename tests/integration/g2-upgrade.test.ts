@@ -48,9 +48,9 @@ it('upgrades the actual released G2 writer workspace once while retaining origin
   expect(await runtime.materials.collectGarbage()).toBe(0);
   await runtime.close();runtime=undefined;
   const db=new Database(path.join(workspace,'career.sqlite'),{readonly:true});
-  try{expect(db.pragma('user_version',{simple:true})).toBe(4);expect(db.pragma('foreign_key_check')).toEqual([]);expect(db.prepare('SELECT name FROM platform_migration_batches ORDER BY version').all()).toEqual([{name:'001-g1'},{name:'002-g2-first-batch'},{name:'003-g3-submodules'},{name:'004-g4-seams'}]);}finally{db.close();}
+  try{expect(db.pragma('user_version',{simple:true})).toBe(5);expect(db.pragma('foreign_key_check')).toEqual([]);expect(db.prepare('SELECT name FROM platform_migration_batches ORDER BY version').all()).toEqual([{name:'001-g1'},{name:'002-g2-first-batch'},{name:'003-g3-submodules'},{name:'004-g4-seams'},{name:'005-g5-journeys'}]);}finally{db.close();}
   const copies=JSON.parse(await readFile(path.join(workspace,'managed-copies.json'),'utf8')) as {copies:{fromVersion:number;toVersion:number;state:string}[]};
-  expect(copies.copies.at(-1)).toMatchObject({fromVersion:2,toVersion:4,state:'ready'});
+  expect(copies.copies.at(-1)).toMatchObject({fromVersion:2,toVersion:5,state:'ready'});
   runtime=await createRuntimeBackend(workspace,path.resolve('dist/application/writer.cjs'));const restarted=await runtime.connectHuman();expect(await runtime.materials.read(restarted,raw.id)).toEqual(raw);
   expect((JSON.parse(await readFile(path.join(workspace,'managed-copies.json'),'utf8')) as {copies:unknown[]}).copies).toHaveLength(copies.copies.length);
  }finally{await runtime?.close();await rm(root,{recursive:true,force:true});await rm(buildRoot,{recursive:true,force:true});}

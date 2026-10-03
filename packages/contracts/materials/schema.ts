@@ -5,9 +5,10 @@ import type { Identity } from '../common/runtime.ts';
 export {MaterialsSourceRef as SourceRef} from '../common/source-ref.ts';
 import {MaterialsSourceRef as SourceRef} from '../common/source-ref.ts';
 export type SourceRef = z.infer<typeof SourceRef>;
-export const Preview = z.object({ importId: z.uuid(), revision: z.literal(1), name: z.string().max(255), size: z.number().int().max(MAX_TEXT_BYTES), digest: z.string().regex(/^[a-f0-9]{64}$/), text: z.string().max(MAX_TEXT_BYTES), saved: z.literal(false) }).strict();
+export const ImportTarget=z.discriminatedUnion('kind',[z.strictObject({kind:z.literal('personal')}),z.strictObject({kind:z.enum(['company','opportunity','project','employment','person']),id:z.uuid()})]);export type ImportTarget=z.infer<typeof ImportTarget>;
+export const Preview = z.object({ importId: z.uuid(), target:ImportTarget.optional(), revision: z.literal(1), name: z.string().max(255), size: z.number().int().max(MAX_TEXT_BYTES), digest: z.string().regex(/^[a-f0-9]{64}$/), text: z.string().max(MAX_TEXT_BYTES), saved: z.literal(false) }).strict();
 export type Preview = z.infer<typeof Preview>;
-export const RawSummary = z.object({ id: z.uuid(), name: z.string().max(255), size: z.number().int(), scope: z.literal('personal'), lifecycle: z.literal('evidence-original'), revision: z.literal(1), source: SourceRef, recordedAt: z.string() }).strict();
+export const RawSummary = z.object({ id: z.uuid(), name: z.string().max(255), size: z.number().int(), scope: z.enum(['personal','company','opportunity','project','employment','person']),scopeId:z.uuid().optional(), lifecycle: z.literal('evidence-original'), revision: z.literal(1), source: SourceRef, recordedAt: z.string() }).strict();
 export type RawSummary = z.infer<typeof RawSummary>;
 export const Raw = RawSummary.extend({ text: z.string().max(MAX_TEXT_BYTES), digest: z.string() }).strict();
 export type Raw = z.infer<typeof Raw>;
@@ -23,7 +24,9 @@ export const Receipt = z.discriminatedUnion('status', [
 ]);
 export type Receipt = z.infer<typeof Receipt>;
 export const Request = z.discriminatedUnion('operation', [
-  z.object({ operation: z.literal('select') }).strict(),
+  z.strictObject({operation:z.literal('fixture-candidates'),target:ImportTarget}),
+  z.strictObject({operation:z.literal('fixture-body'),target:ImportTarget,candidateId:z.uuid()}),
+  z.object({ operation: z.literal('select'),target:ImportTarget.optional() }).strict(),
   z.object({ operation: z.literal('confirm'), input: Confirm }).strict(),
   z.object({ operation: z.literal('cancel'), importId: z.uuid() }).strict(),
   z.object({ operation: z.literal('list') }).strict(),
@@ -32,6 +35,7 @@ export const Request = z.discriminatedUnion('operation', [
 ]);
 export type Request = z.infer<typeof Request>;
 export const Result = z.discriminatedUnion('kind', [
+  z.strictObject({kind:z.literal('fixture-candidates'),target:ImportTarget,adapter:z.literal('controlled-feishu-shaped-fixture; no network'),candidates:z.array(z.strictObject({id:z.uuid(),title:z.string().max(255),url:z.url()})).max(20)}),
   z.object({ kind: z.literal('preview'), preview: Preview }).strict(),
   z.object({ kind: z.literal('cancelled') }).strict(),
   z.object({ kind: z.literal('receipt'), receipt: Receipt }).strict(),

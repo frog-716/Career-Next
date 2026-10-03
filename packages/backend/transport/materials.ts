@@ -8,7 +8,9 @@ export async function dispatchMaterials(backend: MaterialsBackend,session: Human
     const input=Request.parse(request);
     let result: Result;
     switch(input.operation) {
-      case 'select': result=selectedFile?{kind:'preview',preview:await backend.selectFile(session,selectedFile)}:{kind:'cancelled'}; break;
+      case 'fixture-candidates':result=backend.fixtureCandidates(input.target);break;
+      case 'fixture-body':result={kind:'preview',preview:await backend.fixtureBody(session,input.target,input.candidateId)};break;
+      case 'select': result=selectedFile?{kind:'preview',preview:await backend.selectFile(session,selectedFile,input.target)}:{kind:'cancelled'}; break;
       case 'confirm': result={kind:'receipt',receipt:await backend.confirm(session,input.input)}; break;
       case 'cancel': await backend.cancel(session,input.importId); result={kind:'cancelled'}; break;
       case 'list': result={kind:'list',items:await backend.list(session)}; break;

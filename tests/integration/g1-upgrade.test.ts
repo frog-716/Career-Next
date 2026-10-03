@@ -104,24 +104,24 @@ it('upgrades a genuine released G1 Raw/receipt workspace, retains its registered
     await g2.close(); g2 = undefined;
 
     inspectClosedWorkspace(directory, db => {
-      expect(db.pragma('user_version', { simple: true })).toBe(4);
+      expect(db.pragma('user_version', { simple: true })).toBe(5);
       expect(db.prepare('SELECT version,name FROM platform_migration_batches ORDER BY version').all()).toEqual([
-        { version: 1, name: '001-g1' }, { version: 2, name: '002-g2-first-batch' }, {version:3,name:'003-g3-submodules'}, {version:4,name:'004-g4-seams'},
+        { version: 1, name: '001-g1' }, { version: 2, name: '002-g2-first-batch' }, {version:3,name:'003-g3-submodules'}, {version:4,name:'004-g4-seams'}, {version:5,name:'005-g5-journeys'},
       ]);
       expect(db.prepare('SELECT id,batch_version FROM platform_migration_fragments ORDER BY rowid').all()).toEqual([
         'platform.commands.v1', 'platform.artifacts.v2', 'employment.initial.v1', 'project.initial.v1',
         'opportunity.initial.v1', 'profile.initial.v1', 'resume.initial.v1', 'wiki.initial.v1',
-      ].map(id => ({ id, batch_version: 2 })).concat(['platform.offer-retention.v1','research.initial.v1','interview.initial.v1','offer.initial.v1'].map(id=>({id,batch_version:3}))).concat(['platform.persistence.v1','platform.g4-retention.v1','platform.file-candidates.v1','submission.initial.v1','communication.initial.v1','ai.initial.v1'].map(id=>({id,batch_version:4}))));
+      ].map(id => ({ id, batch_version: 2 })).concat(['platform.offer-retention.v1','research.initial.v1','interview.initial.v1','offer.initial.v1'].map(id=>({id,batch_version:3}))).concat(['platform.persistence.v1','platform.g4-retention.v1','platform.file-candidates.v1','submission.initial.v1','communication.initial.v1','ai.initial.v1'].map(id=>({id,batch_version:4}))).concat(['platform.g5-retention.v1','application.feedback.v1','application.preferences.v1','communication.draft.v1','materials.targets.v1','ai.search.v1','resume.provenance.v1','ai.product.v1'].map(id=>({id,batch_version:5}))));
       expect(db.prepare('SELECT blob_id FROM platform_artifact_retention WHERE owner=? AND object_id=?').get('materials', raw.id)).toEqual({ blob_id: blobId });
       expect(db.prepare('SELECT status,object_id FROM platform_artifact_receipts WHERE command_id=?').get(input.commandId)).toEqual({ status: 'committed', object_id: raw.id });
       expect(db.pragma('foreign_key_check')).toEqual([]);
     });
     const copies = await registeredCopies(directory);
     expect(copies).toHaveLength(1);
-    expect(copies[0]).toMatchObject({ purpose: 'schema-upgrade', state: 'ready', fromVersion: 1, toVersion: 4 });
+    expect(copies[0]).toMatchObject({ purpose: 'schema-upgrade', state: 'ready', fromVersion: 1, toVersion: 5 });
     expect(copies[0].relativePath).toMatch(/^recovery\/upgrade-1-[0-9a-f-]+$/);
     const recovery = path.join(directory, copies[0].relativePath);
-    expect(JSON.parse(await readFile(path.join(recovery, 'upgrade.json'), 'utf8'))).toEqual({ fromVersion: 1, toVersion: 4 });
+    expect(JSON.parse(await readFile(path.join(recovery, 'upgrade.json'), 'utf8'))).toEqual({ fromVersion: 1, toVersion: 5 });
     expect(await readFile(path.join(recovery, 'blobs', blobId))).toEqual(bytes);
     inspectClosedWorkspace(recovery, db => {
       expect(db.pragma('user_version', { simple: true })).toBe(1);

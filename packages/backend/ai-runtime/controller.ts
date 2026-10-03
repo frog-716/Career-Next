@@ -12,7 +12,7 @@ export interface AiWriterControllerPort {
 /** Lives on utility control loop. Never owns SQLite or exposes a manual user session. */
 export function createAiController(writer:AiWriterControllerPort,adapter:ProviderAdapter){
  const closed=new Set<string>(),purged=new Set<string>(),paused=new Map<string,number>(),pauseLeases=new Map<object,string[]>(),activePauses=new Map<string,number>(),authorized=new Map<string,Map<string,number>>(),running=new Map<string,{taskId:string;abort:AbortController;intent?:DispatchIntent}>();let shutDown=false;
- const references=(intent:DispatchIntent)=>[...intent.manifest.provenance.map(ref=>ref.owner+'/'+ref.objectId),'wiki/'+(intent.manifest.target.scopeId??`scope:${intent.manifest.target.scope}`),...(intent.manifest.target.scopeId?[intent.manifest.target.scope+'/'+intent.manifest.target.scopeId]:[])];
+ const references=(intent:DispatchIntent)=>[...intent.manifest.provenance.map(ref=>ref.owner+'/'+ref.objectId),...intent.manifest.product?.dependencies.map(ref=>ref.owner+'/'+ref.objectId)??[],'wiki/'+(intent.manifest.target.scopeId??`scope:${intent.manifest.target.scope}`),...(intent.manifest.target.scopeId?[intent.manifest.target.scope+'/'+intent.manifest.target.scopeId]:[])];
  const touches=(intent:DispatchIntent,operationId:string)=>references(intent).some(key=>purged.has(key)||(activePauses.get(key)??0)>0||(paused.get(key)??0)>(authorized.get(operationId)?.get(key)??0));
  function stop(taskId:string,mode:'stop'|'revoke'){
   closed.add(taskId);for(const entry of running.values())if(entry.taskId===taskId)entry.abort.abort();

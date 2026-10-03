@@ -8,3 +8,8 @@
 .content [hidden]{display:none!important}
 @media(max-width:640px){.content{padding:12px}}
 @media(prefers-reduced-motion:reduce){.shell *{scroll-behavior:auto}}
+
+.collapsed{grid-template-columns:56px minmax(0,1fr)}
+.collapsed .label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.content textarea,.content input,.content select{max-width:100%;box-sizing:border-box}
+.content pre{white-space:pre-wrap;overflow-wrap:anywhere}

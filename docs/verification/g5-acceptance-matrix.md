@@ -1,122 +1,122 @@
-# G5｜104 分支验收矩阵
+# G5｜104 分支验收矩阵（真人后最终审计）
 
-初始登记基线：`66ede4cd2f51787b5375caa8489512972edb28d0`，与已推送 G4 checkpoint 相同且工作树干净。本表建立于 G5 产品开发之前。
+初始登记基线：`66ede4cd2f51787b5375caa8489512972edb28d0`，开发前工作树干净；初始分类保留供追溯。真人 Desktop 与本轮普通产品链已 PASS；真实外部 J-07 未完成，因此 G5 总状态保持 **PARTIAL**，不是 104 全部 PASS。Frozen ACCEPTANCE 原文与状态没有修改。
 
-G5 当前为 PARTIAL。PASS_ALREADY 引用该精确基线的既有验证记录，后续修改后的回归必须复核；PASS_G5 只在本轮实际执行通过后填写。真人 Desktop Gate 尚未执行；不得以旧 IME 证据替代本轮完整人工验收。真实 Provider/Search/Feishu 均 NOT TESTED。
+每个 AC 仅一行。初始列按当时七类盘点；审计列在本轮真实执行后修正，整条含未完成安全/故障/正式迁移/真实服务时留正确 Gate，证据列只证明列明普通子链。`PASS_ALREADY` 同时引用 [G2](g2-first-batch.md)、[G3](g3-manual-submodules.md)、[G4](g4-cross-domain.md) 的既有场景及本轮无退化回归；`PASS_G5` 为本轮执行场景。统一命令、计数、dev/packaged 结果和产物 SHA 见 [连续旅程证据](g5-complete-journeys.md) 与 `g5-auto-results.json`。
 
-一个原始 AC 一行、一个分类。混合分支按未完成的整体要求分类，在原因中说明已执行的普通子分支；普通产品能力仍须实现，不能因最终故障收口属于 G6 而跳过 G5 旅程。冻结 ACCEPTANCE 状态不修改。
+用户本轮最终报告 MANUAL DESKTOP PASS；此前 Undo 与命名 ResumeVersion 历史预览两个人工 FAIL 已修复并真人复测通过。原 Undo 失败证据见 [Resume Undo](g5-resume-undo-regression.md)，本次分层核对与复验见 [版本格式](g5-version-format-regression.md)；不以自动化通过覆盖新发现。三项真人 AC 现按本轮正常包真实操作结算为 PASS_G5；初始分类保留历史，最终分类只使用原七类。独立 Computer Use 原失败及真人最终补证见 [最终验收](g5-manual-desktop-final.md)，不以旧 G0/G2 IME 替代本轮真人证据。Issues 按本轮明确收尾授权关闭，仅表示当前开发任务完成，不代表真实外部通过。
 
-| Acceptance ID | Journey | 当前分类 | 证据位置 | 未执行原因 / 正确 Gate |
-| --- | --- | --- | --- | --- |
-| AC-PR-01-01 | J-01～J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-PR-02-01 | J-01～J-09 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-PR-03-01 | J-01～J-09 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Shell 尚无持久置顶首页；G5 补齐。 |
-| AC-PR-04-01 | J-01～J-09 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-PR-05-01 | J-01～J-09 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-PR-06-01 | J-01～J-09 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-01-01 | J-01/J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-01-02 | J-01/J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-02-01 | J-01/J-03 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 公司/岗位创建已有证据；尚无 JD 后补及缺项提示，G5 补齐完整分支。 |
-| AC-DM-02-02 | J-01/J-03 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 公司/岗位创建已有证据；尚无 JD 后补及缺项提示，G5 补齐完整分支。 |
-| AC-DM-03-01 | J-03/J-04/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-04-01 | J-03/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-04-02 | J-03/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-05-01 | J-03 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-06-01 | J-03/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-07-01 | J-02/J-03 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-08-01 | J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-08-02 | J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-09-01 | J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-10-01 | J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-10-02 | J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-11-01 | J-02/J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-12-01 | J-02/J-05/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-13-01 | J-02/J-05 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-14-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-15-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-16-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-17-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-18-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-19-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-20-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-21-01 | J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-22-01 | J-04 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 导出冻结已有证据；尚无跨机会命名版本内容复制，G5 补齐。 |
-| AC-DM-23-01 | J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-23-02 | J-04 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 真实历史文件缺失已有 G4 证据；发布保存失败全切点留 G6，G5 继续真实发送与缺失区分。 |
-| AC-DM-24-01 | J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-25-01 | J-03/J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-26-01 | J-05 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-27-01 | J-05 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-28-01 | J-05 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-29-01 | J-05 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-30-01 | J-05 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Simulation 原文已有；尚无主动选段+现实含义确认的受限回流，G5 补齐。 |
-| AC-DM-30-02 | J-05 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Simulation 原文已有；尚无主动选段+现实含义确认的受限回流，G5 补齐。 |
-| AC-DM-31-01 | J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-32-01 | J-06 | CONDITIONAL | DOMAIN DM-32（建议） | 冻结建议未采纳为必需能力，不新增薪酬计算器；将来采纳后执行条件性 G5。 |
-| AC-DM-33-01 | J-03/J-05 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-34-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-35-01 | J-03/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-36-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-37-01 | J-05 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-38-01 | J-02/J-08/J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | G4 普通 purge 已测；全部副本/法证与清除故障最终收口 G6，G5 继续普通 J-02/J-09。 |
-| AC-DM-38-02 | J-02/J-08/J-09 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-39-01 | J-03/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-DM-40-01 | J-03/J-05/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-AI-01-01 | J-02/J-05/J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-AI-02-01 | J-04/J-05/J-06/J-07 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 目前只有 Wiki 整理；其余冻结任务的 Context/草稿/正式 owner 采用需 G5 补齐。 |
-| AC-AI-03-01 | J-02/J-04/J-07 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Wiki 可读取真实 Raw；Resume 优化尚无渐进依据流程，G5 补齐。 |
-| AC-AI-04-01 | J-02 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-AI-05-01 | J-05 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 真实 Interview/无投递已实现；AI 准备的无投递明确标注尚未实现，G5 补齐。 |
-| AC-AI-06-01 | J-05/J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-AI-07-01 | J-02/J-04/J-05/J-06/J-07 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-07-02 | J-02/J-04/J-05/J-06/J-07 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-07-03 | J-02/J-04/J-05/J-06/J-07 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-08-01 | J-07 | EXTERNAL_LIVE_PENDING | 待 G5 controlled adapter 证据；REAL SEARCH NOT TESTED | G5 实现受控 Search 产品链；本轮没有真实 Search 授权，真实本轮来源与服务不能报 PASS。 |
-| AC-AI-08-02 | J-07 | EXTERNAL_LIVE_PENDING | 待 G5 controlled adapter 证据；REAL SEARCH NOT TESTED | G5 实现受控 Search 产品链；本轮没有真实 Search 授权，真实本轮来源与服务不能报 PASS。 |
-| AC-AI-09-01 | J-07 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 个人本地导入已有；明确对象范围及受控 Feishu-shaped candidate/body 链尚缺，G5 补齐产品合同，真实飞书未测。 |
-| AC-AI-10-01 | J-04/J-05/J-07 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Wiki 逐条已实现；Research 分组原子处理及 Resume/整份草稿采用尚缺，普通分支 G5，复杂冲突故障 G6。 |
-| AC-AI-10-02 | J-04/J-05/J-07 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Wiki 逐条已实现；Research 分组原子处理及 Resume/整份草稿采用尚缺，普通分支 G5，复杂冲突故障 G6。 |
-| AC-AI-10-03 | J-04/J-05/J-07 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Wiki 逐条已实现；Research 分组原子处理及 Resume/整份草稿采用尚缺，普通分支 G5，复杂冲突故障 G6。 |
-| AC-AI-11-01 | J-02/J-04/J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-AI-12-01 | J-02/J-07 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-13-01 | J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-14-01 | J-01/J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-14-02 | J-01/J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-15-01 | J-04/J-06 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Resume/Greeting/Offer 新任务尚缺身份最小外发预览，普通分支 G5；完整泄漏防护收口 G6。 |
-| AC-AI-15-02 | J-04/J-06 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Resume/Greeting/Offer 新任务尚缺身份最小外发预览，普通分支 G5；完整泄漏防护收口 G6。 |
-| AC-AI-16-01 | J-02/J-05/J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-AI-17-01 | J-02/J-07 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-AI-18-01 | J-02/J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-UX-01-01 | J-01 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-02-01 | J-01 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 尚无唯一持久置顶首页，G5 补齐。 |
-| AC-UX-03-01 | J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-04-01 | J-02/J-04/J-08 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-UX-05-01 | J-01/J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-06-01 | J-04 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Profile 同步已有；Resume AI 修改独立 undo 尚缺，G5 补齐。 |
-| AC-UX-06-02 | J-04 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | Profile 同步已有；Resume AI 修改独立 undo 尚缺，G5 补齐。 |
-| AC-UX-07-01 | J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-08-01 | J-04 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-09-01 | J-02/J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-10-01 | J-02/J-07 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-11-01 | J-08 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 尚无 Feedback owner、overlay 和同 receipt 恢复，G5 补齐。 |
-| AC-UX-12-01 | J-09 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-13-01 | J-01 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-UX-14-01 | J-01～J-09 | MISSING_IMPLEMENTATION | 当前代码盘点（尚无本分支完整通过证据） | 中文已有 G0/G2 人工证据；缩放/完整弹窗焦点/窄窗口新整合仍需 G5 实现及真人门。 |
-| AC-UX-15-01 | J-01～J-09 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-UX-16-01 | J-03/J-05/J-06 | PASS_ALREADY | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 精确 G4 基线未发生代码变化；可复用既有真实 owner / 桌面测试。G5 最终回归后复核。 |
-| AC-MG-01-01 | J-09 | DEFER_M | DELIVERY §11 / 用户 G5 迁移边界 | 正式旧 Career 迁移未经授权；MG-07 普通 Restore 子链 G5 独立验收，不代表迁移通过。 |
-| AC-MG-02-01 | J-09 | DEFER_M | DELIVERY §11 / 用户 G5 迁移边界 | 正式旧 Career 迁移未经授权；MG-07 普通 Restore 子链 G5 独立验收，不代表迁移通过。 |
-| AC-MG-03-01 | J-09 | DEFER_M | DELIVERY §11 / 用户 G5 迁移边界 | 正式旧 Career 迁移未经授权；MG-07 普通 Restore 子链 G5 独立验收，不代表迁移通过。 |
-| AC-MG-04-01 | J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-MG-04-02 | J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-MG-05-01 | J-09 | DEFER_G6 | [G4](g4-cross-domain.md)、[G3](g3-manual-submodules.md)、[G2](g2-first-batch.md) | 既有局部证据可复用；完整安全/故障/恢复边缘分支按 DELIVERY §11 留 G6。G5 仍验证普通路径。 |
-| AC-MG-06-01 | J-09 | DEFER_M | DELIVERY §11 / 用户 G5 迁移边界 | 正式旧 Career 迁移未经授权；MG-07 普通 Restore 子链 G5 独立验收，不代表迁移通过。 |
-| AC-MG-07-01 | J-09 | DEFER_M | DELIVERY §11 / 用户 G5 迁移边界 | 正式旧 Career 迁移未经授权；MG-07 普通 Restore 子链 G5 独立验收，不代表迁移通过。 |
+| Acceptance ID | Journey | 初始分类 | 当前审计分类 | 具体执行证据 | 证据范围 / 未完成原因与 Gate |
+| --- | --- | --- | --- | --- | --- |
+| AC-PR-01-01 | J-01～J-09 | DEFER_G6 | DEFER_G6 | [materials](../../tests/desktop/materials.electron.test.ts)、[G0](../../tests/g0.electron.test.ts) | 完整外部恶意请求安全门 G6；已有正常包隔离子证据 |
+| AC-PR-02-01 | J-01～J-09 | PASS_ALREADY | PASS_ALREADY | [g2](../../tests/desktop/g2.electron.test.ts)、[g3](../../tests/desktop/g3.electron.test.ts)、[g4](../../tests/desktop/g4.electron.test.ts) | 无外部配置人工对象、PDF、面试与 Offer；本轮 dev/packaged 无退化 |
+| AC-PR-03-01 | J-01～J-09 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-preferences](../../tests/integration/g5-preferences.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 四入口、持久 pin/重启首页、具体对象直达、取消回 Wiki |
+| AC-PR-04-01 | J-01～J-09 | PASS_ALREADY | PASS_G5 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 采用不推进现实状态，不代表独立核验 |
+| AC-PR-05-01 | J-01～J-09 | PASS_ALREADY | PASS_ALREADY | [g3-module-boundaries](../../tests/g3-module-boundaries.test.ts)、[shell](../../tests/shell.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 退役入口与有限任务边界；静态检查和正常桌面回归组合 |
+| AC-PR-06-01 | J-01～J-09 | PASS_ALREADY | PASS_ALREADY | [g2](../../tests/desktop/g2.electron.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 四入口短标签与窄窗口，无新增一级业务模块 |
+| AC-DM-01-01 | J-01/J-04 | PASS_ALREADY | PASS_ALREADY | [g4-x-cross-owner](../../tests/integration/g4-x-cross-owner.test.ts)、[g2](../../tests/desktop/g2.electron.test.ts) | 全局 Profile 明示并同步当前 Resume，冻结身份/PDF/发送历史不变 |
+| AC-DM-01-02 | J-01/J-04 | PASS_ALREADY | PASS_G5 | [g5-windows](../../tests/desktop/g5-windows.electron.test.ts) | B 身份 dirty、A 保存；B 草稿保留并显示正式资料比较 |
+| AC-DM-02-01 | J-01/J-03 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-onboarding](../../tests/integration/g5-onboarding.test.ts)、[g4-s-communication](../../tests/integration/g4-s-communication.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 无 JD 公司+岗位、沟通、JD 后补与分析缺项 |
+| AC-DM-02-02 | J-01/J-03 | MISSING_IMPLEMENTATION | PASS_ALREADY | [opportunity](../../tests/integration/opportunity.test.ts) | Company 改名同身份、误选归属纠错、历史文字保留；纠正初始误写的 JD 理由 |
+| AC-DM-03-01 | J-03/J-04/J-06 | PASS_ALREADY | PASS_ALREADY | [resume](../../tests/integration/resume.test.ts)、[g4-s-submission](../../tests/integration/g4-s-submission.test.ts)、[offer](../../tests/integration/offer.test.ts) | 唯一当前稿/首次投递/当前 Offer，后续发送独立 |
+| AC-DM-04-01 | J-03/J-06 | PASS_ALREADY | PASS_G5 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 采用不推进现实状态，不代表独立核验 |
+| AC-DM-04-02 | J-03/J-06 | PASS_ALREADY | PASS_ALREADY | [offer](../../tests/integration/offer.test.ts)、[g3](../../tests/desktop/g3.electron.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 接受后撤回，旧接受依据仍保留 |
+| AC-DM-05-01 | J-03 | PASS_ALREADY | PASS_ALREADY | [g4-s-communication](../../tests/integration/g4-s-communication.test.ts)、[interview](../../tests/integration/interview.test.ts)、[offer](../../tests/integration/offer.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 无 Submission 直接沟通/面试/Offer，不造投递或日期 |
+| AC-DM-06-01 | J-03/J-06 | PASS_ALREADY | PASS_ALREADY | [g4-s-communication](../../tests/integration/g4-s-communication.test.ts)、[opportunity](../../tests/integration/opportunity.test.ts) | 结束后补历史/接受后后续联系不自动重开 |
+| AC-DM-07-01 | J-02/J-03 | PASS_ALREADY | PASS_ALREADY | [g4-s-communication](../../tests/integration/g4-s-communication.test.ts)、[g4-source-support](../../tests/integration/g4-source-support.test.ts) | 同源引用，归档不删除来源 |
+| AC-DM-08-01 | J-07 | MISSING_IMPLEMENTATION | PASS_G5 | [research](../../tests/integration/research.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g3](../../tests/desktop/g3.electron.test.ts) | 明确人工/AI 提升，同 ID 唯一 Company owner，原处只读引用 |
+| AC-DM-08-02 | J-07 | PASS_ALREADY | PASS_G5 | [research](../../tests/integration/research.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g3](../../tests/desktop/g3.electron.test.ts) | 明确人工/AI 提升，同 ID 唯一 Company owner，原处只读引用 |
+| AC-DM-09-01 | J-07 | PASS_ALREADY | PASS_ALREADY | [wiki-research-ui](../../tests/wiki-research-ui.test.ts)、[g4-research-purge-ui](../../tests/g4-research-purge-ui.test.ts)、[research](../../tests/integration/research.test.ts)、[g3](../../tests/desktop/g3.electron.test.ts) | Wiki 只读引用同一研究正本，清除后不可读 |
+| AC-DM-10-01 | J-07 | PASS_ALREADY | PASS_ALREADY | [research](../../tests/integration/research.test.ts) | 支持摘录/确认/核验独立；更正正文不继承旧标记 |
+| AC-DM-10-02 | J-07 | PASS_ALREADY | PASS_ALREADY | [research](../../tests/integration/research.test.ts) | 支持摘录/确认/核验独立；更正正文不继承旧标记 |
+| AC-DM-11-01 | J-02/J-07 | PASS_ALREADY | PASS_ALREADY | [materials](../../tests/integration/materials.test.ts)、[wiki](../../tests/integration/wiki.test.ts)、[g2](../../tests/desktop/g2.electron.test.ts) | 实际 Raw 多引用，不复制原件、不自动创建 Wiki/Person |
+| AC-DM-12-01 | J-02/J-05/J-06 | PASS_ALREADY | PASS_G5 | [g5-work-accumulation](../../tests/desktop/g5-work-accumulation.electron.test.ts)、[g4-source-support](../../tests/integration/g4-source-support.test.ts)、[g3-original](../../tests/integration/g3-original.test.ts)、[g4-s-submission](../../tests/integration/g4-s-submission.test.ts) | 实际 Transcript 更正使相关知识待复核、正文不改；原件/发送材料不可覆盖，普通 purge |
+| AC-DM-13-01 | J-02/J-05 | PASS_ALREADY | PASS_G5 | [g5-work-accumulation](../../tests/desktop/g5-work-accumulation.electron.test.ts)、[g4-source-support](../../tests/integration/g4-source-support.test.ts)、[g3-original](../../tests/integration/g3-original.test.ts)、[g4-s-submission](../../tests/integration/g4-s-submission.test.ts) | 实际 Transcript 更正使相关知识待复核、正文不改；原件/发送材料不可覆盖，普通 purge |
+| AC-DM-14-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [wiki](../../tests/integration/wiki.test.ts)、[wiki-state](../../tests/wiki-state.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 事实陈述与未核验、无来源人工知识、同身份修订退役恢复、直接 Cognition |
+| AC-DM-15-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [wiki](../../tests/integration/wiki.test.ts)、[wiki-state](../../tests/wiki-state.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 事实陈述与未核验、无来源人工知识、同身份修订退役恢复、直接 Cognition |
+| AC-DM-16-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [project](../../tests/integration/project.test.ts) | 同 Project 现实重开与误完成纠错区分，历史保留 |
+| AC-DM-17-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [employment](../../tests/integration/employment.test.ts)、[project](../../tests/integration/project.test.ts) | 计划/实际结束分开，历史角色更正不连带结束 Project |
+| AC-DM-18-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [employment](../../tests/integration/employment.test.ts)、[project](../../tests/integration/project.test.ts) | 同名不合并，关系纠错、退出再参与及角色历史 |
+| AC-DM-19-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [employment](../../tests/integration/employment.test.ts)、[project](../../tests/integration/project.test.ts) | 同名不合并，关系纠错、退出再参与及角色历史 |
+| AC-DM-20-01 | J-02 | PASS_ALREADY | PASS_G5 | [g5-work-accumulation](../../tests/desktop/g5-work-accumulation.electron.test.ts)、[project](../../tests/integration/project.test.ts) | Project 换 Employment，旧人物/职责历史，当前人物须明确选择 |
+| AC-DM-21-01 | J-04 | PASS_ALREADY | PASS_ALREADY | [g2-business](../../tests/integration/g2-business.test.ts)、[g2](../../tests/desktop/g2.electron.test.ts) | 面试阶段首次 Resume 不倒退/不补投递 |
+| AC-DM-22-01 | J-04 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-resume-copy](../../tests/integration/g5-resume-copy.test.ts)、[g5-frozen-resume-lineage](../../tests/integration/g5-frozen-resume-lineage.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 跨机会仅复制内容与布局/新块 ID，源 owner 和冻结 PDF 不变 |
+| AC-DM-23-01 | J-04 | PASS_ALREADY | PASS_ALREADY | [g4-export](../../tests/integration/g4-export.test.ts)、[g4-s-submission](../../tests/integration/g4-s-submission.test.ts)、[g4](../../tests/desktop/g4.electron.test.ts) | 真实冻结 PDF A/current B、实际发送 A、晚到归原 owner/文件缺失诚实登记 |
+| AC-DM-23-02 | J-04 | DEFER_G6 | DEFER_G6 | [g4-s-submission](../../tests/integration/g4-s-submission.test.ts)、[artifact-files](../../tests/integration/artifact-files.test.ts) | 历史缺失/保存失败普通子证据已测；全部发布切点 G6 |
+| AC-DM-24-01 | J-04 | PASS_ALREADY | PASS_G5 | [g4-s-submission](../../tests/integration/g4-s-submission.test.ts)、[g5-submission-preparation](../../tests/integration/g5-submission-preparation.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts) | 未使用/未知/内容已知缺文件/保留分开，Greeting 状态独立 |
+| AC-DM-25-01 | J-03/J-04 | PASS_ALREADY | PASS_ALREADY | [g4-s-submission](../../tests/integration/g4-s-submission.test.ts)、[g4-s-communication](../../tests/integration/g4-s-communication.test.ts) | 晚录不倒退，后续发送不生成第二条首次投递 |
+| AC-DM-26-01 | J-05 | PASS_ALREADY | PASS_G5 | [g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts)、[interview](../../tests/integration/interview.test.ts) | 同轮多次 Simulation；未知日期后排期同 ID；Preparation/Transcript/Review 独立且更正待复核 |
+| AC-DM-27-01 | J-05 | PASS_ALREADY | PASS_G5 | [g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts)、[interview](../../tests/integration/interview.test.ts) | 同轮多次 Simulation；未知日期后排期同 ID；Preparation/Transcript/Review 独立且更正待复核 |
+| AC-DM-28-01 | J-05 | PASS_ALREADY | PASS_ALREADY | [interview](../../tests/integration/interview.test.ts) | 完成/永久取消纠错同轮、重新安排区别，保留说明 |
+| AC-DM-29-01 | J-05 | PASS_ALREADY | PASS_G5 | [g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts)、[interview](../../tests/integration/interview.test.ts) | 同轮多次 Simulation；未知日期后排期同 ID；Preparation/Transcript/Review 独立且更正待复核 |
+| AC-DM-30-01 | J-05 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 主动本人片段+现实含义确认，受限 Wiki；模拟面试官虚构不得成为 Research/公司事实 |
+| AC-DM-30-02 | J-05 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 主动本人片段+现实含义确认，受限 Wiki；模拟面试官虚构不得成为 Research/公司事实 |
+| AC-DM-31-01 | J-06 | PASS_ALREADY | PASS_G5 | [offer](../../tests/integration/offer.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 正式新条件回 active，不改旧接受依据；原件不存在/缺失保持诚实 |
+| AC-DM-32-01 | J-06 | CONDITIONAL | CONDITIONAL | 用户授权边界 / Frozen DELIVERY §11 | 条件性建议未采纳，不新增薪酬计算器 |
+| AC-DM-33-01 | J-03/J-05 | PASS_ALREADY | PASS_ALREADY | [interview](../../tests/integration/interview.test.ts)、[opportunity](../../tests/integration/opportunity.test.ts) | 真实发生时间/晚录投影，模拟不推进阶段 |
+| AC-DM-34-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [employment](../../tests/integration/employment.test.ts)、[project](../../tests/integration/project.test.ts) | 计划/实际结束分开，历史角色更正不连带结束 Project |
+| AC-DM-35-01 | J-03/J-06 | PASS_ALREADY | PASS_ALREADY | [opportunity](../../tests/integration/opportunity.test.ts)、[offer](../../tests/integration/offer.test.ts) | 同机会误结束/接受纠错、真实继续和旧历史 |
+| AC-DM-36-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [project](../../tests/integration/project.test.ts) | 同 Project 现实重开与误完成纠错区分，历史保留 |
+| AC-DM-37-01 | J-05 | PASS_ALREADY | PASS_ALREADY | [interview](../../tests/integration/interview.test.ts) | 完成/永久取消纠错同轮、重新安排区别，保留说明 |
+| AC-DM-38-01 | J-02/J-08/J-09 | DEFER_G6 | DEFER_G6 | [g4-data-lifecycle](../../tests/integration/g4-data-lifecycle.test.ts)、[g4-owner-purge](../../tests/integration/g4-owner-purge.test.ts)、[g5-product-edges](../../tests/integration/g5-product-edges.test.ts)、[g5-work-accumulation](../../tests/desktop/g5-work-accumulation.electron.test.ts) | 普通影响确认/purge 子链已测；全部副本/法证与故障 G6 |
+| AC-DM-38-02 | J-02/J-08/J-09 | PASS_ALREADY | PASS_ALREADY | [wiki](../../tests/integration/wiki.test.ts)、[g4-s-communication](../../tests/integration/g4-s-communication.test.ts)、[g5-feedback](../../tests/integration/g5-feedback.test.ts) | 归档与 purge 分开，不假称永久删除 |
+| AC-DM-39-01 | J-03/J-06 | PASS_ALREADY | PASS_ALREADY | [opportunity](../../tests/integration/opportunity.test.ts)、[interview](../../tests/integration/interview.test.ts)、[offer](../../tests/integration/offer.test.ts)、[employment](../../tests/integration/employment.test.ts)、[project](../../tests/integration/project.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 晚录/纠错/后来变化，同身份历史；unknown/date/带原偏移时区与录入时间区分 |
+| AC-DM-40-01 | J-03/J-05/J-06 | PASS_ALREADY | PASS_ALREADY | [opportunity](../../tests/integration/opportunity.test.ts)、[interview](../../tests/integration/interview.test.ts)、[offer](../../tests/integration/offer.test.ts)、[employment](../../tests/integration/employment.test.ts)、[project](../../tests/integration/project.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 晚录/纠错/后来变化，同身份历史；unknown/date/带原偏移时区与录入时间区分 |
+| AC-AI-01-01 | J-02/J-05/J-07 | PASS_ALREADY | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g4-ai-real-seams](../../tests/integration/g4-ai-real-seams.test.ts) | 已有可信 Actor 普通反例；完整 AI 冒充人工安全门 G6 |
+| AC-AI-02-01 | J-04/J-05/J-06/J-07 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-product-resume](../../tests/integration/g5-product-resume.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 全部所需 TaskPolicy 到各正式 owner；整份草稿只在人采用后写入 |
+| AC-AI-03-01 | J-02/J-04/J-07 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-product-resume](../../tests/integration/g5-product-resume.test.ts)、[g5-frozen-resume-lineage](../../tests/integration/g5-frozen-resume-lineage.test.ts)、[g5-controlled-search](../../tests/integration/g5-controlled-search.test.ts) | 渐进真实 Raw 输入，不强迫先造 Wiki/重搜；旧依据不冒充新搜索 |
+| AC-AI-04-01 | J-02 | PASS_ALREADY | PASS_ALREADY | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g4-ai-real-seams](../../tests/integration/g4-ai-real-seams.test.ts) | Project 不递归私聊；零修改正常结束，无正式写入 |
+| AC-AI-05-01 | J-05 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-submission-preparation](../../tests/integration/g5-submission-preparation.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 无投递明确缺项；实际投递 A 的正文/证明，不以当前 B 冒充 |
+| AC-AI-06-01 | J-05/J-07 | PASS_ALREADY | PASS_G5 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts)、[g5-work-accumulation](../../tests/desktop/g5-work-accumulation.electron.test.ts) | 采用≠核验，模拟来源性质不因说话人被事实化 |
+| AC-AI-07-01 | J-02/J-04/J-05/J-06/J-07 | DEFER_G6 | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g5-product-controls](../../tests/integration/g5-product-controls.test.ts)、[g5-controlled-search](../../tests/integration/g5-controlled-search.test.ts) | 精确预览、Read/Egress 分离、撤销/共享预算普通子证据；完整权限/竞态安全门 G6 |
+| AC-AI-07-02 | J-02/J-04/J-05/J-06/J-07 | DEFER_G6 | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g5-product-controls](../../tests/integration/g5-product-controls.test.ts)、[g5-controlled-search](../../tests/integration/g5-controlled-search.test.ts) | 精确预览、Read/Egress 分离、撤销/共享预算普通子证据；完整权限/竞态安全门 G6 |
+| AC-AI-07-03 | J-02/J-04/J-05/J-06/J-07 | DEFER_G6 | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g5-product-controls](../../tests/integration/g5-product-controls.test.ts)、[g5-controlled-search](../../tests/integration/g5-controlled-search.test.ts) | 精确预览、Read/Egress 分离、撤销/共享预算普通子证据；完整权限/竞态安全门 G6 |
+| AC-AI-08-01 | J-07 | EXTERNAL_LIVE_PENDING | EXTERNAL_LIVE_PENDING | [g5-controlled-search](../../tests/integration/g5-controlled-search.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | controlled 查询授权/本轮结果产品链已测；真实 Search 无授权且未测；衍生外发最终安全门 G6 |
+| AC-AI-08-02 | J-07 | EXTERNAL_LIVE_PENDING | DEFER_G6 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-controlled-search](../../tests/integration/g5-controlled-search.test.ts) | 既有资料标识普通子证据；最终门 G6，不要求真实 Search，纠正初始 external 分类 |
+| AC-AI-09-01 | J-07 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-object-import](../../tests/integration/g5-object-import.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts)、[g5-work-accumulation](../../tests/desktop/g5-work-accumulation.electron.test.ts) | 明确 owner、真实本地文件与 shaped fixture、候选/body/预览/Raw/AI 独立；真实 Feishu NOT TESTED |
+| AC-AI-10-01 | J-04/J-05/J-07 | MISSING_IMPLEMENTATION | DEFER_G6 | [g5-product-edges](../../tests/integration/g5-product-edges.test.ts)、[g5-product-resume](../../tests/integration/g5-product-resume.test.ts)、[g5-product-controls](../../tests/integration/g5-product-controls.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 同 owner 组选中全成/全不与具体冲突 ID、逐条/整草稿立即生效子链已测；全部事务故障 G6 |
+| AC-AI-10-02 | J-04/J-05/J-07 | MISSING_IMPLEMENTATION | DEFER_G6 | [g5-product-edges](../../tests/integration/g5-product-edges.test.ts)、[g5-product-resume](../../tests/integration/g5-product-resume.test.ts)、[g5-product-controls](../../tests/integration/g5-product-controls.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 同 owner 组选中全成/全不与具体冲突 ID、逐条/整草稿立即生效子链已测；全部事务故障 G6 |
+| AC-AI-10-03 | J-04/J-05/J-07 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-product-controls](../../tests/integration/g5-product-controls.test.ts) | 忽略仍 pending、拒绝终止、全部已处理才 completed；真实 Runtime/SQLite |
+| AC-AI-11-01 | J-02/J-04/J-07 | PASS_ALREADY | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g5-product-resume](../../tests/integration/g5-product-resume.test.ts)、[g5-windows](../../tests/desktop/g5-windows.electron.test.ts) | 无关修改不误 stale、相关依赖检查普通子证据；完整细粒度依赖门 G6 |
+| AC-AI-12-01 | J-02/J-07 | DEFER_G6 | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g5-resume-ai-unknown-ui](../../tests/g5-resume-ai-unknown-ui.test.ts) | unknown 原命令恢复、锁块/无关输入普通证据；复杂 A/B/late G6 |
+| AC-AI-13-01 | J-09 | DEFER_G6 | DEFER_G6 | [g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-windows](../../tests/desktop/g5-windows.electron.test.ts) | 恢复不复活 grant/旧窗口隔离子证据；恢复切点与权限完整门 G6 |
+| AC-AI-14-01 | J-01/J-09 | DEFER_G6 | DEFER_G6 | [g0.unit](../../tests/g0.unit.test.ts)、[g0.electron](../../tests/g0.electron.test.ts) | Safe Storage 使用临时测试 Secret；完整 Key 生命周期/安全失败/回退门 G6 |
+| AC-AI-14-02 | J-01/J-09 | DEFER_G6 | DEFER_G6 | [g0.unit](../../tests/g0.unit.test.ts)、[g0.electron](../../tests/g0.electron.test.ts) | Safe Storage 使用临时测试 Secret；完整 Key 生命周期/安全失败/回退门 G6 |
+| AC-AI-15-01 | J-04/J-06 | MISSING_IMPLEMENTATION | DEFER_G6 | [g5-product-resume](../../tests/integration/g5-product-resume.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-frozen-resume-lineage](../../tests/integration/g5-frozen-resume-lineage.test.ts)、[g5-product-edges](../../tests/integration/g5-product-edges.test.ts) | 默认排除管理身份、Greeting 姓名逐字段确认、Offer 真实内容普通子证据；完整泄漏安全门 G6 |
+| AC-AI-15-02 | J-04/J-06 | MISSING_IMPLEMENTATION | DEFER_G6 | [g5-product-resume](../../tests/integration/g5-product-resume.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-frozen-resume-lineage](../../tests/integration/g5-frozen-resume-lineage.test.ts)、[g5-product-edges](../../tests/integration/g5-product-edges.test.ts) | 默认排除管理身份、Greeting 姓名逐字段确认、Offer 真实内容普通子证据；完整泄漏安全门 G6 |
+| AC-AI-16-01 | J-02/J-05/J-07 | PASS_ALREADY | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5-frozen-resume-lineage](../../tests/integration/g5-frozen-resume-lineage.test.ts) | 真实来源性质继承普通子证据；对抗指令/扩权完整安全门 G6 |
+| AC-AI-17-01 | J-02/J-07 | DEFER_G6 | DEFER_G6 | [g5-product-controls](../../tests/integration/g5-product-controls.test.ts)、[g4-ai-controller](../../tests/g4-ai-controller.test.ts) | 根预算共享/stop/resume 子证据；完整停用/预算竞态门 G6 |
+| AC-AI-18-01 | J-02/J-09 | DEFER_G6 | DEFER_G6 | [g4-ai-runtime](../../tests/integration/g4-ai-runtime.test.ts)、[g4-data-fence](../../tests/integration/g4-data-fence.test.ts)、[g5-product-edges](../../tests/integration/g5-product-edges.test.ts) | 无效输出、清除闸门子证据；缓存/恢复完整安全门 G6 |
+| AC-UX-01-01 | J-01 | PASS_ALREADY | PASS_G5 | [g5](../../tests/desktop/g5.electron.test.ts) | 空库无 AI，Personal/Cognition 首条、空知识取消无记录；无 JD 创建 |
+| AC-UX-02-01 | J-01 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-preferences](../../tests/integration/g5-preferences.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 四入口、持久 pin/重启首页、具体对象直达、取消回 Wiki |
+| AC-UX-03-01 | J-04 | PASS_ALREADY | PASS_ALREADY | [g2](../../tests/desktop/g2.electron.test.ts) | 明确 B Resume 深链接返回 B 所属机会，普通返回行为不同 |
+| AC-UX-04-01 | J-02/J-04/J-08 | DEFER_G6 | DEFER_G6 | [g4-s-ui](../../tests/g4-s-ui.test.ts)、[offer-ui](../../tests/offer-ui.test.ts)、[g5-resume-ai-unknown-ui](../../tests/g5-resume-ai-unknown-ui.test.ts)、[g5-windows](../../tests/desktop/g5-windows.electron.test.ts) | 普通未知回执/冲突保留和正式比较已测；已观察到基线 Wiki reopen 请求期间输入可被晚到回读覆盖，详情见 [review](g5-final-review.md)，留 G6；不声明全部晚到回读通过 |
+| AC-UX-05-01 | J-01/J-04 | PASS_ALREADY | PASS_G5 | [g5](../../tests/desktop/g5.electron.test.ts)、[g5-feedback-ui](../../tests/g5-feedback-ui.test.ts)、[g5-product-controls](../../tests/integration/g5-product-controls.test.ts) | 空取消/焦点返回、已保存内容与未发/已发任务停止区分 |
+| AC-UX-06-01 | J-04 | MISSING_IMPLEMENTATION | PASS_G5 | [g5](../../tests/desktop/g5.electron.test.ts)、[g5-windows](../../tests/desktop/g5-windows.electron.test.ts)、[resume](../../tests/resume.test.ts)  [真人最终](g5-manual-desktop-final.md)、[版本格式](g5-version-format-regression.md)、[Undo](g5-resume-undo-regression.md) | 2026-10-03 用户完成真实 macOS 简体拼音、连续编辑、选区加粗、Apply/Undo、冻结历史/PDF、焦点、缩放/窄窗与导航 PASS；两次人工缺陷修复复测 PASS，原 FAIL 留证。 |
+| AC-UX-06-02 | J-04 | MISSING_IMPLEMENTATION | PASS_ALREADY | [g4-x-cross-owner](../../tests/integration/g4-x-cross-owner.test.ts)、[g2](../../tests/desktop/g2.electron.test.ts) | 全局 Profile 明示并同步当前 Resume，冻结身份/PDF/发送历史不变 |
+| AC-UX-07-01 | J-04 | PASS_ALREADY | PASS_G5 | [g5](../../tests/desktop/g5.electron.test.ts)、[g5-windows](../../tests/desktop/g5-windows.electron.test.ts)、[resume](../../tests/resume.test.ts)  [真人最终](g5-manual-desktop-final.md)、[版本格式](g5-version-format-regression.md)、[Undo](g5-resume-undo-regression.md) | 2026-10-03 用户完成真实 macOS 简体拼音、连续编辑、选区加粗、Apply/Undo、冻结历史/PDF、焦点、缩放/窄窗与导航 PASS；两次人工缺陷修复复测 PASS，原 FAIL 留证。 |
+| AC-UX-08-01 | J-04 | PASS_ALREADY | PASS_ALREADY | [g4-export](../../tests/integration/g4-export.test.ts)、[g4-s-submission](../../tests/integration/g4-s-submission.test.ts)、[g4](../../tests/desktop/g4.electron.test.ts) | 真实冻结 PDF A/current B、实际发送 A、晚到归原 owner/文件缺失诚实登记 |
+| AC-UX-09-01 | J-02/J-07 | PASS_ALREADY | PASS_ALREADY | [wiki-research-ui](../../tests/wiki-research-ui.test.ts)、[g4-research-purge-ui](../../tests/g4-research-purge-ui.test.ts)、[research](../../tests/integration/research.test.ts)、[g3](../../tests/desktop/g3.electron.test.ts) | Wiki 只读引用同一研究正本，清除后不可读 |
+| AC-UX-10-01 | J-02/J-07 | PASS_ALREADY | DEFER_G6 | [g5-product-controls](../../tests/integration/g5-product-controls.test.ts)、[g4-ai-controller](../../tests/g4-ai-controller.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 普通进度/停止/明确续做/新预览授权 dev 与 packaged 已测；复杂 unknown/new/late 同屏最终门 G6，当前不声称复杂 UI 全过 |
+| AC-UX-11-01 | J-08 | MISSING_IMPLEMENTATION | PASS_G5 | [g5-feedback-ui](../../tests/g5-feedback-ui.test.ts)、[g5-feedback](../../tests/integration/g5-feedback.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 正常包 dirty/图片/焦点返回；真实 Feedback owner+隔离 Chromium unknown 同 receipt，不重复创建 |
+| AC-UX-12-01 | J-09 | PASS_ALREADY | DEFER_G6 | [g4-data-backup](../../tests/integration/g4-data-backup.test.ts)、[g4-data-lifecycle](../../tests/integration/g4-data-lifecycle.test.ts)、[g4-data-ui](../../tests/g4-data-ui.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 完整/缺失普通备份、隔离验证、真正激活/唯一 pointer/重启已测；恢复故障最终门 G6 |
+| AC-UX-13-01 | J-01 | DEFER_G6 | DEFER_G6 | [materials](../../tests/desktop/materials.electron.test.ts)、[g0.electron](../../tests/g0.electron.test.ts) | 正常进程/信任隔离子证据；恶意网页/端口/退出失败完整门 G6 |
+| AC-UX-14-01 | J-01～J-09 | MISSING_IMPLEMENTATION | PASS_G5 | [g5](../../tests/desktop/g5.electron.test.ts)、[g5-windows](../../tests/desktop/g5-windows.electron.test.ts)、[resume](../../tests/resume.test.ts)  [真人最终](g5-manual-desktop-final.md)、[版本格式](g5-version-format-regression.md)、[Undo](g5-resume-undo-regression.md) | 2026-10-03 用户完成真实 macOS 简体拼音、连续编辑、选区加粗、Apply/Undo、冻结历史/PDF、焦点、缩放/窄窗与导航 PASS；两次人工缺陷修复复测 PASS，原 FAIL 留证。 |
+| AC-UX-15-01 | J-01～J-09 | PASS_ALREADY | DEFER_G6 | [g5-work-accumulation](../../tests/desktop/g5-work-accumulation.electron.test.ts)、[g5-windows](../../tests/desktop/g5-windows.electron.test.ts)、[g2](../../tests/desktop/g2.electron.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 同会话 Wiki 范围筛选及当前选中知识返回保留、刷新/重启持久内容；崩溃边缘 G6，不承诺跨重启选区/undo |
+| AC-UX-16-01 | J-03/J-05/J-06 | PASS_ALREADY | PASS_ALREADY | [opportunity](../../tests/integration/opportunity.test.ts)、[interview](../../tests/integration/interview.test.ts)、[offer](../../tests/integration/offer.test.ts)、[employment](../../tests/integration/employment.test.ts)、[project](../../tests/integration/project.test.ts)、[g5-sagas](../../tests/desktop/g5-sagas.electron.test.ts) | 晚录/纠错/后来变化，同身份历史；unknown/date/带原偏移时区与录入时间区分 |
+| AC-MG-01-01 | J-09 | DEFER_M | DEFER_M | 用户授权边界 / Frozen DELIVERY §11 | 正式旧系统迁移无授权、未读取旧 Career；普通 Restore 不代表 M，未知资料不猜 |
+| AC-MG-02-01 | J-09 | DEFER_M | DEFER_M | 用户授权边界 / Frozen DELIVERY §11 | 正式旧系统迁移无授权、未读取旧 Career；普通 Restore 不代表 M，未知资料不猜 |
+| AC-MG-03-01 | J-09 | DEFER_M | DEFER_M | 用户授权边界 / Frozen DELIVERY §11 | 正式旧系统迁移无授权、未读取旧 Career；普通 Restore 不代表 M，未知资料不猜 |
+| AC-MG-04-01 | J-09 | DEFER_G6 | DEFER_G6 | [g4-data-backup](../../tests/integration/g4-data-backup.test.ts)、[g4-data-lifecycle](../../tests/integration/g4-data-lifecycle.test.ts)、[g4-purge-plan-review](../../tests/integration/g4-purge-plan-review.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 缺失/多余文件、副本影响、旧执行权不复活普通子证据；备份/清除故障与 Secret 完整门 G6 |
+| AC-MG-04-02 | J-09 | DEFER_G6 | DEFER_G6 | [g4-data-backup](../../tests/integration/g4-data-backup.test.ts)、[g4-data-lifecycle](../../tests/integration/g4-data-lifecycle.test.ts)、[g4-purge-plan-review](../../tests/integration/g4-purge-plan-review.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 缺失/多余文件、副本影响、旧执行权不复活普通子证据；备份/清除故障与 Secret 完整门 G6 |
+| AC-MG-05-01 | J-09 | DEFER_G6 | DEFER_G6 | [g4-data-backup](../../tests/integration/g4-data-backup.test.ts)、[g4-data-lifecycle](../../tests/integration/g4-data-lifecycle.test.ts)、[g4-purge-plan-review](../../tests/integration/g4-purge-plan-review.test.ts)、[g5-product-policies](../../tests/integration/g5-product-policies.test.ts)、[g5](../../tests/desktop/g5.electron.test.ts) | 缺失/多余文件、副本影响、旧执行权不复活普通子证据；备份/清除故障与 Secret 完整门 G6 |
+| AC-MG-06-01 | J-09 | DEFER_M | DEFER_M | 用户授权边界 / Frozen DELIVERY §11 | 正式旧系统迁移无授权、未读取旧 Career；普通 Restore 不代表 M，未知资料不猜 |
+| AC-MG-07-01 | J-09 | DEFER_M | DEFER_M | 用户授权边界 / Frozen DELIVERY §11 | 正式旧系统迁移无授权、未读取旧 Career；普通 Restore 不代表 M，未知资料不猜 |
 
-## 初始统计
+## 最终统计（真人补证后）
 
-PASS_ALREADY=59, PASS_G5=0, MISSING_IMPLEMENTATION=20, DEFER_G6=17, DEFER_M=5, EXTERNAL_LIVE_PENDING=2, CONDITIONAL=1；合计 104。
+PASS_ALREADY=38, PASS_G5=31, DEFER_G6=28, DEFER_M=5, EXTERNAL_LIVE_PENDING=1, CONDITIONAL=1；合计 104，ID 集合与 Frozen ACCEPTANCE 完全相同。MISSING_IMPLEMENTATION=0，待真人结算=0。真实服务与后续门禁未升级为已验证。
 
-## 后续证据规则
+初始统计（历史）：PASS_ALREADY=58、PASS_G5=0、MISSING_IMPLEMENTATION=21、DEFER_G6=17、DEFER_M=5、EXTERNAL_LIVE_PENDING=2、CONDITIONAL=1。Company 改名与 Profile 修改两条初始缺口理由误贴，已在审计列纠正。
 
-新产品合同需真实 owner + SQLite 的集成证据及正常 arm64 packaged 连续旅程。自动化通过后暂停真人 Desktop Gate；此时 Issue 保持打开、不创建最终 checkpoint。
+REAL PROVIDER / SEARCH / FEISHU = NOT TESTED。受控结果只能 PRODUCT FLOW PASS，J-07 真实外部部分仍 PARTIAL。Developer ID / Notarization / x64 = READY。正式迁移部分留 M，恢复候选校验不等于激活；真正激活、唯一 active pointer 和重启由 normal desktop / data-lifecycle 另证。

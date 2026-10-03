@@ -1,0 +1,12 @@
+import type {ProductPolicy,TaskEvidence} from '../../../../contracts/ai/task-policy';
+import type {ProductTarget} from '../../../../contracts/ai/product-context';
+import type {createCommunicationDrafts} from './draft';
+export function createGreetingPolicy(owner:ReturnType<typeof createCommunicationDrafts>,related:(opportunityId:string)=>TaskEvidence,profile:()=>{revision:number;name:string}):ProductPolicy{
+ const target=(input:ProductTarget)=>{if(input.kind!=='greeting')throw Error('invalid_policy');return input;};
+ return {
+  targets:input=>[{owner:'communication-draft',objectId:target(input).opportunityId}],
+  prepare(input){const selected=target(input),draft=owner.read(selected.opportunityId),context=related(selected.opportunityId),identity=selected.includeName?profile():undefined,withheld=!selected.includeName&&draft.trustedProvenance?.some(p=>p.owner==='profile');if(withheld)context.missing.push('既有草稿含曾授权署名，本次未授权姓名，因此整份既有草稿未加入。');return {context:{target:input,body:context.body+'\n本次当前沟通草稿（未发送）：\n'+(withheld?'本次省略含身份的既有草稿':draft.text)+'\n仅生成可编辑草稿；采用不等于已发送。'+(identity?'\n独立获准署名：'+identity.name:'\n不使用本人姓名、电话、邮箱。'),missing:context.missing,identityFields:identity?[{field:'name',value:identity.name}]:[],dependencies:[...context.dependencies,{owner:'communication-draft',objectId:draft.opportunityId,revision:draft.revision,role:'target'},...identity?[{owner:'profile',objectId:'current',revision:identity.revision,role:'evidence' as const}]:[]]},provenance:[...context.provenance,...(!withheld?draft.trustedProvenance??[]:[]),...identity?[{owner:'profile',objectId:'current',revision:identity.revision,scope:'personal' as const,kind:'explicit_name_only',restrictions:{read:true,egress:true}}]:[]],sources:[]};},
+  validate(change){if(change.kind!=='create')throw Error('invalid_output');},dependencies:(_change,context)=>context.dependencies,
+  apply({commandId,proposal,edited}){const selected=target(proposal.target);if(proposal.change.kind!=='create')throw Error('invalid_output');const expected=proposal.dependencies.find(dep=>dep.owner==='communication-draft')?.revision;if(expected===undefined)throw Error('invalid_dependency');const content=edited&&'body'in edited?edited:proposal.change.content;owner.save({commandId,opportunityId:selected.opportunityId,expectedRevision:expected,text:content.body,provenance:proposal.provenance});return {owner:'communication-draft',objectId:selected.opportunityId};},
+ };
+}

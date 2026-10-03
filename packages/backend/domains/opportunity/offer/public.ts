@@ -77,7 +77,9 @@ export function createOfferDomain(db:Database.Database,dependencies:OfferDepende
  }
  function purgeImpact(id:string){const row=db.prepare('SELECT body_json FROM opportunity_offer WHERE id=?').get(id) as {body_json:string}|undefined;if(!row)return undefined;const value=Offer.parse(JSON.parse(row.body_json));const events=(db.prepare('SELECT event_json FROM opportunity_offer_history WHERE offer_id=?').all(id) as {event_json:string}[]).map(item=>Event.parse(JSON.parse(item.event_json)));const bases=(db.prepare('SELECT basis_json FROM opportunity_offer_acceptance WHERE offer_id=?').all(id) as {basis_json:string}[]).map(item=>AcceptanceBasis.parse(JSON.parse(item.basis_json)));const materialOwners=[...events.filter(event=>event.original?.kind==='retained').map(event=>event.conditionsId),...bases.filter(basis=>basis.original.kind==='retained').map(basis=>basis.id),...value.original.kind==='retained'?[value.conditionsId]:[]];return {id,opportunityId:value.opportunityId,revision:value.revision,name:'Offer 条件及接受依据',blobIds:[],retentions:[...new Set(materialOwners)].map(objectId=>({owner:'offer' as const,objectId})),relatedIds:bases.map(item=>item.id)};}
  function purge(id:string){db.transaction(()=>{const impact=purgeImpact(id);if(!impact)return;if(impact.retentions.length&&!dependencies.releaseRetention)throw Error('storage_failed');for(const retention of impact.retentions)dependencies.releaseRetention!(retention.objectId);db.prepare('DELETE FROM opportunity_offer_acceptance WHERE offer_id=?').run(id);db.prepare('DELETE FROM opportunity_offer_history WHERE offer_id=?').run(id);db.prepare('DELETE FROM opportunity_offer WHERE id=?').run(id);redactOwnerReceipts(db,'offer',[id,...impact.relatedIds],{kind:'failure',code:'not_found'});})();}
- return {handle,purgeImpact,purge};
+ return {handle,read,purgeImpact,purge};
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+
+export {createOfferAiPolicy} from './ai-policy';

@@ -1,6 +1,9 @@
 import {z} from 'zod';
-export const Preferences=z.strictObject({revision:z.number().int().nonnegative(),pinned:z.enum(['wiki','opportunity','project','employment']).nullable()});
+export const ModuleId=z.enum(['wiki','opportunity','project','employment']);
+export const ModuleOrder=z.array(ModuleId).length(4).refine(order=>new Set(order).size===4,'all four modules exactly once');
+export const Preferences=z.strictObject({revision:z.number().int().nonnegative(),pinned:ModuleId.nullable(),order:ModuleOrder.default(['wiki','opportunity','project','employment'])});
 export const PreferencesRequest=z.discriminatedUnion('operation',[
+ z.strictObject({operation:z.literal('preferences.reorder'),commandId:z.uuid(),expectedRevision:z.number().int().nonnegative(),order:ModuleOrder}),
  z.strictObject({operation:z.literal('preferences.read')}),
  z.strictObject({operation:z.literal('preferences.pin'),commandId:z.uuid(),expectedRevision:z.number().int().nonnegative(),pinned:Preferences.shape.pinned}),
  z.strictObject({operation:z.literal('preferences.receipt'),commandId:z.uuid()})

@@ -1,3 +1,5 @@
+import {sourceScope} from '../../../../contracts/common/source-ref';
+import type {Provenance} from '../../../../contracts/common/provenance';
 import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
@@ -6,14 +8,14 @@ import type {SourceRef} from '../../../../contracts/common/source-ref';
 import type {OpportunityCapabilities} from '../../../../contracts/opportunity/capabilities';
 import {executeCommand,commandReceipt} from '../../../platform/commands/receipts';
 export {researchMigration} from './migration';
-export interface ResearchDependencies{core:OpportunityCapabilities;resolveSource?:(ref:SourceRef)=>{ref:SourceRef;status:'readable'|'unavailable'|'stale';scope?:Owner|{kind:'personal'}}|undefined;}
+export interface ResearchDependencies{core:OpportunityCapabilities;provenanceCurrent?:(input:Provenance)=>{revision:number}|undefined;resolveSource?:(ref:SourceRef)=>{ref:SourceRef;status:'readable'|'unavailable'|'stale';scope?:Owner|{kind:'personal'}}|undefined;}
 export function createResearchDomain(db:Database.Database,dependencies:ResearchDependencies){
  const same=(a:Owner,b:Owner)=>a.kind===b.kind&&a.id===b.id;
  function ensureOwner(owner:Owner){if(owner.kind==='company'?!dependencies.core.readCompany(owner.id):!dependencies.core.readOpportunity(owner.id))throw Error('not_found');}
  function current(id:string){const row=db.prepare('SELECT item_json FROM research_items WHERE id=?').get(id) as {item_json:string}|undefined;return row?Item.parse(JSON.parse(row.item_json)):undefined;}
  function documentRevision(owner:Owner){return (db.prepare('SELECT revision FROM research_documents WHERE owner_kind=? AND owner_id=?').get(owner.kind,owner.id) as {revision:number}|undefined)?.revision??0;}
  function touch(owner:Owner){db.prepare('INSERT INTO research_documents VALUES(?,?,1) ON CONFLICT(owner_kind,owner_id) DO UPDATE SET revision=revision+1').run(owner.kind,owner.id);}
- function sourceStatus(source:Source,owner:Owner){const resolved=dependencies.resolveSource?.(source.ref);if(!resolved||resolved.status==='unavailable')return 'unavailable' as const;if(resolved.ref.owner!==source.ref.owner||resolved.ref.objectId!==source.ref.objectId||resolved.ref.revision!==source.ref.revision||resolved.ref.locator!==source.ref.locator||resolved.ref.scope!==source.ref.scope||resolved.status==='stale')return 'stale' as const;const scope=resolved.scope??(source.ref.owner==='materials'?{kind:'personal' as const}:{kind:'opportunity' as const,id:source.ref.opportunityId});if(scope.kind==='personal'&&owner.kind==='company')return 'unavailable' as const;if(scope.kind!=='personal'&&!same(scope,owner))return 'unavailable' as const;return 'readable' as const;}
+ function sourceStatus(source:Source,owner:Owner){const resolved=dependencies.resolveSource?.(source.ref);if(!resolved||resolved.status==='unavailable')return 'unavailable' as const;if(resolved.ref.owner!==source.ref.owner||resolved.ref.objectId!==source.ref.objectId||resolved.ref.revision!==source.ref.revision||resolved.ref.locator!==source.ref.locator||resolved.ref.scope!==source.ref.scope||resolved.status==='stale')return 'stale' as const;const scope=resolved.scope??(sourceScope(source.ref));if(scope.kind==='personal'&&owner.kind==='company')return 'unavailable' as const;if(scope.kind!=='personal'&&(scope.kind!==owner.kind||!('id'in scope)||scope.id!==owner.id))return 'unavailable' as const;return 'readable' as const;}
  function validateSources(sources:Source[],owner:Owner){for(const source of sources){if(sourceStatus(source,owner)!=='readable')throw Error('source_unavailable');}}
  function resolveItem(input:{id:string;revision?:number;viewer:Owner}):Resolution|undefined{
   const latest=current(input.id);if(!latest)return;ensureOwner(input.viewer);let item=latest;
@@ -22,7 +24,7 @@ export function createResearchDomain(db:Database.Database,dependencies:ResearchD
   const allowed=same(item.owner,input.viewer)||(item.owner.kind==='company'&&viewerOpportunity?.companyId===item.owner.id);
   if(!allowed)return;
   const sources=item.sources.map(source=>({source,status:sourceStatus(source,input.viewer.kind==='company'?input.viewer:item.owner)}));
-  return Resolution.parse({item,sources,reviewRequired:sources.some(s=>s.status!=='readable'||s.source.assessment==='needs_review'),editable:same(latest.owner,input.viewer)&&item.revision===latest.revision});
+  return Resolution.parse({item,sources,reviewRequired:sources.some(s=>s.status!=='readable'||s.source.assessment==='needs_review')||(item.trustedProvenance??[]).some(p=>{const current=dependencies.provenanceCurrent?.(p);return !current||current.revision!==p.revision;}),editable:same(latest.owner,input.viewer)&&item.revision===latest.revision});
  }
  function save(item:Item,action:'created'|'corrected'|'supplemented'|'withdrawn'|'restored'|'promoted',reason='',businessTime:History['businessTime']={kind:'unknown'}){
   db.prepare('INSERT INTO research_items VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET owner_kind=excluded.owner_kind,owner_id=excluded.owner_id,revision=excluded.revision,item_json=excluded.item_json').run(item.id,item.owner.kind,item.owner.id,item.revision,JSON.stringify(item));
@@ -44,7 +46,7 @@ export function createResearchDomain(db:Database.Database,dependencies:ResearchD
  }catch(error){const parsed=ErrorCode.safeParse(error instanceof Error?error.message:'storage_failed');return {kind:'failure',code:parsed.success?parsed.data:'storage_failed'};}}
  function referencing(ref:{owner:string;objectId:string}){
   const results=new Map<string,{id:string;title:string;revision:number;referencingRevisions:number[];historical:boolean}>();
-  const matches=(item:Item)=>item.sources.some(source=>source.ref.owner===ref.owner&&source.ref.objectId===ref.objectId);
+  const matches=(item:Item)=>item.sources.some(source=>source.ref.owner===ref.owner&&source.ref.objectId===ref.objectId)||!!item.trustedProvenance?.some(p=>p.owner===ref.owner&&p.objectId===ref.objectId);
   for(const row of db.prepare('SELECT item_json FROM research_items').all() as {item_json:string}[]){const item=Item.parse(JSON.parse(row.item_json));if(matches(item))results.set(item.id,{id:item.id,title:item.title,revision:item.revision,referencingRevisions:[item.revision],historical:false});}
   for(const row of db.prepare('SELECT history_json FROM research_history').all() as {history_json:string}[]){const item=History.parse(JSON.parse(row.history_json)).item;if(!matches(item))continue;const live=current(item.id);if(!live)continue;const existing=results.get(item.id);if(existing){if(!existing.referencingRevisions.includes(item.revision))existing.referencingRevisions.push(item.revision);}else results.set(item.id,{id:item.id,title:live.title,revision:live.revision,referencingRevisions:[item.revision],historical:true});}
   return [...results.values()];
@@ -58,9 +60,14 @@ export function createResearchDomain(db:Database.Database,dependencies:ResearchD
   for(const row of db.prepare('SELECT item_id,revision,history_json FROM research_history').all() as {item_id:string;revision:number;history_json:string}[]){const history=History.parse(JSON.parse(row.history_json));if(!matches(history.item))continue;affected.add(row.item_id);owners.set(history.item.owner.kind+':'+history.item.owner.id,history.item.owner);db.prepare('UPDATE research_history SET history_json=? WHERE item_id=? AND revision=?').run(JSON.stringify({...history,item:redact(history.item)}),row.item_id,row.revision);}
   for(const owner of owners.values())touch(owner);
   // Also cover a retained receipt whose source no longer appears in current/history content.
-  redactOwnerReceipts(db,'research',[...affected,ref.objectId],{kind:'failure',code:'content_purged'});
+  redactOwnerReceipts(db,'research',[...affected,ref.objectId],{kind:'failure',code:'content_purged'});redactOwnerReceipts(db,'research.proposal',[...affected,ref.objectId],{kind:'failure',code:'content_purged'});
  }
- return {handle,resolveItem,redactSource,purgeImpact(id:string){const item=current(id);return item?{id,revision:item.revision,name:item.title,blobIds:[],retentions:[]}:undefined;},referencing,purge(id:string){const item=current(id);db.prepare('DELETE FROM research_references WHERE item_id=?').run(id);db.prepare('DELETE FROM research_history WHERE item_id=?').run(id);db.prepare('DELETE FROM research_items WHERE id=?').run(id);if(item)touch(item.owner);redactOwnerReceipts(db,'research',[id],{kind:'failure',code:'content_purged'});}};
+ function applyProposal(input:{commandId:string;owner:Owner;title:string;body:string;sources:Source[];provenance:Provenance[]}){
+  return executeCommand(db,'research.proposal',input.commandId,input,()=>{ensureOwner(input.owner);validateSources(input.sources,input.owner);if(input.provenance.some(p=>p.kind==='simulation'||!p.restrictions.read||!p.restrictions.egress))throw Error('source_unavailable');const document=handle({operation:'read',owner:input.owner});if(document.kind!=='document')throw Error('not_found');if(document.items.some(r=>r.item.active&&r.item.title===input.title))throw Error('conflict');touch(input.owner);return save(Item.parse({id:randomUUID(),owner:input.owner,revision:1,title:input.title,body:input.body,nature:'inference',sources:input.sources,leads:[],origin:'ai_accepted',trustedProvenance:input.provenance,userConfirmed:true,independentlyVerified:false,active:true,recordedAt:new Date().toISOString()}),'created');});
+ }
+ return {handle,applyProposal,resolveItem,redactSource,purgeImpact(id:string){const item=current(id);return item?{id,revision:item.revision,name:item.title,blobIds:[],retentions:[]}:undefined;},referencing,purge(id:string){const item=current(id);db.prepare('DELETE FROM research_references WHERE item_id=?').run(id);db.prepare('DELETE FROM research_history WHERE item_id=?').run(id);db.prepare('DELETE FROM research_items WHERE id=?').run(id);if(item)touch(item.owner);redactOwnerReceipts(db,'research',[id],{kind:'failure',code:'content_purged'});redactOwnerReceipts(db,'research.proposal',[id],{kind:'failure',code:'content_purged'});}};
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+
+export {createResearchAiPolicy} from './ai-policy';

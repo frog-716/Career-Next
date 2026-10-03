@@ -1,3 +1,7 @@
+import {searchMigration} from '../ai-runtime/search/public';
+import {importTargetMigration} from '../domains/materials/public';
+import {draftMigration} from '../domains/opportunity/communication/public';
+import {productMigration} from '../ai-runtime/product/migration';
 import {feedbackMigration} from '../application/feedback/public';
 import {g5RetentionMigration} from '../platform/database/g5-retention';
 import {preferencesMigration} from '../application/preferences/public';
@@ -13,7 +17,7 @@ import { employmentMigration } from '../domains/employment/public';
 import { projectMigration } from '../domains/project/public';
 import { opportunityMigration } from '../domains/opportunity/migration';
 import { profileMigration } from '../domains/profile/public';
-import { resumeMigration } from '../domains/resume/public';
+import { resumeMigration,resumeProvenanceMigration } from '../domains/resume/public';
 import { wikiMigration } from '../domains/wiki/migration';
 import type { MigrationBatch } from '../platform/database/migrations';
 import {researchMigration} from '../domains/opportunity/research/migration';
@@ -46,4 +50,9 @@ export const releases:readonly MigrationBatch[]=[{version:2,name:'002-g2-first-b
  {id:'platform.g5-retention.v1',dependencies:['platform.g4-retention.v1'],sql:g5RetentionMigration},
  {id:'application.feedback.v1',dependencies:['platform.commands.v1','platform.g5-retention.v1'],sql:feedbackMigration},
  {id:'application.preferences.v1',dependencies:['platform.commands.v1'],sql:preferencesMigration},
+ {id:'communication.draft.v1',dependencies:['communication.initial.v1'],sql:draftMigration},
+ {id:'materials.targets.v1',dependencies:['platform.artifacts.v2'],sql:importTargetMigration},
+ {id:'ai.search.v1',dependencies:['ai.initial.v1'],sql:searchMigration},
+ {id:'resume.provenance.v1',dependencies:['resume.initial.v1'],sql:resumeProvenanceMigration},
+ {id:'ai.product.v1',dependencies:['ai.initial.v1'],sql:productMigration},
 ]}];

@@ -45,6 +45,7 @@ export function staging(root: string, maxBytes: number, adapter?: ProductionSink
   const directory = path.join(root, 'staging');
   return {
     async initialize() { await withFileLease(adapter, () => mkdir(directory, { recursive: true, mode: 0o700 })); },
+    async text(id:string,name:string,text:string,check:()=>Promise<unknown>,operationAdapter=adapter){if(!uuid.test(id))throw Error('unsupported_file');const bytes=Buffer.from(text,'utf8');if(bytes.length>maxBytes||text.includes('\0'))throw Error('unsupported_file');await writeCandidate(path.join(directory,id),bytes,check,operationAdapter);await withFileLease(operationAdapter,async()=>{await check();await syncDirectory(directory);});return {name,size:bytes.length,digest:createHash('sha256').update(bytes).digest('hex'),text};},
     async select(id: string, filename: string, check: () => Promise<unknown>, operationAdapter = adapter) {
       if (!uuid.test(id)) throw Error('unsupported_file');
       const target = path.join(directory, id);

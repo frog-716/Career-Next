@@ -34,7 +34,7 @@ it('an incomplete real purge closes body reads and human writes until the origin
   const plan=DataResult.parse(await store.business(session,'application',{operation:'data.purge.plan',references:[{owner:'wiki',objectId:saved.knowledge.id}]}));
   if(plan.kind!=='purge_plan')throw Error('plan_failed');
   const original={operation:'data.purge.confirm' as const,planId:plan.plan.id,selectedCopyIds:plan.plan.copies.map(copy=>copy.id),confirmed:true};
-  expect(await store.business(session,'application',original)).toEqual({kind:'failure',code:'purge_incomplete'});
+  expect(await store.business(session,'application',original)).toEqual({kind:'failure',code:'purge_incomplete',purgeReferences:plan.plan.impact.references});
   const state=DataResult.parse(await store.business(session,'application',{operation:'data.status'}));
   expect(state).toMatchObject({kind:'data_status',pendingPurgeCount:1});
   await expect(store.business(session,'wiki',{operation:'read',id:saved.knowledge.id})).rejects.toThrow('purge_incomplete');
@@ -45,7 +45,7 @@ it('an incomplete real purge closes body reads and human writes until the origin
   expect(()=>store.receipt(session,confirm.commandId)).toThrow('purge_incomplete');
   expect(()=>store.begin(session,'must-not-start.txt')).toThrow('purge_incomplete');
   expect(()=>store.prepare(session,confirm)).toThrow('purge_incomplete');
-  expect(await store.business(session,'application',{operation:'data.backup'})).toEqual({kind:'failure',code:'purge_incomplete'});
+  expect(await store.business(session,'application',{operation:'data.backup'})).toEqual({kind:'failure',code:'purge_incomplete',purgeReferences:plan.plan.impact.references});
   expect(await store.business(session,'application',{...original,selectedCopyIds:[]})).toEqual({kind:'failure',code:'purge_scope_invalid'});
   failDrain=false;
   const completed=await store.business(session,'application',original);

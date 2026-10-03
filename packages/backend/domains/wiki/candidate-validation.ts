@@ -5,7 +5,8 @@ import {SourceRef} from '../../../contracts/common/source-ref';
 import type {Provenance} from '../../../contracts/common/provenance';
 function provenanceSource(value:Provenance):SourceRef|undefined{
  if(value.owner==='wiki'){z.uuid().parse(value.objectId);const scope=Scope.parse(value.scope);if(['personal','cognition'].includes(scope)?value.scopeId!==undefined:!value.scopeId)throw Error('invalid_candidate');return;}
- if(value.owner==='materials'){if(value.scopeId!==undefined)throw Error('invalid_candidate');return SourceRef.parse({owner:value.owner,objectId:value.objectId,revision:value.revision,scope:value.scope,locator:'whole'});}
+ if(value.owner==='search'){z.uuid().parse(value.objectId);if(!['company','opportunity'].includes(value.scope)||!value.scopeId||value.revision!==1)throw Error('invalid_candidate');return;}
+ if(value.owner==='materials'){return SourceRef.parse({owner:value.owner,objectId:value.objectId,revision:value.revision,scope:value.scope,...value.scopeId?{scopeId:value.scopeId}:{},locator:'whole'});}
  if(value.owner==='interview'||value.owner==='communication')return SourceRef.parse({owner:value.owner,objectId:value.objectId,revision:value.revision,scope:value.scope,opportunityId:value.scopeId,locator:value.owner==='interview'?'transcript':'text'});
  throw Error('invalid_candidate');
 }

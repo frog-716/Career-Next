@@ -1,9 +1,10 @@
+import {Provenance} from '../../common/provenance.ts';
 import {z} from 'zod';
 import {BusinessTime} from '../../common/business-time.ts';
 const Id=z.uuid(),Revision=z.number().int().positive();
 export const RoundState=z.enum(['awaiting_schedule','scheduled','awaiting_rebooking','completed','permanently_cancelled']);
 export type RoundState=z.infer<typeof RoundState>;
-export const Session=z.strictObject({id:Id,opportunityId:Id,revision:Revision,title:z.string().trim().min(1).max(200),kind:z.enum(['real','simulation']),realRoundId:Id.optional(),state:z.enum([...RoundState.options,'pending','cancelled']),confirmationTime:BusinessTime,scheduledTime:BusinessTime,completionTime:BusinessTime,stageEventId:Id.optional(),recordedAt:z.iso.datetime(),preparation:z.string().max(100000).optional(),transcript:z.strictObject({text:z.string().max(100000),version:Revision}).optional(),finalReview:z.strictObject({text:z.string().max(100000),transcriptVersion:Revision.nullable(),needsRecheck:z.boolean()}).optional()});
+export const Session=z.strictObject({id:Id,opportunityId:Id,revision:Revision,title:z.string().trim().min(1).max(200),kind:z.enum(['real','simulation']),realRoundId:Id.optional(),state:z.enum([...RoundState.options,'pending','cancelled']),confirmationTime:BusinessTime,scheduledTime:BusinessTime,completionTime:BusinessTime,stageEventId:Id.optional(),recordedAt:z.iso.datetime(),preparation:z.string().max(100000).optional(),preparationProvenance:z.array(Provenance).max(1000).optional(),transcript:z.strictObject({text:z.string().max(100000),version:Revision}).optional(),finalReview:z.strictObject({trustedProvenance:z.array(Provenance).max(1000).optional(),version:Revision.default(1),text:z.string().max(100000),transcriptVersion:Revision.nullable(),needsRecheck:z.boolean()}).optional()});
 export type Session=z.infer<typeof Session>;
 export const History=z.strictObject({id:Id,sessionId:Id,type:z.string(),reason:z.string().max(2000),previousState:z.string().optional(),state:z.string(),businessTime:BusinessTime,recordedAt:z.iso.datetime()});
 export type History=z.infer<typeof History>;

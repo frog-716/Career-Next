@@ -7,7 +7,7 @@ it('real desktop file dialog selection previews/cancels and saves/reads durable 
   const root=await mkdtemp(path.join(tmpdir(),'career-g1-desktop-'));
   const filename=path.join(root,'人工原件.txt'); await writeFile(filename,'蒸牛蛙\n这是实际文件原文。English and 中文。');
   const packaged=process.env.CAREER_PACKAGED==='1';
-  const options={executablePath:packaged?path.resolve('out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?[`--user-data-dir=${root}/profile`]:['.',`--user-data-dir=${root}/profile`],timeout:30000};
+  const options={executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?[`--user-data-dir=${root}/profile`]:['.',`--user-data-dir=${root}/profile`],timeout:30000};
   let application=await _electron.launch(options);
   try {
     // System dialog seam only: returns a real fixture path; no renderer filepath/Node capability.

@@ -13,6 +13,7 @@ export async function maintenanceTargets(d:ReturnType<typeof composeDomains>,mat
  for(const c of d.opportunity.maintenanceCompanies())add('company',c.id,c.name);
  for(const o of d.opportunity.maintenanceObjects()){add('opportunity',o.id,o.role);
  const sub=d.submission.handle({operation:'submission.read',opportunityId:o.id});if(sub.kind==='submission')add('submission',sub.submission.id,o.role+' 首次投递');
+ if(d.communication.drafts.read(o.id).revision)add('communication-draft',o.id,o.role+' 当前未发送草稿');
  const comm=d.communication.handle({operation:'communication.list',opportunityId:o.id});if(comm.kind==='list')for(const c of comm.items)add('communication',c.id,o.role+' 沟通');
  const rounds=d.interview.handle({operation:'interview.list',opportunityId:o.id});if(rounds.kind==='sessions')for(const r of rounds.items)add('interview',r.id,r.title);
  const offer=d.offer.handle({operation:'offer.read',opportunityId:o.id});if(offer.kind==='offer')add('offer',offer.offer.id,o.role+' Offer');
@@ -20,6 +21,7 @@ export async function maintenanceTargets(d:ReturnType<typeof composeDomains>,mat
  for(const item of d.wiki.maintenanceObjects('opportunity',o.id))add('wiki',item.id,item.title);
  for(const owner of [{kind:'opportunity' as const,id:o.id},{kind:'company' as const,id:o.companyId}]){const research=d.research.handle({operation:'read',owner});if(research.kind==='document')for(const item of research.items)add('research',item.item.id,item.item.title);}
  }
+ for(const run of d.search.list())add('search',run.id,'受控搜索 '+run.query);
  for(const item of d.feedback.list())add('feedback',item.id,item.entries[0]!.text.slice(0,80));
  add('profile','current','当前本人身份');return targets;
 }
@@ -27,9 +29,10 @@ export async function maintenanceTargets(d:ReturnType<typeof composeDomains>,mat
 export function ownedRelatedReferences(d:ReturnType<typeof composeDomains>,ref:{owner:string;objectId:string}){
  const refs:{owner:string;objectId:string}[]=[];const add=(owner:string,objectId:string)=>refs.push({owner,objectId});
  if(['project','employment','person','opportunity'].includes(ref.owner)){for(const item of d.wiki.maintenanceObjects(ref.owner as import('../../contracts/wiki/schema').Knowledge['scope'],ref.objectId))add('wiki',item.id);}
- if(ref.owner==='company'||ref.owner==='opportunity'){const result=d.research.handle({operation:'read',owner:{kind:ref.owner,id:ref.objectId}});if(result.kind==='document')for(const item of result.items)add('research',item.item.id);}
+ if(ref.owner==='company'||ref.owner==='opportunity'){for(const run of d.search.list())if(run.owner.kind===ref.owner&&run.owner.id===ref.objectId)add('search',run.id);const result=d.research.handle({operation:'read',owner:{kind:ref.owner,id:ref.objectId}});if(result.kind==='document')for(const item of result.items)add('research',item.item.id);}
  if(ref.owner==='employment'){const details=d.employment.handle({operation:'read',id:ref.objectId});if(details.kind==='employment')for(const person of details.people)add('person',person.id);}
  if(ref.owner==='opportunity'){
+ if(d.communication.drafts.read(ref.objectId).revision)add('communication-draft',ref.objectId);
  const sub=d.submission.handle({operation:'submission.read',opportunityId:ref.objectId});if(sub.kind==='submission')add('submission',sub.submission.id);
  const comm=d.communication.handle({operation:'communication.list',opportunityId:ref.objectId});if(comm.kind==='list')for(const item of comm.items)add('communication',item.id);
  const rounds=d.interview.handle({operation:'interview.list',opportunityId:ref.objectId});if(rounds.kind==='sessions')for(const round of rounds.items)add('interview',round.id);

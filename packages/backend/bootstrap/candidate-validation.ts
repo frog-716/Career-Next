@@ -1,3 +1,5 @@
+import {validateSearchCandidate,searchCandidateRelations} from '../ai-runtime/search/public';
+import {validateDraftCandidate,draftCandidateRelations} from '../domains/opportunity/communication/public';
 import {validateFeedbackCandidate} from '../application/feedback/public';
 import {validatePreferencesCandidate} from '../application/preferences/public';
 import type Database from 'better-sqlite3';
@@ -18,13 +20,13 @@ import {composeDomains} from './domain-registry';
 import {createMaterialsStore} from '../domains/materials/store';
 import {validateFileCandidates} from '../platform/files/candidates';
 import {validateAiCandidate,candidateRelations as aiRelations} from '../ai-runtime/public';
-export function validateBusinessCandidate(db:Database.Database){for(const validate of [materials,wiki,resume,profile,employment,project,company,core,research,interview,offer,submission,communication,validateAiCandidate,validatePreferencesCandidate,validateFeedbackCandidate])validate(db);}
+export function validateBusinessCandidate(db:Database.Database){for(const validate of [materials,wiki,resume,profile,employment,project,company,core,research,interview,offer,submission,communication,validateAiCandidate,validatePreferencesCandidate,validateFeedbackCandidate,validateDraftCandidate,validateSearchCandidate])validate(db);}
 
 export function validateCandidateRelations(db:Database.Database){
  const materialsStore=createMaterialsStore(db,'candidate-validation','candidate-validation');
  const d=composeDomains(db,materialsStore,{ai:{handle(){throw Error('candidate_read_only');}},application:{handle(){throw Error('candidate_read_only');}}});
- const present=(owner:string,id:string)=>owner==='wiki'?!!d.wiki.purgeImpact(id):owner==='research'?!!d.research.purgeImpact(id):owner==='materials'?!!materialsStore.purgeImpact(id):owner==='company'?!!d.opportunity.companyPurgeImpact(id):owner==='person'?!!d.employment.personPurgeImpact(id):owner==='opportunity'?!!d.opportunity.purgeImpact(id):owner==='submission'?!!d.submission.describePurge(id):owner==='communication'?!!d.communication.describePurge(id):owner==='interview'?!!d.interview.purgeImpact(id):owner==='resume'?!!d.resume.purgeImpact(id):owner==='employment'?!!d.employment.purgeImpact(id):owner==='project'?!!d.project.purgeImpact(id):false;
- const relationCollectors:((db:Database.Database)=>{owner:string;objectId:string;kind:'object'|'source';source?:import('../../contracts/common/source-ref').SourceRef;optional?:boolean;revision?:number;provenance?:import('../../contracts/common/provenance').Provenance}[])[]=[materialsRelations,wikiRelations,resumeRelations,profileRelations,employmentRelations,projectRelations,companyRelations,coreRelations,researchRelations,interviewRelations,offerRelations,submissionRelations,communicationRelations,aiRelations];
+ const present=(owner:string,id:string)=>owner==='search'?!!d.search.read(id):owner==='communication-draft'?d.communication.drafts.read(id).revision>=0:owner==='offer'?!!d.offer.purgeImpact(id):owner==='profile'?id==='current':owner==='wiki'?!!d.wiki.purgeImpact(id):owner==='research'?!!d.research.purgeImpact(id):owner==='materials'?!!materialsStore.purgeImpact(id):owner==='company'?!!d.opportunity.companyPurgeImpact(id):owner==='person'?!!d.employment.personPurgeImpact(id):owner==='opportunity'?!!d.opportunity.purgeImpact(id):owner==='submission'?!!d.submission.describePurge(id):owner==='communication'?!!d.communication.describePurge(id):owner==='interview'?!!d.interview.purgeImpact(id):owner==='resume'?!!d.resume.purgeImpact(id):owner==='employment'?!!d.employment.purgeImpact(id):owner==='project'?!!d.project.purgeImpact(id):false;
+ const relationCollectors:((db:Database.Database)=>{owner:string;objectId:string;kind:'object'|'source';source?:import('../../contracts/common/source-ref').SourceRef;optional?:boolean;revision?:number;provenance?:import('../../contracts/common/provenance').Provenance}[])[]=[materialsRelations,wikiRelations,resumeRelations,profileRelations,employmentRelations,projectRelations,companyRelations,coreRelations,researchRelations,interviewRelations,offerRelations,submissionRelations,communicationRelations,aiRelations,draftCandidateRelations,searchCandidateRelations];
  for(const collect of relationCollectors)for(const ref of collect(db)){
   const purged=db.prepare('SELECT purged FROM platform_purge_fences WHERE owner=? AND object_id=?').get(ref.owner,ref.objectId) as {purged:number}|undefined;
   if(purged?.purged||ref.optional)continue;

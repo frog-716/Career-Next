@@ -47,6 +47,23 @@ async function fixture(failingHistoryReads=0){
  async function assertLayoutSaved(fontSize:number){await expect.poll(()=>saveCommands.length).toBeGreaterThan(0);await page.getByTestId('resume-save-state').filter({hasText:'已保存'}).waitFor();const command=saveCommands.at(-1)!;expect(resume.handle({operation:'resume.receipt',commandId:command.commandId})).toMatchObject({status:'document',document:{content:{layout:{fontSize}}}});expect(resume.handle({operation:'resume.read',resumeId})).toMatchObject({status:'document',document:{content:{layout:{fontSize}}}});}
  return {root,resume,opened,page,start,saveCommands,versionCommands,assertLayoutSaved,close:async()=>{await page.close();db.close();rmSync(root,{recursive:true,force:true});}};
 }
+it('named version freezes and previews plain text, bold, italic and list marks after later editing',async()=>{
+ const f=await fixture();try{
+  const content:CareerDocument=structuredClone(f.opened.document.content);
+  content.sections[0].blocks=[{id:randomUUID(),type:'paragraph',spans:[{text:'蒸牛蛙，',marks:[]},{text:'这是中文输入测试',marks:[{type:'bold'}]},{text:' abc123',marks:[]},{text:' italic text',marks:[{type:'italic'}]}]},{id:randomUUID(),type:'bullet-list',items:[{id:randomUUID(),paragraphId:randomUUID(),spans:[{text:'List plain ',marks:[]},{text:'List bold',marks:[{type:'bold'}]},{text:' and italic',marks:[{type:'italic'}]}]}]}];
+  expect(f.resume.handle({operation:'resume.save',commandId:randomUUID(),resumeId:f.opened.document.id,expectedRevision:1,expectedProfileRevision:0,content}).status).toBe('document');
+  await f.start();await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称').fill('G5 formatting baseline');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await f.page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor();
+  const versions=f.resume.handle({operation:'resume.versions',resumeId:f.opened.document.id});if(versions.status!=='versions')throw Error('versions unavailable');expect(versions.versions).toHaveLength(1);expect(versions.versions[0].snapshot.content).toEqual(content);
+  const editor=f.page.getByRole('textbox',{name:'简历正文',exact:true});await editor.locator('p').first().fill('Later plain current body');await f.page.getByTestId('resume-save-state').filter({hasText:'已保存'}).waitFor();
+  await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByRole('button',{name:'G5 formatting baseline',exact:true}).click();
+  const history=f.page.locator('aside.resume-panel').filter({has:f.page.getByRole('heading',{name:'命名版本历史',exact:true})});
+  expect(await history.locator('strong').allTextContents()).toEqual(['这是中文输入测试','List bold']);
+  expect(await history.locator('em').allTextContents()).toEqual([' italic text',' and italic']);expect(await history.locator('ul > li').allTextContents()).toEqual(['List plain List bold and italic']);expect(await history.locator('section > p').first().textContent()).toBe('蒸牛蛙，这是中文输入测试 abc123 italic text');
+  expect(f.resume.handle({operation:'resume.versions',resumeId:f.opened.document.id})).toEqual(versions);
+  f.page.on('dialog',dialog=>dialog.accept());await f.page.getByRole('button',{name:'恢复此版本正文',exact:true}).click();await f.page.getByText('已恢复正文；此替换可以撤销',{exact:true}).waitFor();await f.page.getByTestId('resume-save-state').filter({hasText:'已保存'}).waitFor();
+  const restored=f.resume.handle({operation:'resume.read',resumeId:f.opened.document.id});if(restored.status!=='document')throw Error('read failed');expect(restored.document.content).toEqual(content);await f.page.reload();await f.page.addScriptTag({content:script});await f.page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();expect(await f.page.getByRole('textbox',{name:'简历正文',exact:true}).locator('strong').allTextContents()).toEqual(['这是中文输入测试','List bold']);
+ }finally{await f.close();}
+});
 it('a failed document search does not stop font layout autosave and its actual owner receipt',async()=>{
  const f=await fixture();try{
   await f.start();await f.page.getByRole('button',{name:'查找替换',exact:true}).click();await f.page.getByLabel('查找',{exact:true}).fill('text that is absent');await f.page.getByRole('button',{name:'定位',exact:true}).click();await f.page.getByText('当前文稿没有找到该文字',{exact:true}).waitFor();

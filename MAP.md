@@ -4,7 +4,7 @@
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，当前已授权 G5 完整旅程与桌面连续性，不进入 G6。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，G5 本轮普通产品链和真人桌面已 PASS，总状态 PARTIAL 仅因 J-07 真实外部未测；见 [G5 最终证据](docs/verification/g5-complete-journeys.md)，不进入 G6。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
 
 ## 冻结输入与阅读入口
 
@@ -77,11 +77,15 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `backend/application/data-lifecycle/` 组合 owner 的公开维护能力；`platform/backup/` 管一致恢复点、受管理副本和唯一 active pointer，`platform/persistence/` 拒绝已清除对象的迟到生产者。
 - `backend/bootstrap/{ai-composition,lifecycle-composition,candidate-validation}.ts` 是真实跨 owner 接缝与候选恢复校验入口；迁移发布版本为 4，已发布 G1–G3 SQL 不变。
 - `frontend/support/{ai,data-lifecycle}/` 是 Wiki 辅助与设置入口，`frontend/app/g4-support.tsx` 装配。清除通知关闭受影响正文/缓存并拒绝旧响应，保留无关草稿；恢复先卸载旧编辑会话再建立新资料身份。
-- [G4 umbrella #14](https://github.com/frog-716/Career-Next/issues/14) 和 #15–19 管任务；正常开发与 arm64 打包证据见 [G4 验收](docs/verification/g4-cross-domain.md)。G5 已明确授权；验收期间 Issues 保持打开，最终 checkpoint 等真人 Desktop Gate。
+- [G4 umbrella #14](https://github.com/frog-716/Career-Next/issues/14) 和 #15–19 管任务；正常开发与 arm64 打包证据见 [G4 验收](docs/verification/g4-cross-domain.md)。G5 本轮真人 Desktop Gate 已通过；当前开发 Issues 按用户授权收尾，不代表真实外部服务已测。
 
-## G5 入口（进行中，尚未通过）
+## G5 入口（本轮开发与真人完成，真实外部待验）
 
 - [G5 umbrella #20](https://github.com/frog-716/Career-Next/issues/20)，子任务 #21–25；[104 分支矩阵](docs/verification/g5-acceptance-matrix.md) 是本轮独立证据入口，不改变冻结正本。
 - `backend/application/{preferences,feedback}/` 分别拥有唯一首页偏好与反馈，合同在 `contracts/application/`。Feedback 截图复用平台 blob 保留；不进入职业知识或 AI Context。
 - `frontend/support/feedback/` 使用独立弹层保留底下编辑会话；`shell/preferences.ts` 仅在无具体目标时读取首页偏好。
+- `backend/ai-runtime/{product,search}/` 复用同一 Runtime/权限/预算/回执，接入业务 owner 的 `ai-policy.ts`；`bootstrap/product-composition.ts` 只组合公开能力。Resume 单条、Research 同 owner 原子组、Greeting/面试/Offer 可编辑草稿由用户处理后立即写对应 owner；不自动推进现实状态。
+- `frontend/support/ai/{product-launcher,product-task}.tsx` 是明确目标、Context/外发分离、最终预览与人工处理入口；Resume editor 只把本条实际修改加入独立撤销历史，无关本地/远端输入保留。
+- `materials/targets.ts` 与 `platform/imports/` 接明确对象的本地文件/受控 Feishu-shaped 导入；SearchRun 仅受控 fixture，不调用真实网络。普通恢复隔离旧窗口写回，精确 purge 通知各窗口受影响编辑缓存。
 - 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程使用本地受控资料与 fake adapter；真实 Provider/Search/Feishu 不测，M 正式迁移与 G6 不授权。
+- [G5 连续旅程与真人门](docs/verification/g5-complete-journeys.md) 和 `tests/desktop/g5*.electron.test.ts` 是本轮证据入口；[真人最终证据](docs/verification/g5-manual-desktop-final.md) 已 PASS；两次缺陷原现场及复测保留，104 最终分类见矩阵。G5 总状态 PARTIAL，仅真实外部 J-07 待验；开发 Issues 按本轮授权关闭。后续体验改进仅记录在 [UX backlog](docs/backlog/g5-ux-polish.md)，不进入 G6。

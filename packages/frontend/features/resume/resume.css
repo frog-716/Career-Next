@@ -5,3 +5,5 @@
 .resume-font-12 { font-size: 12pt; }
 .resume-font-13 { font-size: 13pt; }
 .resume-font-14 { font-size: 14pt; }
+
+.resume-frozen-body{line-height:1.5;overflow-wrap:anywhere}.resume-frozen-body p,.resume-frozen-body li{white-space:pre-wrap}.resume-frozen-body ul{padding-left:24px}

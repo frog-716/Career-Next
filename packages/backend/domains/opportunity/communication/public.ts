@@ -1,3 +1,4 @@
+import {createCommunicationDrafts} from './draft';
 import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
@@ -6,11 +7,15 @@ import type {OpportunityCapabilities} from '../../../../contracts/opportunity/ca
 import {commandReceipt,executeCommand} from '../../../platform/commands/receipts';
 import {freezeSentResume,type SentMaterialPorts} from '../submission/public';
 export function createCommunicationDomain(db:Database.Database,ports:SentMaterialPorts&{core:OpportunityCapabilities;hasFirstSubmission(opportunityId:string):boolean}){
+ const drafts=createCommunicationDrafts(db,ports.core);
  function read(id:string){const row=db.prepare('SELECT body_json FROM opportunity_communication WHERE id=?').get(id) as {body_json:string}|undefined;return row?Communication.parse(JSON.parse(row.body_json)):undefined;}
  function handle(input:unknown):Result {
   const parsed=Request.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};
   const request=parsed.data;
   try{
+   if(request.operation==='communication.draft.read')return {kind:'draft',draft:drafts.read(request.opportunityId)};
+   if(request.operation==='communication.draft.save')return drafts.save(request);
+   if(request.operation==='communication.draft.receipt'){const result=commandReceipt(db,'communication.draft',request.commandId);return result?Result.parse(result):{kind:'receipt_missing'};}
    if(request.operation==='communication.receipt'){const receipt=commandReceipt(db,'communication',request.commandId);return receipt===undefined?{kind:'receipt_missing'}:Result.parse(receipt);}
    if(request.operation==='communication.read'){const communication=read(request.id);if(!communication)throw Error('not_found');return {kind:'communication',communication};}
    if(request.operation==='communication.list'){if(!ports.core.readOpportunity(request.opportunityId))throw Error('not_found');return {kind:'list',items:(db.prepare('SELECT body_json FROM opportunity_communication WHERE opportunity_id=? ORDER BY rowid DESC').all(request.opportunityId) as {body_json:string}[]).map(row=>Communication.parse(JSON.parse(row.body_json)))};}
@@ -44,7 +49,10 @@ export function createCommunicationDomain(db:Database.Database,ports:SentMateria
  function resolveSourceMetadata(ref:{owner:string;objectId:string;revision:number;locator:string;scope:string;opportunityId?:string}){const item=read(ref.objectId);if(!item||ref.owner!=='communication'||ref.locator!=='text'||ref.scope!=='opportunity'||ref.opportunityId!==item.opportunityId)return undefined;return {id:item.id,revision:item.source.revision,scope:'opportunity',source:item.source};}
  function describePurge(id:string){const item=read(id);return item?{id:item.id,opportunityId:item.opportunityId,blobIds:item.sentMaterial?.kind==='retained'?[item.sentMaterial.pdf.blobId]:[],retentionIds:[item.id]}:undefined;}
  function purge(id:string){db.transaction(()=>{const commands=(db.prepare('SELECT command_id FROM opportunity_communication_commands WHERE communication_id=?').all(id) as {command_id:string}[]).map(row=>row.command_id);redactOwnerReceipts(db,'communication',[id,...commands],{kind:'purged',id});ports.releaseRetention?.('communication',id);db.prepare('DELETE FROM opportunity_communication_commands WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication_history WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication WHERE id=?').run(id);})();}
- return {handle,resolveSource,resolveSourceMetadata,describePurge,purge};
+ return {handle,read,drafts,resolveSource,resolveSourceMetadata,describePurge,purge};
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+
+export {draftMigration,validateDraftCandidate,draftCandidateRelations} from './draft';
+export {createGreetingPolicy} from './ai-policy';

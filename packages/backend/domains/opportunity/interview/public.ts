@@ -1,3 +1,4 @@
+import type {Provenance} from '../../../../contracts/common/provenance';
 import {redactOwnerReceipts} from '../../../platform/commands/purge-receipts';
 import {TranscriptSourceRef,type SourceRef} from '../../../../contracts/common/source-ref';
 import type Database from 'better-sqlite3';
@@ -10,7 +11,7 @@ import {executeCommand,commandReceipt} from '../../../platform/commands/receipts
 export function createInterviewDomain(db:Database.Database,dependencies:{core:OpportunityCapabilities}){
  function read(id:string){const row=db.prepare('SELECT body FROM interview_sessions WHERE id=?').get(id) as {body:string}|undefined;return row?Session.parse(JSON.parse(row.body)):undefined;}
  function history(session:Session,type:string,reason:string,businessTime:Session['confirmationTime'],previousState?:string){const h=History.parse({id:randomUUID(),sessionId:session.id,type,reason,state:session.state,previousState,businessTime,recordedAt:new Date().toISOString()});db.prepare('INSERT INTO interview_history VALUES(?,?,?)').run(h.id,session.id,JSON.stringify(h));}
- function handle(input:unknown):Result{
+ function handle(input:unknown,trustedProvenance?:Provenance[]):Result{
   const parsed=Request.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};const r=parsed.data;
   try{
    if(r.operation==='interview.read'){const session=read(r.id);return session?{kind:'session',session}:{kind:'failure',code:'not_found'};}
@@ -29,9 +30,9 @@ export function createInterviewDomain(db:Database.Database,dependencies:{core:Op
      if(r.operation==='interview.transition-simulation'){
       if(current.kind!=='simulation')throw Error('invalid_relation');next.state=r.state;next.completionTime=r.state==='completed'?r.businessTime:{kind:'unknown'};history(next,'simulation_state_changed',r.reason,r.businessTime,current.state);
      }else if(r.operation==='interview.save-document'){
-      if(r.document==='preparation'){if(current.kind!=='real')throw Error('invalid_relation');next.preparation=r.text;}
+      if(r.document==='preparation'){if(current.kind!=='real')throw Error('invalid_relation');next.preparation=r.text;if(trustedProvenance)next.preparationProvenance=trustedProvenance;}
       if(r.document==='transcript'&&r.text!==current.transcript?.text){next.transcript={text:r.text,version:(current.transcript?.version??0)+1};if(next.finalReview)next.finalReview={...next.finalReview,needsRecheck:true};}
-      if(r.document==='final-review')next.finalReview={text:r.text,transcriptVersion:current.transcript?.version??null,needsRecheck:false};
+      if(r.document==='final-review')next.finalReview={...(trustedProvenance??current.finalReview?.trustedProvenance)?{trustedProvenance:trustedProvenance??current.finalReview?.trustedProvenance}:{},version:(current.finalReview?.version??0)+1,text:r.text,transcriptVersion:current.transcript?.version??null,needsRecheck:false};
      }else if(r.operation==='interview.correct-time'){
       if(r.field==='confirmation'){if(!current.stageEventId)throw Error('storage_failed');const committed=dependencies.core.correctInterviewConfirmation({commandId:r.commandId,opportunityId:current.opportunityId,expectedRevision:r.expectedOpportunityRevision,eventId:current.stageEventId,businessTime:r.businessTime,reason:r.reason});if(committed.opportunity.id!==current.opportunityId)throw Error('storage_failed');next.confirmationTime=r.businessTime;}
       if(r.field==='scheduled'){if(!['scheduled','completed'].includes(current.state)||r.businessTime.kind==='unknown'&&current.state==='scheduled')throw Error('invalid_transition');next.scheduledTime=r.businessTime;}
@@ -61,7 +62,7 @@ export function createInterviewDomain(db:Database.Database,dependencies:{core:Op
    }));
   }catch(error){const code=ErrorCode.safeParse(error instanceof Error?error.message:'storage_failed');return {kind:'failure',code:code.success?code.data:'storage_failed'};}
  }
- return {handle,purgeImpact(id:string){const session=read(id);return session?{id,revision:session.revision,name:session.title,blobIds:[],retentions:[]}:undefined;},purge(id:string){const old=read(id);if(!old)return;const cleared={...old,title:'已清除的面试记录',revision:old.revision+1};delete cleared.transcript;delete cleared.preparation;delete cleared.finalReview;db.prepare('UPDATE interview_sessions SET revision=?,body=? WHERE id=?').run(cleared.revision,JSON.stringify(cleared),id);db.prepare('DELETE FROM interview_history WHERE session_id=?').run(id);redactOwnerReceipts(db,'interview',[id],{kind:'failure',code:'content_purged'});},resolveTranscript(input:SourceRef){
+ return {handle,read,applyDraft(input:{commandId:string;id:string;expectedRevision:number;document:'preparation'|'final-review';text:string;provenance:Provenance[]}){const {provenance,...request}=input;return handle({operation:'interview.save-document',...request},provenance);},purgeImpact(id:string){const session=read(id);return session?{id,revision:session.revision,name:session.title,blobIds:[],retentions:[]}:undefined;},purge(id:string){const old=read(id);if(!old)return;const cleared={...old,title:'已清除的面试记录',revision:old.revision+1};delete cleared.transcript;delete cleared.preparation;delete cleared.preparationProvenance;delete cleared.finalReview;db.prepare('UPDATE interview_sessions SET revision=?,body=? WHERE id=?').run(cleared.revision,JSON.stringify(cleared),id);db.prepare('DELETE FROM interview_history WHERE session_id=?').run(id);redactOwnerReceipts(db,'interview',[id],{kind:'failure',code:'content_purged'});},resolveTranscript(input:SourceRef){
   const parsed=TranscriptSourceRef.safeParse(input);if(!parsed.success)return undefined;const ref=parsed.data,session=read(ref.objectId);
   if(!session?.transcript||session.opportunityId!==ref.opportunityId)return undefined;
   const source=TranscriptSourceRef.parse({...ref,revision:session.transcript.version});
@@ -70,3 +71,6 @@ export function createInterviewDomain(db:Database.Database,dependencies:{core:Op
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+
+export {createInterviewAiPolicy,interviewContextDigest} from './ai-policy';
+export {createSimulationReturnPolicy} from './simulation-policy';

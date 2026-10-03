@@ -1,3 +1,4 @@
+import {Provenance} from '../../common/provenance.ts';
 import {z} from 'zod';
 import {SourceRef} from '../../common/source-ref.ts';
 import {BusinessTime} from '../../common/business-time.ts';
@@ -6,7 +7,7 @@ export const Source=z.object({ref:SourceRef,purpose:z.string().trim().min(1).max
 export const Lead=z.object({title:z.string().trim().min(1).max(200),url:z.url().max(2000).regex(/^https?:\/\//i)}).strict();
 export const Nature=z.enum(['fact_statement','inference','unknown']);
 const Content={title:z.string().trim().min(1).max(200),body:z.string().trim().min(1).max(64000),nature:Nature,sources:z.array(Source).max(20),leads:z.array(Lead).max(20)};
-export const Item=z.object({id:z.uuid(),owner:Owner,revision:z.number().int().positive(),...Content,userConfirmed:z.boolean(),independentlyVerified:z.boolean(),active:z.boolean(),recordedAt:z.string()}).strict();export type Item=z.infer<typeof Item>;
+export const Item=z.object({id:z.uuid(),owner:Owner,revision:z.number().int().positive(),...Content,trustedProvenance:z.array(Provenance).max(1000).optional(),origin:z.enum(['human','ai_accepted']).optional(),userConfirmed:z.boolean(),independentlyVerified:z.boolean(),active:z.boolean(),recordedAt:z.string()}).strict();export type Item=z.infer<typeof Item>;
 export const SourceStatus=z.object({source:Source,status:z.enum(['readable','unavailable','stale'])}).strict();
 export const Resolution=z.object({item:Item,sources:z.array(SourceStatus),reviewRequired:z.boolean(),editable:z.boolean()}).strict();export type Resolution=z.infer<typeof Resolution>;
 export const Reference=z.object({itemId:z.uuid(),originRevision:z.number().int().positive(),owner:Owner,originOwner:Owner}).strict();

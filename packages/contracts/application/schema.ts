@@ -20,10 +20,13 @@ export const Plan=z.strictObject({id:z.uuid(),createdAt:z.string(),impact:Impact
 export const Result=z.discriminatedUnion('kind',[
  ...PreferencesResult.options,...FeedbackResult.options,
  z.strictObject({kind:z.literal('data_targets'),targets:z.array(z.strictObject({owner:z.string().max(80),objectId:z.string().max(160),label:z.string().max(255)})).max(10000)}),
- z.strictObject({kind:z.literal('data_status'),settings:BackupSettings,copies:z.array(Copy),activeWorkspace:z.string(),lastCompleteAt:z.string().optional(),automaticDue:z.boolean(),pendingPurgeCount:z.number().int().nonnegative(),provider:z.literal('deterministic fake only; real provider not configured')}),
+ z.strictObject({kind:z.literal('data_status'),settings:BackupSettings,copies:z.array(Copy),activeWorkspace:z.string(),dataLocation:z.string().optional(),lastCompleteAt:z.string().optional(),automaticDue:z.boolean(),pendingPurgeCount:z.number().int().nonnegative(),provider:z.literal('deterministic fake only; real provider not configured')}),
  z.strictObject({kind:z.literal('backup'),copy:Copy}),z.strictObject({kind:z.literal('restore_candidate'),copy:Copy,purgeWarnings:z.array(Ref).max(1000)}),
  z.strictObject({kind:z.literal('restored'),workspaceInstance:z.uuid(),copy:Copy}),z.strictObject({kind:z.literal('purge_plan'),plan:Plan}),
- z.strictObject({kind:z.literal('purged'),planId:z.uuid(),scope:z.enum(['all_managed_copies','selected_scope']),remainingCopyIds:z.array(z.uuid()),externalLimit:z.string()}),
- z.strictObject({kind:z.literal('failure'),code:z.string().max(100)})
+ z.strictObject({kind:z.literal('purged'),references:z.array(Ref).optional(),planId:z.uuid(),scope:z.enum(['all_managed_copies','selected_scope']),remainingCopyIds:z.array(z.uuid()),externalLimit:z.string()}),
+ z.strictObject({kind:z.literal('failure'),code:z.string().max(100),purgeReferences:z.array(Ref).optional()})
 ]);
 export type DataRequest=z.infer<typeof Request>;export type DataResult=z.infer<typeof Result>;export type PurgeImpact=z.infer<typeof Impact>;export type PurgePlan=z.infer<typeof Plan>;
+
+export const PurgeNotification=z.strictObject({workspaceInstance:z.uuid(),references:z.array(Ref).max(10000)});
+export type PurgeNotification=z.infer<typeof PurgeNotification>;
