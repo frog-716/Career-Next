@@ -10,6 +10,14 @@ it('stop closes utility handoff immediately even when the writer intent is still
  const controller=createAiController(writer,adapter),pending=controller.start('task','operation');await controller.stop('task','stop');
  release({operationId:'operation',taskId:'task',manifest:{recipient} as DispatchIntent['manifest'],manifestDigest:'digest',reservation:{requests:1,inputBytes:100,outputBytes:100}});await pending;expect(calls).toEqual(['stop','not_sent']);
 });
+it('a purge of actual A closes dispatch while its intent is still waiting, without closing unrelated B',async()=>{
+ let release!:(value:DispatchIntent)=>void;const calls:string[]=[];
+ const writer:AiWriterControllerPort={prepareDispatch:()=>new Promise(resolve=>{release=resolve;}),markProcessing:async()=>{},settle:async()=>{},markUnknown:async()=>{},failOperation:async()=>{},cancelBeforeHandoff:async()=>{calls.push('not_sent');},stop:async()=>{}};
+ const adapter:ProviderAdapter={recipient,network:'none',send:async()=>{calls.push('send');return {proposals:[]};}};
+ const controller=createAiController(writer,adapter),pending=controller.start('task','operation');controller.revokeReferences([{owner:'materials',objectId:'A'}]);
+ release({operationId:'operation',taskId:'task',manifest:{recipient,target:{scope:'personal'},provenance:[{owner:'materials',objectId:'A'}]} as DispatchIntent['manifest'],manifestDigest:'digest',reservation:{requests:1,inputBytes:100,outputBytes:100}});await pending;expect(calls).toEqual(['not_sent']);
+ const independent=controller.start('other-task','other-operation');release({operationId:'other-operation',taskId:'other-task',manifest:{recipient,target:{scope:'personal'},provenance:[{owner:'materials',objectId:'B'}]} as DispatchIntent['manifest'],manifestDigest:'digest',reservation:{requests:1,inputBytes:100,outputBytes:100}});await independent;expect(calls).toEqual(['not_sent','send']);
+});
 it('summary -> cached summary inherits sensitive actual A even if a provider only cites public B',()=>{
  const a={owner:'materials',objectId:'A',revision:1,scope:'personal',kind:'simulation',restrictions:{read:true,egress:false}};
  const b={owner:'materials',objectId:'B',revision:1,scope:'public',kind:'user_record',restrictions:{read:true,egress:true}};

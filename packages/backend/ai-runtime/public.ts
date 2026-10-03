@@ -25,7 +25,8 @@ export function createAiRuntime(db:Database.Database,ports:AiPorts){
  function freshFence(producerId:string,value:Pick<Proposal,'sources'|'provenance'|'target'>,itemId?:string){
   const inputs=value.provenance.map(item=>({owner:item.owner,objectId:item.objectId,revision:item.revision}));
   const targetId=itemId??value.target.scopeId??`scope:${value.target.scope}`;
-  return ports.fence.capture({producerId,inputs,targets:[{owner:'wiki',objectId:targetId}]});
+  const targets=[{owner:'wiki',objectId:targetId},...(value.target.scopeId?[{owner:value.target.scope,objectId:value.target.scopeId}]:[])];
+  return ports.fence.capture({producerId,inputs,targets});
  }
  function read(id:string):Task{
   const value=task(id);const operations=(db.prepare('SELECT data_json FROM ai_operations WHERE task_id=? ORDER BY rowid').all(id) as {data_json:string}[]).map(row=>JSON.parse(row.data_json) as Operation);
