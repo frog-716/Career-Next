@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import {Request,Result,ErrorCode,Item,Owner,Resolution,History,type Source} from '../../../../contracts/opportunity/research/schema';
-import type {SourceRef} from '../../../../contracts/materials/schema';
+import type {SourceRef} from '../../../../contracts/common/source-ref';
 import type {OpportunityCapabilities} from '../../../../contracts/opportunity/capabilities';
 import {executeCommand,commandReceipt} from '../../../platform/commands/receipts';
 export {researchMigration} from './migration';

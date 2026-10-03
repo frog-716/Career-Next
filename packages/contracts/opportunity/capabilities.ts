@@ -13,6 +13,7 @@ export interface OpportunityCapabilities {
     businessTime: BusinessTime;
     reason: string;
   }): { opportunity: OpportunityView; eventId: string };
+  correctSubmissionTime(input: {commandId:string;opportunityId:string;expectedRevision:number;eventId:string;businessTime:BusinessTime;reason:string}):{opportunity:OpportunityView;eventId:string};
   correctInterviewConfirmation(input: {commandId:string;opportunityId:string;expectedRevision:number;eventId:string;businessTime:BusinessTime;reason:string}):{opportunity:OpportunityView;eventId:string};
   recordOfferEvent(input: {
     commandId: string;

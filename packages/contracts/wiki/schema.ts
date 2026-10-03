@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { SourceRef } from '../materials/schema.ts';
+import { SourceRef } from '../common/source-ref.ts';
 import { BusinessTime } from '../common/business-time.ts';
 export const SourceLink=z.object({ref:SourceRef,purpose:z.string().trim().min(1).max(500)}).strict();
 export const Scope=z.enum(['personal','cognition']);
 export const Nature=z.enum(['fact_statement','observation','hypothesis']);
 const Content=z.object({title:z.string().trim().min(1).max(200),body:z.string().trim().min(1).max(64000),scope:Scope,nature:Nature,sources:z.array(SourceLink).max(20)}).strict();
-export const Knowledge=Content.extend({id:z.uuid(),revision:z.number().int().positive(),status:z.enum(['active','retired']),recordedBy:z.literal('user'),verification:z.literal('not_verified'),recordedAt:z.string()}).strict();
+export const Knowledge=Content.extend({id:z.uuid(),revision:z.number().int().positive(),status:z.enum(['active','retired']),recordedBy:z.literal('user'),verification:z.literal('not_verified'),recordedAt:z.string(),reviewRequired:z.boolean().optional(),origin:z.enum(['manual','ai_accepted']).optional()}).strict();
 export type Knowledge=z.infer<typeof Knowledge>;
 export const History=z.object({knowledge:Knowledge,change:z.enum(['created','edited','retired','restored','corrected']),reason:z.string(),businessTime:BusinessTime,recordedAt:z.string()}).strict();
 export type History=z.infer<typeof History>;

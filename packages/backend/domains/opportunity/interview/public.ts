@@ -1,3 +1,4 @@
+import {TranscriptSourceRef,type SourceRef} from '../../../../contracts/common/source-ref';
 import type Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 import type {OpportunityCapabilities} from '../../../../contracts/opportunity/capabilities';
@@ -59,5 +60,10 @@ export function createInterviewDomain(db:Database.Database,dependencies:{core:Op
    }));
   }catch(error){const code=ErrorCode.safeParse(error instanceof Error?error.message:'storage_failed');return {kind:'failure',code:code.success?code.data:'storage_failed'};}
  }
- return {handle};
+ return {handle,resolveTranscript(input:SourceRef){
+  const parsed=TranscriptSourceRef.safeParse(input);if(!parsed.success)return undefined;const ref=parsed.data,session=read(ref.objectId);
+  if(!session?.transcript||session.opportunityId!==ref.opportunityId)return undefined;
+  const source=TranscriptSourceRef.parse({...ref,revision:session.transcript.version});
+  return {metadata:{id:session.id,revision:session.transcript.version,scope:'opportunity',source},text:ref.revision===session.transcript.version?session.transcript.text:undefined,nature:session.kind==='real'?'real_correctable_record':'simulation',opportunityId:session.opportunityId};
+ }};
 }

@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {SourceRef} from '../../materials/schema.ts';
+import {SourceRef} from '../../common/source-ref.ts';
 import {BusinessTime} from '../../common/business-time.ts';
 export const Owner=z.object({kind:z.enum(['company','opportunity']),id:z.uuid()}).strict();export type Owner=z.infer<typeof Owner>;
 export const Source=z.object({ref:SourceRef,purpose:z.string().trim().min(1).max(500),excerpt:z.string().max(8000),assessment:z.enum(['supports','lead_only','needs_review'])}).strict().refine(source=>source.assessment!=='supports'||source.excerpt.trim().length>0,{message:'Supporting evidence requires an excerpt',path:['excerpt']});export type Source=z.infer<typeof Source>;
