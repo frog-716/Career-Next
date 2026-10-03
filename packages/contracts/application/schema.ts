@@ -17,7 +17,7 @@ export const Plan=z.strictObject({id:z.uuid(),createdAt:z.string(),impact:Impact
 export const Result=z.discriminatedUnion('kind',[
  z.strictObject({kind:z.literal('data_targets'),targets:z.array(z.strictObject({owner:z.string().max(80),objectId:z.string().max(160),label:z.string().max(255)})).max(10000)}),
  z.strictObject({kind:z.literal('data_status'),settings:BackupSettings,copies:z.array(Copy),activeWorkspace:z.string(),lastCompleteAt:z.string().optional(),automaticDue:z.boolean(),pendingPurgeCount:z.number().int().nonnegative(),provider:z.literal('deterministic fake only; real provider not configured')}),
- z.strictObject({kind:z.literal('backup'),copy:Copy}),z.strictObject({kind:z.literal('restore_candidate'),copy:Copy}),
+ z.strictObject({kind:z.literal('backup'),copy:Copy}),z.strictObject({kind:z.literal('restore_candidate'),copy:Copy,purgeWarnings:z.array(Ref).max(1000)}),
  z.strictObject({kind:z.literal('restored'),workspaceInstance:z.uuid(),copy:Copy}),z.strictObject({kind:z.literal('purge_plan'),plan:Plan}),
  z.strictObject({kind:z.literal('purged'),planId:z.uuid(),scope:z.enum(['all_managed_copies','selected_scope']),remainingCopyIds:z.array(z.uuid()),externalLimit:z.string()}),
  z.strictObject({kind:z.literal('failure'),code:z.string().max(100)})
