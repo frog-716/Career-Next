@@ -13,11 +13,12 @@ export interface OpportunityCapabilities {
     businessTime: BusinessTime;
     reason: string;
   }): { opportunity: OpportunityView; eventId: string };
+  correctInterviewConfirmation(input: {commandId:string;opportunityId:string;expectedRevision:number;eventId:string;businessTime:BusinessTime;reason:string}):{opportunity:OpportunityView;eventId:string};
   recordOfferEvent(input: {
     commandId: string;
     opportunityId: string;
     expectedRevision: number;
-    action: 'accepted' | 'conditions_replaced' | 'recruiter_withdrew' | 'user_withdrew' | 'acceptance_corrected';
+    action: 'accepted' | 'conditions_replaced' | 'recruiter_withdrew' | 'user_withdrew' | 'acceptance_corrected' | 'withdrawal_corrected';
     businessTime: BusinessTime;
     reason: string;
     basisId?: string;

@@ -22,6 +22,7 @@ export function createOpportunityDomain(db:Database.Database){
    const event=history.items.find(item=>item.revision===result.opportunity.revision);if(!event)throw Error('storage_failed');
    return {opportunity:result.opportunity,eventId:event.id};
   });},
+  correctInterviewConfirmation(input){return executeCommand(db,'opportunity.interview-confirmation-correction',input.commandId,input,()=>{const result=core.handle({operation:'correct-stage',commandId:input.commandId,id:input.opportunityId,expectedRevision:input.expectedRevision,eventId:input.eventId,stage:'interview',voided:false,businessTime:input.businessTime,reason:input.reason},'interview');if(result.kind!=='opportunity')throw Error('storage_failed');return {opportunity:result.opportunity,eventId:input.eventId};});},
   recordOfferEvent:core.recordOfferEvent,
  };
  return {handle,resolveOpportunity:core.resolveOpportunity,capabilities};

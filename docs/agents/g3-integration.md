@@ -8,9 +8,9 @@
 
 dependencies.core 使用 `contracts/opportunity/capabilities.ts` 的 OpportunityCapabilities；Research 只读公司/机会，不修改阶段。Interview 确认真实轮次调用 recordStage；Offer 实际收到调用 recordStage，接受/正式替换/撤回/纠错调用 recordOfferEvent。组合调用必须包在同一个短事务，失败整体回滚；不能把 failure DTO 当提交成功。子模块不执行 core SQL，不直接 import core 或兄弟实现。公开能力只能在 backend 装配中注入，不暴露为通用 renderer 写状态入口。
 
-recordStage 返回 core eventId，供历史辨认；expectedRevision 校验同一正式机会基线。recordOfferEvent 保持 core 唯一结果 owner：accepted 绑定 basisId；conditions_replaced 仅把 accepted 改为 active；历史晚录保留后来的当前结果；acceptance_corrected 指定 correctedEventId，不能抹掉后来真实变化。core 由 integration owner 实现和测试。
+recordStage 返回 core eventId 和归属标识，通用前端不得绕过子模块纠正其真实事件。Interview 的确认时间纠错经 correctInterviewConfirmation 同事务修正原轮次和原阶段日期；预约、完成时间保持独立。expectedRevision 校验同一正式机会基线。recordOfferEvent 保持 core 唯一结果 owner：accepted 绑定 basisId；conditions_replaced 仅把 accepted 改为 active；历史晚录保留后来的当前结果；acceptance_corrected 指定 correctedEventId，不能抹掉后来真实变化，兼容旧 G2 continued 历史。Offer 撤回误操作同样按指定原事件纠正，条件有效性由 Offer 的历史判断；正式换条件使旧接受不适用于当前条件。core 由 integration owner 实现和测试。
 
-Research dependencies 还可注入 Materials 的只读来源解析；公司提升在 Research 自身事务中保留稳定 item 身份与机会引用，不提升私有来源读取权限。Research 返回公开只读条目解析，Wiki 仅存引用，由 integration owner 接入其查询/导航，不复制研究正文。Offer 原件使用已有受保护 Raw SourceRef；没有原件、历史丢失与此次保存失败分开。
+Research dependencies 还可注入 Materials 的只读来源解析；公司提升在 Research 自身事务中保留稳定 item 身份与机会引用，不提升私有来源读取权限。Research 返回公开只读条目解析，Wiki 仅经公开查询显示引用，由 integration owner 接入其导航，不复制研究正文。Offer 原件使用已有受保护 Raw SourceRef；没有原件、历史丢失与此次保存失败分开。
 
 三条公开页面接收 opportunityId、workspaceInstance、request，以及可选 onChanged 回调；Research 另需 companyId。前端 app composition 注入子模块视图；不由兄弟 feature 互相 import。保存后只提示重读，不能发前端状态裁决。保护 dirty / pending、冲突比较、保存成功但回读失败、A/B 迟到响应；未知业务时间不补今天或午夜。
 

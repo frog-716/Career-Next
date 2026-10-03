@@ -1,4 +1,4 @@
-import { constants, openSync, fstatSync, readFileSync, closeSync } from 'node:fs';
+import { constants, openSync, fstatSync, readSync, closeSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 // Platform ceiling for bounded immutable-artifact verification.
@@ -11,7 +11,8 @@ export function verifyProtectedOriginal(root: string, artifact: {blobId:string;s
  try{
   descriptor=openSync(path.join(root,'blobs',artifact.blobId),constants.O_RDONLY|constants.O_NOFOLLOW);
   const stat=fstatSync(descriptor);if(!stat.isFile()||stat.size!==artifact.size)return false;
-  const bytes=readFileSync(descriptor);
-  return bytes.length===artifact.size&&createHash('sha256').update(bytes).digest('hex')===artifact.digest;
+  const bytes=Buffer.alloc(artifact.size+1);let count=0;
+  while(count<bytes.length){const read=readSync(descriptor,bytes,count,bytes.length-count,null);if(read===0)break;count+=read;}
+  return count===artifact.size&&createHash('sha256').update(bytes.subarray(0,count)).digest('hex')===artifact.digest;
  }catch{return false;}finally{if(descriptor!==undefined)closeSync(descriptor);}
 }

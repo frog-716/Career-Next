@@ -25,7 +25,7 @@ export function createOfferDomain(db:Database.Database,dependencies:OfferDepende
     const old=read(request.opportunityId);if(request.operation==='offer.receive'&&old)throw Error('already_exists');
     if(currentOpportunity.revision!==request.expectedOpportunityRevision)throw Error('conflict');
     const recordedAt=new Date().toISOString();
-    let offer:Offer; let current=currentOpportunity; let type:import('../../../../contracts/opportunity/offer/schema').Event['type']; let coreEventId:string|undefined; let basisId:string|undefined; let eventConditions:Offer|undefined;
+    let offer:Offer; let current=currentOpportunity; let type:import('../../../../contracts/opportunity/offer/schema').Event['type']; let coreEventId:string|undefined; let basisId:string|undefined; let eventConditions:Offer|undefined; let previousValid:boolean|undefined;
     if(request.operation==='offer.receive'){
      offer={id:randomUUID(),opportunityId:request.opportunityId,revision:1,conditionsId:randomUUID(),conditions:request.conditions,original:material(request.original),valid:true,receivedAt:request.businessTime,recordedAt};type='received';
      const result=dependencies.core.recordStage({commandId:randomUUID(),opportunityId:request.opportunityId,expectedRevision:request.expectedOpportunityRevision,stage:'offer',businessTime:request.businessTime,reason:request.reason});current=result.opportunity;coreEventId=result.eventId;
@@ -54,7 +54,12 @@ export function createOfferDomain(db:Database.Database,dependencies:OfferDepende
       if(current.result==='accepted'&&JSON.stringify(old.conditions)!==JSON.stringify(request.conditions))throw Error('accepted_conditions_protected');
       offer={...offer,conditions:request.conditions};type='conditions_corrected';
      }else if(request.operation==='offer.withdraw'){
-      if(!request.historical)offer={...offer,valid:false};type=request.by==='recruiter'?'recruiter_withdrew':'user_withdrew';coreEvent(type,{historical:request.historical});
+      previousValid=old.valid;if(!request.historical)offer={...offer,valid:false};type=request.by==='recruiter'?'recruiter_withdrew':'user_withdrew';coreEvent(type,{historical:request.historical});
+     }else if(request.operation==='offer.correct-withdrawal'){
+      const events=(db.prepare('SELECT event_json FROM opportunity_offer_history WHERE offer_id=? ORDER BY rowid').all(offer.id) as {event_json:string}[]).map(row=>Event.parse(JSON.parse(row.event_json)));
+      const target=events.find(event=>event.coreEventId===request.coreEventId&&['recruiter_withdrew','user_withdrew'].includes(event.type));if(!target)throw Error('not_found');if(events.some(event=>event.correctedEventId===request.coreEventId))throw Error('invalid_transition');
+      const later=events.slice(events.indexOf(target)+1).some(event=>!event.historical&&['conditions_replaced','recruiter_withdrew','user_withdrew','withdrawal_corrected'].includes(event.type));
+      if(!target.historical&&!later)offer={...offer,valid:target.previousValid??true};coreEvent('withdrawal_corrected',{correctedEventId:request.coreEventId});type='withdrawal_corrected';
      }else if(request.operation==='offer.correct-acceptance'){
       const basis=(db.prepare('SELECT basis_json FROM opportunity_offer_acceptance WHERE offer_id=?').all(offer.id) as {basis_json:string}[]).map(row=>AcceptanceBasis.parse(JSON.parse(row.basis_json))).find(basis=>basis.coreEventId===request.coreEventId);
       if(!basis)throw Error('not_found');coreEvent('acceptance_corrected',{correctedEventId:request.coreEventId});type='acceptance_corrected';
@@ -62,7 +67,7 @@ export function createOfferDomain(db:Database.Database,dependencies:OfferDepende
     }
     if(request.operation==='offer.receive'||request.operation==='offer.replace')retain((eventConditions??offer).original,(eventConditions??offer).conditionsId);
     db.prepare('INSERT INTO opportunity_offer VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,body_json=excluded.body_json').run(offer.id,offer.opportunityId,offer.revision,JSON.stringify(offer));
-    const event=Event.parse({id:randomUUID(),offerId:offer.id,opportunityId:offer.opportunityId,type,reason:request.reason,businessTime:request.businessTime,recordedAt,historical:'historical'in request?request.historical:false,conditionsId:(eventConditions??offer).conditionsId,...request.operation==='offer.receive'||request.operation==='offer.replace'||request.operation==='offer.correct'?{conditions:(eventConditions??offer).conditions,original:(eventConditions??offer).original}:{},...coreEventId?{coreEventId}:{},...basisId?{basisId}:{},...request.operation==='offer.correct-acceptance'?{correctedEventId:request.coreEventId}:{}});
+    const event=Event.parse({id:randomUUID(),offerId:offer.id,opportunityId:offer.opportunityId,type,reason:request.reason,businessTime:request.businessTime,recordedAt,historical:'historical'in request?request.historical:false,...previousValid!==undefined?{previousValid}:{},conditionsId:(eventConditions??offer).conditionsId,...request.operation==='offer.receive'||request.operation==='offer.replace'||request.operation==='offer.correct'?{conditions:(eventConditions??offer).conditions,original:(eventConditions??offer).original}:{},...coreEventId?{coreEventId}:{},...basisId?{basisId}:{},...request.operation==='offer.correct-acceptance'||request.operation==='offer.correct-withdrawal'?{correctedEventId:request.coreEventId}:{}});
     db.prepare('INSERT INTO opportunity_offer_history VALUES (?,?,?)').run(event.id,offer.id,JSON.stringify(event));return Result.parse({kind:'offer',offer,opportunity:current});
    }));
   }catch(error){const code=error instanceof Error?error.message:'storage_failed';return Result.parse({kind:'failure',code:['not_found','conflict','already_exists','invalid_transition','source_unavailable','accepted_conditions_protected'].includes(code)?code:'storage_failed'});}

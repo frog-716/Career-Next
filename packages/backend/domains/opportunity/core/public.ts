@@ -31,13 +31,13 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
       const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));
       const events=new Map<string,{stage:'submitted'|'interview'|'offer';time:History['businessTime'];voided:boolean}>();
       for(const item of history){if(item.type==='stage_reached'&&item.stage&&item.stage!=='preparation')events.set(item.id,{stage:item.stage,time:item.businessTime,voided:false});if(item.type==='stage_corrected'&&item.correctedEventId&&item.stage&&item.stage!=='preparation')events.set(item.correctedEventId,{stage:item.stage,time:item.businessTime,voided:!!item.voided});}
-      if(!events.has(request.eventId))throw Error('not_found');if(history.some(item=>item.id===request.eventId&&item.stageOwner))throw Error('invalid_transition');events.set(request.eventId,{stage:request.stage,time:request.businessTime,voided:request.voided});correctedEventId=request.eventId;
+      if(!events.has(request.eventId))throw Error('not_found');const target=history.find(item=>item.id===request.eventId);if(target?.stageOwner&&(target.stageOwner!==stageOwner||request.stage!==target.stage||request.voided))throw Error('invalid_transition');if(stageOwner&&target?.stageOwner!==stageOwner)throw Error('invalid_transition');events.set(request.eventId,{stage:request.stage,time:request.businessTime,voided:request.voided});correctedEventId=request.eventId;
       opportunity.phase='preparation';opportunity.stageDates={submitted:{kind:'unknown'},interview:{kind:'unknown'},offer:{kind:'unknown'}};const ranks={preparation:0,submitted:1,interview:2,offer:3};
       for(const event of events.values()){if(event.voided)continue;if(ranks[event.stage]>ranks[opportunity.phase])opportunity.phase=event.stage;opportunity.stageDates[event.stage]=earliest(opportunity.stageDates[event.stage],event.time);}
       type='stage_corrected';break;
      }
      case 'end':previousResult=old.result;if(old.result===request.outcome)throw Error('invalid_transition');opportunity.result=request.outcome;type='ended';break;
-     case 'correct-end':{if(old.result==='active')throw Error('invalid_transition');const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision DESC').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));const corrected=new Set(history.map(item=>item.correctedEventId));const target=history.find(item=>item.type==='ended'&&item.result===old.result&&!corrected.has(item.id));if(!target?.previousResult)throw Error('invalid_transition');opportunity.result=target.previousResult;correctedEventId=target.id;type='end_corrected';break;}
+     case 'correct-end':{if(old.result==='active')throw Error('invalid_transition');const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision DESC').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));const corrected=new Set(history.map(item=>item.correctedEventId));const target=history.find(item=>item.type==='ended'&&item.result===old.result&&!corrected.has(item.id));if(!target?.previousResult)throw Error('invalid_transition');if(history.some(item=>item.revision>target.revision&&isResultDecision(item)&&!item.historical))throw Error('invalid_transition');opportunity.result=target.previousResult;if(opportunity.result==='accepted'&&history.some(item=>item.revision>target.revision&&item.type==='offer_conditions_replaced'&&!item.historical))opportunity.result='active';correctedEventId=target.id;type='end_corrected';break;}
      case 'recontinue':if(old.result==='active')throw Error('invalid_transition');opportunity.result='active';type='continued';break;
     }
    }
@@ -50,18 +50,18 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
  // Only injected backend Offer composition receives this capability. Renderer
  // Request does not accept arbitrary result values or acceptance-basis claims.
  const recordOfferEvent: OpportunityCapabilities['recordOfferEvent'] = input => {
-  const request=z.object({commandId:z.uuid(),opportunityId:z.uuid(),expectedRevision:z.number().int().positive(),action:z.enum(['accepted','conditions_replaced','recruiter_withdrew','user_withdrew','acceptance_corrected']),businessTime:BusinessTimeSchema,reason:z.string().trim().min(1).max(1000),basisId:z.uuid().optional(),correctedEventId:z.uuid().optional(),historical:z.boolean().optional()}).strict().parse(input);
+  const request=z.object({commandId:z.uuid(),opportunityId:z.uuid(),expectedRevision:z.number().int().positive(),action:z.enum(['accepted','conditions_replaced','recruiter_withdrew','user_withdrew','acceptance_corrected','withdrawal_corrected']),businessTime:BusinessTimeSchema,reason:z.string().trim().min(1).max(1000),basisId:z.uuid().optional(),correctedEventId:z.uuid().optional(),historical:z.boolean().optional()}).strict().parse(input);
   return executeCommand(db,'opportunity.offer-event',request.commandId,request,()=>{
    const old=read(request.opportunityId);if(old.revision!==request.expectedRevision)throw Error('conflict');
    const opportunity={...old,revision:old.revision+1,recordedAt:new Date().toISOString()};
-   const types={accepted:'offer_accepted',conditions_replaced:'offer_conditions_replaced',recruiter_withdrew:'offer_recruiter_withdrew',user_withdrew:'offer_user_withdrew',acceptance_corrected:'offer_acceptance_corrected'} as const;
+   const types={accepted:'offer_accepted',conditions_replaced:'offer_conditions_replaced',recruiter_withdrew:'offer_recruiter_withdrew',user_withdrew:'offer_user_withdrew',acceptance_corrected:'offer_acceptance_corrected',withdrawal_corrected:'offer_withdrawal_corrected'} as const;
    if(request.action==='accepted'&&(!request.basisId||old.phase!=='offer'))throw Error('invalid_transition');
-   if(request.action==='acceptance_corrected'){
+   if(request.action==='acceptance_corrected'||request.action==='withdrawal_corrected'){
     const rows=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));
-    const target=rows.find(row=>row.id===request.correctedEventId&&row.type==='offer_accepted');
+    const target=rows.find(row=>row.id===request.correctedEventId&&(request.action==='acceptance_corrected'?row.type==='offer_accepted':['offer_recruiter_withdrew','offer_user_withdrew'].includes(row.type)));
     if(!target||rows.some(row=>row.correctedEventId===target.id))throw Error('invalid_transition');
-    const laterResult=rows.some(row=>row.revision>target.revision&&row.previousResult!==undefined&&row.result!==row.previousResult&&!row.historical);
-    if(!laterResult&&!request.historical)opportunity.result=target.previousResult??'active';
+    const laterResult=rows.some(row=>row.revision>target.revision&&isResultDecision(row)&&!row.historical);
+    if(!laterResult&&!request.historical&&!target.historical){opportunity.result=target.previousResult??'active';if(opportunity.result==='accepted'&&rows.some(row=>row.revision>target.revision&&row.type==='offer_conditions_replaced'&&!row.historical))opportunity.result='active';}
    }else if(!request.historical){
     switch(request.action){
      case 'accepted':opportunity.result='accepted';break;
@@ -85,3 +85,6 @@ function earliest(prior:BusinessTime,next:BusinessTime):BusinessTime {
  const priorDate=prior.kind==='date'?prior.date:prior.instant.slice(0,10);const nextDate=next.kind==='date'?next.date:next.instant.slice(0,10);
  return nextDate<priorDate||nextDate===priorDate&&next.kind==='date'?next:prior;
 }
+
+// Old G2 continued events have no previousResult; their explicit meaning still wins.
+function isResultDecision(event:History){return ['ended','continued','offer_accepted','offer_recruiter_withdrew','offer_user_withdrew'].includes(event.type)||event.previousResult!==undefined&&event.result!==event.previousResult;}

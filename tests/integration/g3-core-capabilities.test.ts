@@ -34,6 +34,14 @@ it('renderer stage correction cannot void a real submodule-owned stage behind it
  expect(domain.handle({operation:'correct-stage',commandId:randomUUID(),id,expectedRevision:2,eventId:event.eventId,stage:'offer',voided:true,reason:'Bypass the real Offer',businessTime:{kind:'unknown'}})).toEqual({kind:'failure',code:'invalid_transition'});
  expect(domain.capabilities.readOpportunity(id)).toMatchObject({phase:'offer',revision:2});
 });
+it('correcting an old acceptance preserves a later real continuation even when acceptance had restored a withdrawn opportunity',()=>{
+ const {domain,id}=setup();const stage=domain.capabilities.recordStage({commandId:randomUUID(),opportunityId:id,expectedRevision:1,stage:'offer',businessTime:{kind:'unknown'},reason:'Real Offer'});
+ domain.handle({operation:'end',commandId:randomUUID(),id,expectedRevision:2,outcome:'withdrawn',reason:'Earlier actual withdrawal',businessTime:{kind:'unknown'}});
+ const accepted=domain.capabilities.recordOfferEvent({commandId:randomUUID(),opportunityId:id,expectedRevision:3,action:'accepted',basisId:randomUUID(),businessTime:{kind:'unknown'},reason:'Actual acceptance'});
+ domain.handle({operation:'recontinue',commandId:randomUUID(),id,expectedRevision:4,reason:'Later actual continuation',businessTime:{kind:'unknown'}});
+ const corrected=domain.capabilities.recordOfferEvent({commandId:randomUUID(),opportunityId:id,expectedRevision:5,action:'acceptance_corrected',correctedEventId:accepted.eventId,businessTime:{kind:'unknown'},reason:'Old acceptance was a mistaken record'});
+ expect(corrected.opportunity.result).toBe('active');
+});
 
 it('DM-05/27 real unknown-date round advances through public capability without false predecessor dates', () => {
   const { domain, id, companyId } = setup();

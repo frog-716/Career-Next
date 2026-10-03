@@ -91,3 +91,26 @@ it('late-recorded old conditions and their acceptance never overwrite later curr
  expect(offer.handle({operation:'offer.history',opportunityId:id})).toMatchObject({kind:'history',acceptances:[{conditions:{guaranteedCash:{kind:'known',value:'35k old terms'}},original:{kind:'historically_lost'},acceptedAt:{kind:'date',date:'2026-08-02'}}]});
  }finally{db.close();}
 });
+it('mistaken Offer withdrawal is corrected on the same Offer with validity and the prior result restored, without overwriting later real facts',()=>{
+ const {db,opportunity,offer,id}=fixture();try{
+  const send=(operation:string,extras:Record<string,unknown>={})=>{const state=offer.handle({operation:'offer.read',opportunityId:id});if(state.kind!=='offer')throw Error();return offer.handle({operation,commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:state.opportunity.revision,expectedRevision:state.offer.revision,businessTime:unknown,reason:'Explicit correction or real event',...extras});};
+  expect(offer.handle({operation:'offer.receive',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:1,conditions,original:{kind:'never_existed',explanation:'Verbal conditions'},businessTime:unknown,reason:'Actual offer'}).kind).toBe('offer');
+  send('offer.accept',{historical:false});send('offer.withdraw',{by:'recruiter',historical:false});
+  const h=offer.handle({operation:'offer.history',opportunityId:id});if(h.kind!=='history')throw Error();const withdrawal=h.events.find(event=>event.type==='recruiter_withdrew')!;
+  expect(send('offer.correct-withdrawal',{coreEventId:withdrawal.coreEventId})).toMatchObject({kind:'offer',offer:{valid:true},opportunity:{result:'accepted'}});
+  expect(send('offer.correct-withdrawal',{coreEventId:withdrawal.coreEventId})).toMatchObject({kind:'failure',code:'invalid_transition'});
+  send('offer.withdraw',{by:'user',historical:false});const second=offer.handle({operation:'offer.history',opportunityId:id});if(second.kind!=='history')throw Error();const user=second.events.find(event=>event.type==='user_withdrew')!;
+  send('offer.replace',{conditions:{...conditions,guaranteedCash:{kind:'known',value:'25k'}},original:{kind:'never_existed',explanation:'New verbal conditions'},historical:false});
+  expect(send('offer.correct-withdrawal',{coreEventId:user.coreEventId})).toMatchObject({kind:'offer',offer:{valid:true,conditions:{guaranteedCash:{value:'25k'}}},opportunity:{result:'active'}});
+  expect(offer.handle({operation:'offer.history',opportunityId:id})).toMatchObject({kind:'history',acceptances:[{conditions:{guaranteedCash:{value:'30k per month'}}}]});
+ }finally{db.close();}
+});
+it('correcting a generic mistaken end after formal replacement cannot restore acceptance of obsolete conditions',()=>{
+ const {db,opportunity,offer,id}=fixture();try{
+  offer.handle({operation:'offer.receive',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:1,conditions,original:{kind:'never_existed',explanation:'Verbal conditions'},businessTime:unknown,reason:'Actual offer'});
+  offer.handle({operation:'offer.accept',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:2,expectedRevision:1,businessTime:unknown,reason:'Accepted old conditions',historical:false});
+  opportunity.handle({operation:'end',commandId:randomUUID(),id,expectedRevision:3,outcome:'withdrawn',businessTime:unknown,reason:'Mistaken withdrawal'});
+  offer.handle({operation:'offer.replace',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:4,expectedRevision:2,conditions:{...conditions,guaranteedCash:{kind:'known',value:'25k'}},original:{kind:'never_existed',explanation:'New verbal conditions'},businessTime:unknown,reason:'Formal new conditions',historical:false});
+  expect(opportunity.handle({operation:'correct-end',commandId:randomUUID(),id,expectedRevision:5,businessTime:unknown,reason:'Correct the false withdrawal'})).toMatchObject({kind:'opportunity',opportunity:{result:'active'}});
+ }finally{db.close();}
+});

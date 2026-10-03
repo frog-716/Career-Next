@@ -17,6 +17,7 @@ export const Request=z.discriminatedUnion('operation',[
  z.strictObject({operation:z.literal('interview.transition-simulation'),...base,id:Id,expectedRevision:Revision,state:z.enum(['pending','completed','cancelled']),businessTime:BusinessTime,reason:z.string().trim().min(1).max(2000)}),
  z.strictObject({operation:z.literal('interview.save-document'),...base,id:Id,expectedRevision:Revision,document:z.enum(['preparation','transcript','final-review']),text:z.string().max(100000)}),
  z.strictObject({operation:z.literal('interview.transition'),...base,id:Id,expectedRevision:Revision,action:z.enum(['schedule','temporarily_cancel','complete','permanently_cancel']),businessTime:BusinessTime,reason:z.string().trim().min(1).max(2000)}),
+ z.strictObject({operation:z.literal('interview.correct-time'),...base,id:Id,expectedRevision:Revision,expectedOpportunityRevision:Revision,field:z.enum(['confirmation','scheduled','completion']),businessTime:BusinessTime,reason:z.string().trim().min(1).max(2000)}),
  z.strictObject({operation:z.literal('interview.correct-terminal'),...base,id:Id,expectedRevision:Revision,state:RoundState,businessTime:BusinessTime,reason:z.string().trim().min(1).max(2000)}),
  z.strictObject({operation:z.literal('interview.receipt'),commandId:Id}),
 ]);

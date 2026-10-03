@@ -19,7 +19,7 @@ it('RV-MODULE actual SQLite mutations stay inside the executing owner; core writ
  const core=createOpportunityDomain(db);const c=core.handle({operation:'company.create',commandId:crypto.randomUUID(),name:'Boundary Company'});if(c.kind!=='company')throw Error();
  const o=core.handle({operation:'create',commandId:crypto.randomUUID(),companyId:c.company.id,role:'Boundary role'});if(o.kind!=='opportunity')throw Error();
  const through=<T>(callback:()=>T)=>{capabilityDepth++;try{return callback();}finally{capabilityDepth--;}};
- const capabilities:OpportunityCapabilities={readOpportunity:core.capabilities.readOpportunity,readCompany:core.capabilities.readCompany,recordStage:input=>through(()=>core.capabilities.recordStage(input)),recordOfferEvent:input=>through(()=>core.capabilities.recordOfferEvent(input))};
+ const capabilities:OpportunityCapabilities={readOpportunity:core.capabilities.readOpportunity,readCompany:core.capabilities.readCompany,recordStage:input=>through(()=>core.capabilities.recordStage(input)),correctInterviewConfirmation:input=>through(()=>core.capabilities.correctInterviewConfirmation(input)),recordOfferEvent:input=>through(()=>core.capabilities.recordOfferEvent(input))};
  const owners={research:createResearchDomain(db,{core:capabilities}),interview:createInterviewDomain(db,{core:capabilities}),offer:createOfferDomain(db,{core:capabilities,validateSource:()=>({status:'unavailable'})})};
  try{
   for(const owner of Object.values(owners))expect(owner.handle({operation:'end',commandId:crypto.randomUUID(),id:o.opportunity.id,expectedRevision:1,outcome:'withdrawn',reason:'foreign operation',businessTime:{kind:'unknown'}})).toEqual({kind:'failure',code:'invalid_request'});

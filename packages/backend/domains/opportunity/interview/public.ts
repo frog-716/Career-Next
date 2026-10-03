@@ -30,6 +30,11 @@ export function createInterviewDomain(db:Database.Database,dependencies:{core:Op
       if(r.document==='preparation'){if(current.kind!=='real')throw Error('invalid_relation');next.preparation=r.text;}
       if(r.document==='transcript'&&r.text!==current.transcript?.text){next.transcript={text:r.text,version:(current.transcript?.version??0)+1};if(next.finalReview)next.finalReview={...next.finalReview,needsRecheck:true};}
       if(r.document==='final-review')next.finalReview={text:r.text,transcriptVersion:current.transcript?.version??null,needsRecheck:false};
+     }else if(r.operation==='interview.correct-time'){
+      if(r.field==='confirmation'){if(!current.stageEventId)throw Error('storage_failed');const committed=dependencies.core.correctInterviewConfirmation({commandId:r.commandId,opportunityId:current.opportunityId,expectedRevision:r.expectedOpportunityRevision,eventId:current.stageEventId,businessTime:r.businessTime,reason:r.reason});if(committed.opportunity.id!==current.opportunityId)throw Error('storage_failed');next.confirmationTime=r.businessTime;}
+      if(r.field==='scheduled'){if(!['scheduled','completed'].includes(current.state)||r.businessTime.kind==='unknown'&&current.state==='scheduled')throw Error('invalid_transition');next.scheduledTime=r.businessTime;}
+      if(r.field==='completion'){if(current.state!=='completed')throw Error('invalid_transition');next.completionTime=r.businessTime;}
+      history(next,r.field+'_time_corrected',r.reason,r.businessTime,current.state);
      }else if(r.operation==='interview.transition'){
       if(['completed','permanently_cancelled'].includes(current.state))throw Error('invalid_transition');
       if(r.action==='schedule'){if(r.businessTime.kind==='unknown')throw Error('invalid_transition');next.state='scheduled';next.scheduledTime=r.businessTime;}
