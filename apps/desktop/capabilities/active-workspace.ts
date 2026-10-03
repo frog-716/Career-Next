@@ -6,7 +6,18 @@ const Pointer=z.strictObject({copyId:z.uuid(),relativePath:z.string().min(1),wor
 export async function activeWorkspace(dataRoot:string){
  let body:string;
  try{body=await readFile(path.join(dataRoot,'active-workspace-pointer.json'),'utf8');}
- catch(error){if((error as {code?:string}).code==='ENOENT')return {root:path.join(dataRoot,'workspaces/local'),initial:true};throw Error('active_pointer_invalid');}
+ catch(error){
+  if((error as {code?:string}).code!=='ENOENT')throw Error('active_pointer_invalid');
+  try{
+   // Only a genuinely new device profile may bootstrap. A lost pointer must never select an old local copy.
+   const root=safeManagedPath(dataRoot,'workspaces/local');
+   for(const name of ['managed-copies-manifest.json','workspaces','recovery','backups','purge-control','backup-settings.json']){
+    const exists=await lstat(path.join(dataRoot,name)).then(()=>true,error=>{if(error.code==='ENOENT')return false;throw error;});
+    if(exists)throw Error('active_pointer_invalid');
+   }
+   return {root,initial:true};
+  }catch{throw Error('active_pointer_invalid');}
+ }
  try{
   const value=JSON.parse(body);
   const legacy=value.copy==='local'&&typeof value.workspaceInstance==='string'&&Object.keys(value).length===2;
