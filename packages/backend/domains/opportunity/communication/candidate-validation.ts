@@ -1,0 +1,10 @@
+import type Database from 'better-sqlite3';
+import {createHash} from 'node:crypto';
+import {z} from 'zod';
+import {Communication,History} from '../../../../contracts/opportunity/communication/schema';
+export function validateCandidate(db:Database.Database):void {
+ const items=new Map<string,Communication>();
+ for(const row of db.prepare('SELECT id,opportunity_id,body_json FROM opportunity_communication').all() as {id:string;opportunity_id:string;body_json:string}[]){const value=Communication.parse(JSON.parse(row.body_json));if(value.id!==row.id||value.opportunityId!==row.opportunity_id||value.source.objectId!==value.id||value.source.opportunityId!==value.opportunityId||value.source.revision>value.revision||value.purpose==='resend'&&(!value.sentMaterial||!value.greeting)||value.purpose!=='resend'&&(value.sentMaterial!==undefined||value.greeting!==undefined))throw Error('invalid_candidate');if(value.sentMaterial?.kind==='retained'){const material=value.sentMaterial,snapshot=material.snapshot;if(material.candidate.kind==='resume'){if(!snapshot||snapshot.id!==material.candidate.id||snapshot.profileRevision!==snapshot.profile.revision||createHash('sha256').update(JSON.stringify({content:snapshot.content,profile:snapshot.profile})).digest('hex')!==snapshot.contentHash)throw Error('invalid_candidate');}else if(snapshot)throw Error('invalid_candidate');}items.set(value.id,value);}
+ for(const row of db.prepare('SELECT id,communication_id,event_json FROM opportunity_communication_history').all() as {id:string;communication_id:string;event_json:string}[]){const value=History.parse(JSON.parse(row.event_json));const current=items.get(row.communication_id);if(value.id!==row.id||value.communicationId!==row.communication_id||!current||value.revision>current.revision)throw Error('invalid_candidate');}
+ for(const row of db.prepare('SELECT command_id,communication_id FROM opportunity_communication_commands').all() as {command_id:string;communication_id:string}[]){z.uuid().parse(row.command_id);z.uuid().parse(row.communication_id);if(!items.has(row.communication_id))throw Error('invalid_candidate');}
+}

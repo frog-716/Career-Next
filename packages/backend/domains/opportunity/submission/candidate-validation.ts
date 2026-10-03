@@ -1,0 +1,11 @@
+import type Database from 'better-sqlite3';
+import {createHash} from 'node:crypto';
+import {z} from 'zod';
+import {Submission} from '../../../../contracts/opportunity/submission/schema';
+export function validateCandidate(db:Database.Database):void {
+ const items=new Map<string,Submission>();const opportunities=new Set<string>();
+ for(const row of db.prepare('SELECT id,opportunity_id,body_json FROM opportunity_submission').all() as {id:string;opportunity_id:string;body_json:string}[]){const value=Submission.parse(JSON.parse(row.body_json));if(value.id!==row.id||value.opportunityId!==row.opportunity_id||items.has(value.id)||opportunities.has(value.opportunityId))throw Error('invalid_candidate');if(value.resume.kind==='retained'){const material=value.resume,snapshot=material.snapshot;if(material.candidate.kind==='resume'){if(!snapshot||snapshot.id!==material.candidate.id||snapshot.profileRevision!==snapshot.profile.revision||createHash('sha256').update(JSON.stringify({content:snapshot.content,profile:snapshot.profile})).digest('hex')!==snapshot.contentHash)throw Error('invalid_candidate');}else if(snapshot)throw Error('invalid_candidate');}items.set(value.id,value);opportunities.add(value.opportunityId);}
+ const tombstones=new Set<string>();
+ for(const row of db.prepare('SELECT id,opportunity_id FROM opportunity_submission_purged').all() as {id:string;opportunity_id:string}[]){z.uuid().parse(row.id);z.uuid().parse(row.opportunity_id);if(items.has(row.id)||opportunities.has(row.opportunity_id)||tombstones.has(row.id))throw Error('invalid_candidate');tombstones.add(row.id);opportunities.add(row.opportunity_id);}
+ for(const row of db.prepare('SELECT command_id,submission_id FROM opportunity_submission_commands').all() as {command_id:string;submission_id:string}[]){z.uuid().parse(row.command_id);z.uuid().parse(row.submission_id);if(!items.has(row.submission_id))throw Error('invalid_candidate');}
+}
