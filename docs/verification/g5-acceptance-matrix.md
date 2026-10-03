@@ -120,3 +120,7 @@ PASS_ALREADY=38, PASS_G5=31, DEFER_G6=28, DEFER_M=5, EXTERNAL_LIVE_PENDING=1, CO
 初始统计（历史）：PASS_ALREADY=58、PASS_G5=0、MISSING_IMPLEMENTATION=21、DEFER_G6=17、DEFER_M=5、EXTERNAL_LIVE_PENDING=2、CONDITIONAL=1。Company 改名与 Profile 修改两条初始缺口理由误贴，已在审计列纠正。
 
 REAL PROVIDER / SEARCH / FEISHU = NOT TESTED。受控结果只能 PRODUCT FLOW PASS，J-07 真实外部部分仍 PARTIAL。Developer ID / Notarization / x64 = READY。正式迁移部分留 M，恢复候选校验不等于激活；真正激活、唯一 active pointer 和重启由 normal desktop / data-lifecycle 另证。
+
+## Post-blackbox 再结算
+
+本轮用户再次确认 HUMAN MANUAL PASS（含 Feedback 再打开草稿保持），来源核对见 [post-blackbox](g5-post-blackbox.md)。OLD MAIN 已包含两个修复与证据，无额外代码待合入；本轮只补证据、重新执行回归和新 checkpoint。AUTOMATED / LUNA COMPUTER USE / HUMAN MANUAL 明确分开；各项最终分类及 104 数量不变，EXTERNAL_LIVE_PENDING 仍为1。

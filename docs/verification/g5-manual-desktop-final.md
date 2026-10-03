@@ -32,3 +32,7 @@
 REAL PROVIDER / REAL SEARCH / REAL FEISHU = NOT TESTED。Developer ID signing / Notarization / x64 = READY。DEFER_G6、DEFER_M、EXTERNAL_LIVE_PENDING、CONDITIONAL 保留，见 [104 矩阵](g5-acceptance-matrix.md)。不进入 G6。
 
 三项真实 UX 困惑进入 [polish backlog](../backlog/g5-ux-polish.md)，不更改 Frozen 正本，不阻断本轮桌面结算。
+
+## 本轮用户再次确认
+
+用户在 G5 post-blackbox 收口请求中明确再次提供上述真实 macOS 全套 PASS，并补充 Feedback 打开、返回后再打开仍保留草稿 PASS。用户也确认同名 `G5 manual baseline` 为本人实际保存两次，不作为新缺陷。来源与本轮重新回归见 [post-blackbox](g5-post-blackbox.md)。这是 HUMAN MANUAL 声明，不是 Luna 或自动化输入证据。

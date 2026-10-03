@@ -89,3 +89,5 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `materials/targets.ts` 与 `platform/imports/` 接明确对象的本地文件/受控 Feishu-shaped 导入；SearchRun 仅受控 fixture，不调用真实网络。普通恢复隔离旧窗口写回，精确 purge 通知各窗口受影响编辑缓存。
 - 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程使用本地受控资料与 fake adapter；真实 Provider/Search/Feishu 不测，M 正式迁移与 G6 不授权。
 - [G5 连续旅程与真人门](docs/verification/g5-complete-journeys.md) 和 `tests/desktop/g5*.electron.test.ts` 是本轮证据入口；[真人最终证据](docs/verification/g5-manual-desktop-final.md) 已 PASS；两次缺陷原现场及复测保留，104 最终分类见矩阵。G5 总状态 PARTIAL，仅真实外部 J-07 待验；开发 Issues 按本轮授权关闭。后续体验改进仅记录在 [UX backlog](docs/backlog/g5-ux-polish.md)，不进入 G6。
+
+- [G5 post-blackbox 收口](docs/verification/g5-post-blackbox.md)：核对 OLD MAIN 已含 Resume 两个修复，保留独立 Luna / 真人 / 自动证据，重新回归并创建新的证据 checkpoint；不进入 G6。

@@ -49,3 +49,5 @@ PDF SHA256 分别为 `d19cda2278fb19cc1a1970310977c590c2cbd7a73e5c08ef56ba346660
 2026-10-03 用户明确报告本项修复复测 PASS，完整中文输入、手工加粗、Apply / Undo、命名版本历史和 PDF 链已由本人完成。原失败现场及修复前的等待状态作为历史保留；当前结论见 [真人最终证据](g5-manual-desktop-final.md)。G5 总状态仍 PARTIAL（仅真实外部待验），本轮开发 Issues 按最新授权收尾。
 
 最终收尾补充：以上原红灯日志仍保留，SHA256 `a2cfb1072366fef5ef61e24d75836ffa28c7f5fa7fdf1dd8a85a96bf9fa0e280`；修复后同一公开/UI 行为纳入最终 unit / integration / dev / arm64 packaged 回归，结果见 [最终执行记录](g5-auto-results.json)。
+
+本轮用户补充确认：两个同名 `G5 manual baseline` 是本人实际点击两次保存，不是重复保存 Bug；本轮保留两个独立冻结版本，不实施名称去重或唯一性限制。

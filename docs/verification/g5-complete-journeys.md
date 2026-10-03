@@ -86,3 +86,7 @@ Standards + architecture：当前代码审核无 unresolved finding；另外用�
 104 最终统计：**38 PASS_ALREADY / 31 PASS_G5 / 28 DEFER_G6 / 5 DEFER_M / 1 EXTERNAL_LIVE_PENDING / 1 CONDITIONAL**，总数104、唯一ID与 Frozen一致、证据链接有效、待真人0。Frozen Product Spec **12/12**、Architecture **8/8** 文件 SHA 不变。详细命令/日志 SHA 及首次历史证据见 [g5-auto-results.json](g5-auto-results.json)。
 
 按用户本轮授权，已完成子 Issues #21–25 与 umbrella #20 收尾关闭，独立 final checkpoint 推送 main；提交标识、远端一致性见该 checkpoint 的 Git 记录及 Issue 关闭报告。关闭本轮开发范围不表示真实外部通过：**G5 overall PARTIAL（仅 J-07 真实外部待验）**，普通本地产品链和真人桌面 PASS。REAL PROVIDER / REAL SEARCH / REAL FEISHU **NOT TESTED**；Developer ID / Notarization / x64 **READY**。不进入 G6，不读取旧 Career。
+
+## Post-blackbox 新 checkpoint
+
+按用户最新要求，对 OLD MAIN `5f16661624eab1800efa3d09a2500d5a3a9e53bb` 已有两个修复进行来源复核与重新回归，不重复合并源码或整棵 worktree。最新真人 Feedback 再打开草稿保持与同名版本两次人为保存说明已记录；三种证据严格分开，详情见 [post-blackbox 验收](g5-post-blackbox.md)。#20 先重开记录 findings，新的 main checkpoint push / clean 核对后再关闭。G5 总状态仍 PARTIAL，仅真实 J-07 外部待验。

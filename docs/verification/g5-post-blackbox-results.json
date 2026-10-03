@@ -1,0 +1,253 @@
+{
+  "recordedAt": "2026-10-03T08:46:08.767360+00:00",
+  "oldMain": "5f16661624eab1800efa3d09a2500d5a3a9e53bb",
+  "g5Status": "PARTIAL",
+  "remainingOverallGate": "J-07 real external pending only",
+  "manualDesktop": "PASS",
+  "humanEvidenceSource": "Latest user post-blackbox request, not generated input",
+  "lunaBlackbox": {
+    "originalResult": "FAIL / PARTIAL",
+    "ime": "HUMAN_ONLY",
+    "report": "g5-computer-use-manual.md",
+    "worktreeSourceSha256": "1d0985b391c6fa3c7575c1e981df12e496e53bb9b3c6aad6156ceee41c5aa110",
+    "limitationsPreserved": true
+  },
+  "sourceAudit": {
+    "oldMain": "5f16661624eab1800efa3d09a2500d5a3a9e53bb",
+    "sourceAgent": "/root/g5_luna_blackbox",
+    "sourceWorktree": "/Users/frog/.codex/worktrees/g5-computer-use/Career-Next",
+    "worktreeHead": "0f8cd658901f2485666121fb932f83d68c458202",
+    "worktreeStatus": "?? docs/verification/g5-computer-use-manual.md",
+    "sourceDocumentSha256": "1d0985b391c6fa3c7575c1e981df12e496e53bb9b3c6aad6156ceee41c5aa110",
+    "sourceDocumentNormalizedAlreadyIncluded": true,
+    "mainAlreadyContainsBothFixes": true,
+    "mainFixAndTestFiles": {
+      "packages/frontend/features/resume/index.tsx": "980b64c9309c2687564b0a180c857b68de408c7a170ac3dd9352309c32dd3fe8",
+      "packages/frontend/features/resume/frozen-body.tsx": "decca6d008aed7baed8e1d5e32bf574e0c9bae9c021ab3e4e3a28bd2871dbb39",
+      "packages/frontend/features/resume/resume.css": "fd1dace13757aa62b36749fc97abb6f6e7d78c8eebff338c7db14de643c8bcaf",
+      "packages/frontend/support/ai/product-task.tsx": "b6f2fcdd7a13d11d583e8c2c8724c0be8334d3cc742dedc1de47c500a52ffd73",
+      "tests/g5-resume-ai-undo-ui.test.ts": "3817cfc3eb72a629bd316c63badc514f082f8856c32211bfdb8796be80e3c249",
+      "tests/g5-resume-ai-unknown-ui.test.ts": "2aeaba23e38ba1608543bed86419eba1ac590b67dd5839571fabca3485357417",
+      "tests/desktop/g5-resume-undo.electron.test.ts": "28cce6adf56c30b20413ec6454a4e2f85b5af676d5f7110b6c9f6fbc9bdf25e5",
+      "tests/desktop/g5-resume-version-format.electron.test.ts": "3cc99eec98a646a1e2285977d1f038d720cf62167687874fd38a65ab28a5e98f",
+      "tests/resume-session.test.ts": "15be04ebbc4e6f1c0992c328e0b5081bd8becf67b695e80494da88ae1ef1081d",
+      "docs/verification/g5-resume-undo-regression.md": "103904e5b860508fa8f515ba0522dd707c89817da901dd7e197e6d9dd3f707f2",
+      "docs/verification/g5-version-format-regression.md": "93526bb0a4f0afd0ead3e6e148191c636ea06229b12234fe2e5552c00d888aee"
+    },
+    "additionalRelatedCodeToMerge": [],
+    "unrelatedChangesInMain": [],
+    "wholeWorktreeMerge": false,
+    "oldCareerRead": false
+  },
+  "additionalProductCodeMerged": 0,
+  "automatedCommands": [
+    {
+      "command": "npm ci",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/npm-ci.log",
+      "logSha256": "e870478c13225b9a2c515844abd5936f195ab99e21cdc125a1df63de302fe978",
+      "summary": [
+        "found 0 vulnerabilities"
+      ]
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/typecheck.log",
+      "logSha256": "ce31c06d44db372d7ffaac4fd8fb58dd89015c5ebc06e7293a3f5f882e13d1e9",
+      "summary": []
+    },
+    {
+      "command": "npm test -- --maxWorkers=2",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/unit.log",
+      "logSha256": "10de84fc9d7cc62efa74f261d6f8cb88bde9e2f44a99aa8f0f5725d5d92d0c6f",
+      "summary": [
+        "Test Files  38 passed (38)",
+        "Tests  82 passed (82)",
+        "Duration  53.99s (tests 92%, import 6%, transform 1%)"
+      ]
+    },
+    {
+      "command": "npm run test:integration -- --maxWorkers=2",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/integration.log",
+      "logSha256": "1fea5ef74de705302ccbbf735cac582d6e9765f0b98866f05623990d94ef484d",
+      "summary": [
+        "Test Files  59 passed (59)",
+        "Tests  239 passed (239)",
+        "Duration  28.38s (tests 81%, import 15%, transform 3%)"
+      ]
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/build.log",
+      "logSha256": "cbacd6ca3a831bdf90733ccceeb286c0a56476bfb77cebb0745c31b91d14ef59",
+      "summary": []
+    },
+    {
+      "command": "npm run test:g0",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/g0-unit.log",
+      "logSha256": "cdb1d2af8176868be1dbf72669bff0c4f64ce49a4de7f7dfc167123cb8a46768",
+      "summary": [
+        "Test Files  1 passed (1)",
+        "Tests  3 passed (3)",
+        "Duration  607ms (import 61%, transform 27%, tests 11%, worker 1%)"
+      ]
+    },
+    {
+      "command": "npm run build:g0",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/g0-build.log",
+      "logSha256": "ae32002a8375fa6ca08268ce6ec7a07c0764f16153dacbc9efbc7548069f0bda",
+      "summary": []
+    },
+    {
+      "command": "npm run smoke:g0",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/g0-smoke.log",
+      "logSha256": "bdcc927598928562846ba197c6cb15f39cbad8a439e34ba0922e27243ad0c0ed",
+      "summary": [
+        "Test Files  1 passed (1)",
+        "Tests  1 passed (1)",
+        "Duration  8.93s (tests 97%, import 3%)"
+      ]
+    },
+    {
+      "command": "ForgeAPI.package normal config / darwin arm64 / out:g5-post-blackbox",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/package.log",
+      "logSha256": "8fa66cf49572b013f48f2ff32e70410d8a7cc233eb29ca01e4be5e4280146b17",
+      "summary": [
+        "❯ Packaging for arm64 on darwin",
+        "✔ Packaging for arm64 on darwin"
+      ]
+    },
+    {
+      "command": "codesign --verify --deep --strict <post-blackbox app>",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/codesign.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": []
+    },
+    {
+      "command": "npx vitest run tests/desktop --maxWorkers=1",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/desktop-dev.log",
+      "logSha256": "334d95166a469b7974b3dbf95b984ef9bbac1bd2c8a2464d89d92c29813db44a",
+      "summary": [
+        "Test Files  10 passed (10)",
+        "Tests  11 passed (11)",
+        "Duration  93.36s (tests 97%, import 3%)"
+      ]
+    },
+    {
+      "command": "CAREER_PACKAGED=1 CAREER_PACKAGED_EXECUTABLE=<post-blackbox app> npx vitest run tests/desktop --maxWorkers=1",
+      "exitCode": 0,
+      "log": "/tmp/career-g5-post-blackbox/desktop-packaged.log",
+      "logSha256": "68e91e0390687317e76faa3ddef558d50176c6392dd16bea2c472802505130b6",
+      "summary": [
+        "Test Files  10 passed (10)",
+        "Tests  11 passed (11)",
+        "Duration  98.72s (tests 97%, import 2%)"
+      ]
+    }
+  ],
+  "packaged": {
+    "outDir": "/Users/frog/Projects/Career-Next/out/g5-post-blackbox",
+    "app": "/Users/frog/Projects/Career-Next/out/g5-post-blackbox/CareerNext-darwin-arm64/CareerNext.app",
+    "executable": "/Users/frog/Projects/Career-Next/out/g5-post-blackbox/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext",
+    "arch": "arm64",
+    "asarSha256": "765d7ec87cfb9eeffa92808abd943d428680b7d0beea605b1fcf7ad0455b923d",
+    "exactDistFilesMatched": 7,
+    "files": [
+      {
+        "file": "dist/application/main.cjs",
+        "sha256": "4b8873ad066644f7e592885e4f9cb48961a0c0f961bed63b585ff587738f6527"
+      },
+      {
+        "file": "dist/application/preload.cjs",
+        "sha256": "8468df2e16b7517cd018754e6d84dbcb3aaec04689a1644d5fde734b72790317"
+      },
+      {
+        "file": "dist/application/utility.cjs",
+        "sha256": "66b81dc3b6a580be4a218a4ab4e09317be49d2e27d03ef05b1c62785813773db"
+      },
+      {
+        "file": "dist/application/writer.cjs",
+        "sha256": "b1dd7ddf897fb8be97fc28db86b04c693c51a0bfdb348360b5c0dce4f66cae46"
+      },
+      {
+        "file": "dist/materials-renderer/assets/index-CAjya1a2.css",
+        "sha256": "6d72d3e447d3e1807c9464d548c06511c60e1b534994d0bc7ae61a90b11c9c25"
+      },
+      {
+        "file": "dist/materials-renderer/assets/index-DbP_S10k.js",
+        "sha256": "c3b9d509c5f2b14986165cc2cc7f807f5dd056c050b740a26fff6aaf3958ea5e"
+      },
+      {
+        "file": "dist/materials-renderer/index.html",
+        "sha256": "923f4d92e1af01431cf8939a37324d7b0d167284957b9b6e68e1cf8e0b81aeab"
+      }
+    ],
+    "normalProductionBuild": true,
+    "testOnlyBridge": false,
+    "signing": "local ad-hoc only",
+    "disallowedArchiveEntries": []
+  },
+  "historicalRedEvidence": [
+    {
+      "log": "/tmp/career-g5-resume-undo-race-red.log",
+      "sha256": "4e75f1fb5e1b8d227c8ad03995d13a18c783f12762c4718498b01bde37ed06b8",
+      "isHistoricalRed": true
+    },
+    {
+      "log": "/tmp/career-g5-version-format-red.log",
+      "sha256": "a2cfb1072366fef5ef61e24d75836ffa28c7f5fa7fdf1dd8a85a96bf9fa0e280",
+      "isHistoricalRed": true
+    }
+  ],
+  "acceptance104": {
+    "DEFER_G6": 28,
+    "PASS_ALREADY": 38,
+    "PASS_G5": 31,
+    "CONDITIONAL": 1,
+    "EXTERNAL_LIVE_PENDING": 1,
+    "DEFER_M": 5
+  },
+  "frozen": {
+    "docs/product-spec": {
+      "files": 12,
+      "unchangedFromOldMain": true,
+      "unchangedFromG4": true
+    },
+    "docs/architecture": {
+      "files": 8,
+      "unchangedFromOldMain": true,
+      "unchangedFromG4": true
+    }
+  },
+  "idsExact": true,
+  "linksValid": true,
+  "review": {
+    "standards": "0 new violations / smells / blockers",
+    "spec": "0 new findings; OLD MAIN already includes both fixes and tests",
+    "architecture": "no new dependency or owner change",
+    "knownBaselineWikiRisk": "P2 DEFER_G6; not fixed or declared PASS"
+  },
+  "realProvider": "NOT TESTED",
+  "realSearch": "NOT TESTED",
+  "realFeishu": "NOT TESTED",
+  "ready": [
+    "Developer ID",
+    "Notarization",
+    "x64"
+  ],
+  "sameNameVersions": "User saved twice; no new uniqueness policy or deduplication",
+  "uxBacklog": "3 existing items retained; no UI refactor",
+  "oldCareerRead": false,
+  "issueSequence": "Reopened #20 with Post-close independent blackbox findings; close only after new checkpoint push and actual remote equality / clean verification",
+  "checkpointEvidence": "New commit identity and remote equality are recorded in Git and Issue #20 final closing comment"
+}

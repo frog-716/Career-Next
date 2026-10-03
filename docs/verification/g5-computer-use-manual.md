@@ -73,3 +73,7 @@ UX CONFUSION:
 ## 后续人工结算（2026-10-03）
 
 以上为独立空上下文 Computer Use 的原始记录，原 FAIL / HUMAN_ONLY 未抹掉。随后用户亲自使用 macOS 简体拼音，并完成两次缺陷修复后的最终正常包验收，明确报告 `G5 MANUAL DESKTOP: PASS`。Undo、历史格式与 PDF 等最终结论以 [真人最终证据](g5-manual-desktop-final.md) 为准。原 Computer Use 失败不是最终包的通过证据。原选区/光标控制的不确定性由真人实际操作补齐；大量 ID/JSON、未知结果后指引、图标导航困惑进入 [UX backlog](../backlog/g5-ux-polish.md)。没有创建生产内测试教程。
+
+## Post-close 来源复核
+
+本轮重新只读核对 `/root/g5_luna_blackbox` 的独立 worktree：原报告已完整收录在 OLD MAIN `5f16661624eab1800efa3d09a2500d5a3a9e53bb`（仅 Markdown 行尾空白规范化），worktree 没有额外修复代码。原 Luna 结论仍是 FAIL / 部分通过 / IME HUMAN_ONLY，不能将真人后续 PASS 归给 Computer Use。两个 Bug 的最终结算由 AUTOMATED 红绿回归与 HUMAN MANUAL 实际复测提供；后来的版本 bold renderer 问题由用户发现。详见 [post-blackbox 来源与再验收](g5-post-blackbox.md)。
