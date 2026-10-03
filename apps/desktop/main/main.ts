@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, protocol, utilityProcess, MessageChannelMain, dialog, Menu, safeStorage } from 'electron';
 import type { UtilityProcess, MessagePortMain, IpcMainInvokeEvent } from 'electron';
 import { randomUUID } from 'node:crypto';
-import { readFile, mkdir, writeFile, rename, open, access } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, rename, open } from 'node:fs/promises';
 import path from 'node:path';
 import { Identity, Request, Result } from '../../../packages/contracts/materials/schema';
 import type { Identity as RuntimeIdentity, Request as MaterialRequest, Result as MaterialResult } from '../../../packages/contracts/materials/schema';
@@ -15,6 +15,8 @@ import {Result as DataResult,PurgeNotification} from '../../../packages/contract
 import {SentFileCandidate} from '../../../packages/contracts/opportunity/submission/file-selection';
 import { selectMaterial } from '../capabilities/select-material';
 import {createSecretVault} from '../capabilities/secret-vault';
+import {createSecretCoordinator} from '../capabilities/secret-coordinator';
+import {resolveStartupProviderBinding} from '../capabilities/provider-startup';
 import {SecretInput} from '../../../packages/contracts/ai/secret-input';
 import {ProviderBinding} from '../../../packages/backend/platform/providers/binding';
 import type {SecretBridge} from '../../../packages/contracts/ai/secret-input';
@@ -61,7 +63,7 @@ async function connect(): Promise<RuntimeIdentity> {
     const copies=createManagedCopies(dataRoot),copy=copies.register({relativePath:path.relative(dataRoot,root),kind:'current_workspace',state:'candidate'});
     await mkdir(root,{recursive:true,mode:0o700});
     if(!backend?.pid) {
-      let config:ProviderBinding={enabled:true,generation:'fake-v1'};if(await access(path.join(dataRoot,'security/binding.json')).then(()=>true,()=>false)){const status=await secrets.request({operation:'status'});config={enabled:status.kind==='status'&&status.status.enabled,generation:status.kind==='status'?status.status.generation??'fake-v1':'fake-v1'};}
+      const config=await resolveStartupProviderBinding(path.join(dataRoot,'security'),()=>secrets.request({operation:'status'}));
       const child=utilityProcess.fork(path.join(__dirname,'utility.cjs'),[root,dataRoot,recoveryBackup??'',JSON.stringify(config)],{serviceName:'Career Materials Backend',stdio:'pipe',allowLoadingUnsignedLibraries:false});
       backend=child;
       child.on('exit',()=>{ if(backend===child){ backend=undefined; disconnect(); } });
@@ -153,8 +155,8 @@ if(locked) app.whenReady().then(async()=>{
   Menu.setApplicationMenu(Menu.buildFromTemplate([{role:'appMenu'},{role:'editMenu'},{label:'视图',submenu:[{role:'resetZoom'},{role:'zoomIn'},{role:'zoomOut'},{role:'togglefullscreen'}]},{label:'文件',submenu:[{label:'新建窗口',accelerator:'CmdOrCtrl+Shift+N',click:()=>{if(identity&&!quitting)void createAppWindow().loadURL(url);}},{role:'close'}]},{role:'windowMenu'}]));
   window=createAppWindow();
   secrets=createSecretVault(path.join(app.getPath('userData'),'security'),{available:()=>safeStorage.isAsyncEncryptionAvailable(),encrypt:input=>safeStorage.encryptStringAsync(input)});
-  ipcMain.handle('career:secret-input',async(event,input:unknown)=>{trusted(event);const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};if(parsed.data.operation==='status')return secrets.request(parsed.data);
-   await configureProvider({enabled:false,generation:'fake-v1'});const result=await secrets.request(parsed.data);if(result.kind==='status'&&result.status.enabled&&result.status.generation)await configureProvider({enabled:true,generation:result.status.generation});return result;});
+  const secretCoordinator=createSecretCoordinator(secrets,configureProvider);
+  ipcMain.handle('career:secret-input',async(event,input:unknown)=>{trusted(event);const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};return secretCoordinator.request(parsed.data);});
   ipcMain.handle('career:local-search',async(event,input:unknown)=>{
    trusted(event);const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');const request=LocalSearchRequest.parse(input),requestId=randomUUID();
    return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:value=>{try{resolve(LocalSearchResult.parse(value));}catch{reject(Error('invalid_request'));}},reject,timer});port!.postMessage({requestId,identity:bound,searchAction:'query',request});});
