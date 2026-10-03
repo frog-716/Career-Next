@@ -12,6 +12,8 @@ import {composeDomains} from '../../packages/backend/bootstrap/domain-registry';
 import {composeAiPorts} from '../../packages/backend/bootstrap/ai-composition';
 import {createPersistenceFence} from '../../packages/backend/platform/persistence/fence';
 import {createAiRuntime,validateAiCandidate,sanitizeAiCandidate} from '../../packages/backend/ai-runtime/public';
+import {createAiController,type AiWriterControllerPort} from '../../packages/backend/ai-runtime/controller';
+import type {DispatchIntent} from '../../packages/backend/ai-runtime/ports';
 import type {SourceRef} from '../../packages/contracts/common/source-ref';
 import type {Task,ProviderOutput} from '../../packages/contracts/ai/schema';
 const resources:{close():void;root:string}[]=[];
@@ -39,6 +41,17 @@ it('actual Transcript owner R1 -> R2 causes final Apply to reject all Wiki / AI 
  expect(f.domains.wiki.read(a.id)).toMatchObject({body:'旧认识',revision:1});expect(f.domains.wiki.handle({operation:'receipt',commandId})).toEqual({kind:'receipt_missing'});expect(f.runtime.handle({operation:'ai.receipt',commandId},'human')).toEqual({kind:'receipt_missing'});
  const remaining=f.runtime.handle({operation:'ai.read',taskId:task.id},'human');expect(remaining.kind==='task'&&remaining.task.proposals[0]).toMatchObject({state:'pending',validity:'stale'});
 });
+it('a synchronous purge pause closes a held real writer response before the marker and drain while unrelated B still completes',async()=>{
+ const f=await fixture(),b=f.transcript('独立B正文',2),taskA=f.prepare(),taskB=f.prepare([b]),operationA=taskA.operations[0]!,operationB=taskB.operations[0]!;const sent:string[]=[];let release!:(value:DispatchIntent)=>void,held!:DispatchIntent;
+ for(const op of [operationA,operationB])expect(f.runtime.handle({operation:'ai.authorize',commandId:randomUUID(),operationId:op.id,manifestDigest:op.manifestDigest},'human').kind).toBe('task');
+ const writer:AiWriterControllerPort={prepareDispatch:async id=>{const intent=f.runtime.prepareDispatch(id);if(id!==operationA.id)return intent;held=intent;return new Promise(resolve=>{release=resolve;});},markProcessing:async id=>{f.runtime.markProcessing(id);},settle:async(id,output)=>{f.runtime.settle(id,output);},markUnknown:async(id,reason)=>{f.runtime.markUnknown(id,reason);},failOperation:async(id,reason)=>{f.runtime.failOperation(id,reason);},cancelBeforeHandoff:async id=>{f.runtime.cancelBeforeHandoff(id);},stop:async()=>{}};
+ const controller=createAiController(writer,{recipient:operationA.recipient,network:'none',send:async request=>{sent.push(request.operationId);return {proposals:[]};}});controller.openAfterAuthorization(taskA.id,operationA.id);controller.openAfterAuthorization(taskB.id,operationB.id);
+ const pending=controller.start(taskA.id,operationA.id);controller.pauseReferences([{owner:'interview',objectId:f.source.objectId}]);
+ // The real SQLite marker can now race the already-computed writer response without opening transport admission.
+ f.db.transaction(()=>f.fence.markPurge([{owner:'interview',objectId:f.source.objectId}]))();await controller.start(taskB.id,operationB.id);release(held);await pending;expect(sent).toEqual([operationB.id]);
+ expect(f.runtime.handle({operation:'ai.read',taskId:taskA.id},'human')).toMatchObject({kind:'task',task:{state:'stopped',usedRequests:0,operations:[{id:operationA.id,state:'not_sent',reason:'closed_before_handoff'}],proposals:[]}});expect(f.runtime.handle({operation:'ai.read',taskId:taskB.id},'human')).toMatchObject({kind:'task',task:{state:'completed',usedRequests:1,operations:[{id:operationB.id,state:'success'}]}});
+ controller.revokeReferences([{owner:'interview',objectId:f.source.objectId}]);f.db.transaction(()=>{f.domains.interview.purge(f.source.objectId);f.runtime.purgeByReferences([f.source.objectId]);})();expect(f.runtime.handle({operation:'ai.read',taskId:taskA.id},'human')).toMatchObject({kind:'task',task:{state:'purged',proposals:[]}});expect(f.runtime.handle({operation:'ai.read',taskId:taskB.id},'human')).toMatchObject({kind:'task',task:{state:'completed'}});
+});
 it('candidate validation accepts valid pending/accepted/stale/purged history and rejects bad JSON, row links and lost actual provenance',async()=>{
  const f=await fixture(),a=f.add('候选检查','旧内容'),task=f.prepare();const generated=f.generate(task,{proposals:[{kind:'edit',itemId:a.id,content:{title:'候选检查',body:'合法待审正文',nature:'observation'},reason:'候选恢复必须能复核闭合历史',citations:[f.source.objectId],unknowns:[]}]});
  expect(()=>validateAiCandidate(f.db)).not.toThrow();const good=f.db.serialize();
@@ -57,6 +70,13 @@ it('candidate validation accepts valid pending/accepted/stale/purged history and
 it('explicit retry does not create another unbounded preview while the previous new request is awaiting authorization',async()=>{
  const f=await fixture(),task=f.prepare(),op=task.operations[0]!;f.runtime.handle({operation:'ai.authorize',commandId:randomUUID(),operationId:op.id,manifestDigest:op.manifestDigest},'human');f.runtime.prepareDispatch(op.id);f.runtime.markUnknown(op.id);
  const retry=()=>f.runtime.handle({operation:'ai.retry-explicit',commandId:randomUUID(),taskId:task.id,acknowledgeUnknown:true},'human');expect(retry().kind).toBe('task');expect(retry()).toEqual({kind:'failure',code:'operation_pending'});
+});
+it('actual independent Task B keeps its identity and pending result when unknown Task A returns late without human Apply',async()=>{
+ const f=await fixture(),a=f.prepare(),opA=a.operations[0]!;f.runtime.handle({operation:'ai.authorize',commandId:randomUUID(),operationId:opA.id,manifestDigest:opA.manifestDigest},'human');f.runtime.prepareDispatch(opA.id);f.runtime.markProcessing(opA.id);f.runtime.markUnknown(opA.id);
+ const b=f.prepare(),resultB=f.generate(b,{proposals:[{kind:'create',content:{title:'独立TaskB','body':'B的独立待审结果',nature:'observation'},reason:'新任务有独立授权和预算',citations:[f.source.objectId],unknowns:[]}]});
+ f.runtime.settle(opA.id,{proposals:[{kind:'create',content:{title:'迟到TaskA',body:'A的旧请求迟到结果',nature:'hypothesis'},reason:'A仍属于旧任务',citations:[f.source.objectId],unknowns:[]}]});
+ const lateA=f.runtime.handle({operation:'ai.read',taskId:a.id},'human'),unchangedB=f.runtime.handle({operation:'ai.read',taskId:b.id},'human');expect(lateA).toMatchObject({kind:'task',task:{id:a.id,usedRequests:1,proposals:[{taskId:a.id,operationId:opA.id,state:'pending'}]}});expect(unchangedB).toMatchObject({kind:'task',task:{id:b.id,usedRequests:1,proposals:[{id:resultB.proposals[0]!.id,taskId:b.id,operationId:b.operations[0]!.id,state:'pending'}]}});
+ expect(f.domains.wiki.handle({operation:'list'})).toMatchObject({kind:'list',items:[]});expect(f.runtime.handle({operation:'ai.decide',commandId:randomUUID(),proposalId:resultB.proposals[0]!.id,action:'accept'},'ai')).toEqual({kind:'failure',code:'human_required'});expect(()=>validateAiCandidate(f.db)).not.toThrow();
 });
 it('real SQLite reopening preserves pending proposals for new human Apply but does not restore old execution permission',async()=>{
  const f=await fixture(),a=f.add('持久当前认识','保存前正文'),task=f.prepare();
