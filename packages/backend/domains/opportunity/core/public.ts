@@ -11,7 +11,7 @@ CREATE TABLE opportunity_core_history(id TEXT PRIMARY KEY,opportunity_id TEXT NO
 export function createOpportunityCore(db:Database.Database,dependencies:{resolveCompany(id:string):Company|undefined}){
  function read(id:string){const row=db.prepare('SELECT content_json FROM opportunity_core WHERE id=?').get(id) as {content_json:string}|undefined;if(!row)throw Error('not_found');return Opportunity.parse(JSON.parse(row.content_json));}
  function view(opportunity:Opportunity){const company=dependencies.resolveCompany(opportunity.companyId);if(!company)throw Error('not_found');return OpportunityView.parse({...opportunity,companyName:company.name});}
- function handle(input:CoreRequest,stageOwner?:'interview'|'offer'):Result{
+ function handle(input:CoreRequest,stageOwner?:'submission'|'interview'|'offer'):Result{
   const request=CoreRequest.parse(input);
   if(request.operation==='read')return {kind:'opportunity',opportunity:view(read(request.id))};
   if(request.operation==='list')return Result.parse({kind:'opportunities',items:(db.prepare("SELECT content_json FROM opportunity_core ORDER BY json_extract(content_json,'$.recordedAt') DESC,rowid DESC LIMIT 500").all() as {content_json:string}[]).map(row=>view(Opportunity.parse(JSON.parse(row.content_json))))});

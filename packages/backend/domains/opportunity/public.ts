@@ -16,7 +16,7 @@ export function createOpportunityDomain(db:Database.Database){
   readCompany:company.resolveCompany,
   readOpportunity(id){try{const result=core.handle({operation:'read',id});if(result.kind!=='opportunity')throw Error('storage_failed');return result.opportunity;}catch(error){if(error instanceof Error&&error.message==='not_found')return undefined;throw error;}},
   recordStage(input){return executeCommand(db,'opportunity.stage-capability',input.commandId,input,()=>{
-   const result=core.handle({operation:'record-stage',commandId:input.commandId,id:input.opportunityId,expectedRevision:input.expectedRevision,stage:input.stage,businessTime:input.businessTime,reason:input.reason},input.stage);
+   const result=core.handle({operation:'record-stage',commandId:input.commandId,id:input.opportunityId,expectedRevision:input.expectedRevision,stage:input.stage,businessTime:input.businessTime,reason:input.reason},input.stage==='submitted'?'submission':input.stage);
    if(result.kind!=='opportunity')throw Error('storage_failed');
    const history=core.handle({operation:'history',id:input.opportunityId});if(history.kind!=='history')throw Error('storage_failed');
    const event=history.items.find(item=>item.revision===result.opportunity.revision);if(!event)throw Error('storage_failed');

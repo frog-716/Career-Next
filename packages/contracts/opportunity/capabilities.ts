@@ -9,7 +9,7 @@ export interface OpportunityCapabilities {
     commandId: string;
     opportunityId: string;
     expectedRevision: number;
-    stage: 'interview' | 'offer';
+    stage: 'submitted' | 'interview' | 'offer';
     businessTime: BusinessTime;
     reason: string;
   }): { opportunity: OpportunityView; eventId: string };
