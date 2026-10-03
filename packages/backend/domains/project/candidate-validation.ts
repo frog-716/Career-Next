@@ -1,0 +1,8 @@
+import type Database from 'better-sqlite3';
+import {Project,Participation,History} from '../../../contracts/project/schema';
+export function validateCandidate(db:Database.Database):void {
+ const projects=new Map<string,Project>();
+ for(const row of db.prepare('SELECT id,revision,value_json FROM project_current').all() as {id:string;revision:number;value_json:string}[]){const value=Project.parse(JSON.parse(row.value_json));if(value.id!==row.id||value.revision!==row.revision)throw Error('invalid_candidate');projects.set(value.id,value);}
+ for(const row of db.prepare('SELECT id,project_id,context_id,person_id,value_json FROM project_participation').all() as {id:string;project_id:string;context_id:string;person_id:string;value_json:string}[]){const value=Participation.parse(JSON.parse(row.value_json));const project=projects.get(value.projectId);if(value.id!==row.id||value.projectId!==row.project_id||value.contextId!==row.context_id||value.personId!==row.person_id||!project||value.active&&(value.contextId!==project.contextId||value.employmentId!==project.employmentId))throw Error('invalid_candidate');}
+ for(const row of db.prepare('SELECT project_id,revision,value_json FROM project_history').all() as {project_id:string;revision:number;value_json:string}[]){const value=History.parse(JSON.parse(row.value_json));const current=projects.get(row.project_id);if(!current||value.project.id!==row.project_id||value.revision!==row.revision||value.project.revision!==row.revision||row.revision>current.revision||value.participants.some(item=>item.projectId!==row.project_id))throw Error('invalid_candidate');}
+}
