@@ -37,3 +37,5 @@ export function createWikiDomain(db:Database.Database,dependencies:WikiDependenc
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+
+export {validateWikiOutput} from './ai-policy';

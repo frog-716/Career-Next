@@ -2,7 +2,7 @@ import type Database from 'better-sqlite3';
 import {createHash,randomUUID} from 'node:crypto';
 import {Recipient,Request,Result,Operation,Proposal,Task,type Manifest} from '../../contracts/ai/schema';
 import {executeCommand,commandReceipt,redactedCommandResults} from '../platform/commands/receipts';
-import {validateWikiOutput} from '../domains/wiki/ai-policy';
+import {validateWikiOutput} from '../domains/wiki/public';
 import {inheritProvenance} from './provenance';
 import type {AiPorts,DispatchIntent,FenceToken,TrustedActor,WikiSnapshot} from './ports';
 type TaskRecord=Omit<Task,'operations'|'proposals'>;
