@@ -1,0 +1,283 @@
+{
+  "baseline": "befe2437a9b260237ae5f08a2d11517437a27032",
+  "command": "npx vitest run tests/integration/g6-storage-failures.test.ts --maxWorkers=1",
+  "exitCode": 0,
+  "tests": 20,
+  "scope": "isolated actual owner/SQLite/file adapters; no real user data",
+  "cases": [
+    {
+      "id": "F1-01",
+      "cut": "staging-before",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-Uhoh0w",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [],
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-02",
+      "cut": "staging-after",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-GdzO6j",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [],
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-03",
+      "cut": "hold-after",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-wbSiid",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [],
+      "receipt": {
+        "status": "failed",
+        "commandId": "1e73c869-42fb-41de-9bb2-25d25890dff4",
+        "code": "invalid_capability"
+      },
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-04",
+      "cut": "publish-before",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-o9nZdb",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [],
+      "receipt": {
+        "status": "failed",
+        "commandId": "7a74c15d-759c-47fc-b07b-3fe728039fbc",
+        "code": "invalid_capability"
+      },
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-05",
+      "cut": "publish-after",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-2QZ4Bw",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [
+        "77dde18f-53f2-43dc-9aa3-fd4467def248"
+      ],
+      "receipt": {
+        "status": "failed",
+        "commandId": "88f8b65c-a810-4cb5-be05-59964a2c49c0",
+        "code": "invalid_capability"
+      },
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-06",
+      "cut": "commit-before",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-eWKfrV",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [
+        "70d0d445-578a-4dbe-ab0d-f7a363739b64"
+      ],
+      "receipt": {
+        "status": "failed",
+        "commandId": "b157ff31-3c3a-4255-949e-d8ecaa503732",
+        "code": "invalid_capability"
+      },
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-07",
+      "cut": "commit-after",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-wrd0vH",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [
+        "e894cf03-17fc-4f53-b5d3-5ac8dc29be09"
+      ],
+      "receipt": {
+        "status": "committed",
+        "commandId": "b574f241-0945-47d9-a81b-45c3b06011c9",
+        "materialId": "2f098f36-8384-46ad-a821-5999b1723967",
+        "source": {
+          "owner": "materials",
+          "objectId": "2f098f36-8384-46ad-a821-5999b1723967",
+          "revision": 1,
+          "locator": "whole",
+          "scope": "personal"
+        }
+      },
+      "afterCount": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-08",
+      "cut": "handoff-before",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-58OH8U",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [
+        "af946810-245e-431e-9472-7f93dce85c9b"
+      ],
+      "receipt": {
+        "status": "failed",
+        "commandId": "15d063fd-1f48-45da-84aa-5b3244a7ae32",
+        "code": "invalid_capability"
+      },
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-09",
+      "cut": "handoff-after",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-Pf3lDF",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [
+        "82294d11-b1db-4845-a867-01518dc39761"
+      ],
+      "receipt": {
+        "status": "failed",
+        "commandId": "24a078b6-60a7-48f2-948e-ae26b9ad3afe",
+        "code": "invalid_capability"
+      },
+      "afterCount": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-11",
+      "cut": "receipt-after",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-NFFqNq",
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "beforeBlobs": [
+        "45ac8912-38ac-410b-b50d-ba023683f644"
+      ],
+      "receipt": {
+        "status": "committed",
+        "commandId": "664fcfce-fb5b-4f47-8f10-c494b04ccfa2",
+        "materialId": "34fe5045-faca-4ac6-a7e9-030e3d61c2c6",
+        "source": {
+          "owner": "materials",
+          "objectId": "34fe5045-faca-4ac6-a7e9-030e3d61c2c6",
+          "revision": 1,
+          "locator": "whole",
+          "scope": "personal"
+        }
+      },
+      "afterCount": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-12",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-OVksOg",
+      "result": {
+        "status": "committed",
+        "commandId": "007fc115-f28a-4d35-818b-c3643e4829f7",
+        "materialId": "8c9cca0d-6578-4c27-b6c8-ee15c7cb7a4c",
+        "source": {
+          "owner": "materials",
+          "objectId": "8c9cca0d-6578-4c27-b6c8-ee15c7cb7a4c",
+          "revision": 1,
+          "locator": "whole",
+          "scope": "personal"
+        }
+      },
+      "repeatedSameCommand": true,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-10",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-J7Z0nP",
+      "oldId": "42064e02-d8c2-4e46-918a-d9856e67eb5f",
+      "newId": "ebb066c9-e93e-4229-ad17-b9b78c5ba237",
+      "claim": [
+        "42064e02-d8c2-4e46-918a-d9856e67eb5f"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "F1-10-public-concurrent",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-SbJykP",
+      "gcRequests": 4,
+      "commandId": "f390bf9b-3bec-4dd6-bf5c-6704c4cd96d1",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-02-partial-staging",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-klgAzX",
+      "quotaBytes": 16384,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-02-hash-mismatch",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-KBU79x",
+      "commandId": "aec44e6d-3789-4925-914d-9a02a76ee933",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-16",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-9OsXWh",
+      "quotaBytes": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "F1-15",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-veHjeZ",
+      "pageQuota": 5,
+      "errorCode": "SQLITE_FULL",
+      "integrity": "ok",
+      "status": "PASS"
+    },
+    {
+      "id": "F1-15-owner",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-lvquBn",
+      "errorCode": "SQLITE_FULL",
+      "response": {
+        "status": "failed",
+        "commandId": "ea523a84-ff3a-41a5-957c-ea53917f1242",
+        "code": "db_failed"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "F1-17",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-krr5bL",
+      "quotaBytes": 16384,
+      "bytes": 40015,
+      "status": "PASS",
+      "seam": "PDF candidate file adapter"
+    },
+    {
+      "id": "F1-17-owner",
+      "root": "/var/folders/cl/wtl8p1w508g43s7b4wqsr5gh0000gn/T/career-g6-storage-9gVSEh",
+      "commandId": "21e7ce6d-124d-472c-a2fd-15872e39052a",
+      "quotaBytes": 16384,
+      "status": "PASS",
+      "seam": "PDF frozen owner job + actual candidate sink"
+    }
+  ]
+}
