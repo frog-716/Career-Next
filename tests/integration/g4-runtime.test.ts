@@ -1,0 +1,35 @@
+import {it,expect} from 'vitest';
+import {mkdtemp,writeFile,rm,readFile,readdir} from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import {randomUUID} from 'node:crypto';
+import {createRuntimeBackend} from '../../packages/backend/bootstrap/runtime';
+import {Result as AiResult} from '../../packages/contracts/ai/schema';
+import {Result as DataResult} from '../../packages/contracts/application/schema';
+import {Result as OpportunityResult} from '../../packages/contracts/opportunity/schema';
+import {Result as SubmissionResult} from '../../packages/contracts/opportunity/submission/schema';
+import {Result as WikiResult} from '../../packages/contracts/wiki/schema';
+it('real writer and utility ports join immutable sent files, authorized fake AI, complete backup, isolated activation and all-copy purge',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'career-g4-real-runtime-')),active=path.join(root,'workspaces/local'),source=path.join(root,'A.txt');await writeFile(source,'Sensitive A actual protected text');
+ let runtime=await createRuntimeBackend(active,path.resolve('dist/application/writer.cjs'),root);
+ try{const business=runtime.business;runtime.business=(session,module,input)=>business(session,module,input).catch(error=>{throw Error(module+'/'+(input as {operation:string}).operation+': '+error.message);});let session=await runtime.connectHuman();const preview=await runtime.materials.selectFile(session,source),receipt=await runtime.materials.confirm(session,{commandId:randomUUID(),importId:preview.importId,expectedRevision:1,digest:preview.digest});if(receipt.status!=='committed')throw Error('import');
+ const file=await runtime.selectSentFile(session,source);expect(file.name).toBe('A.txt');
+ const company=OpportunityResult.parse(await runtime.business(session,'opportunity',{operation:'company.create',commandId:randomUUID(),name:'G4 fixture'}));if(company.kind!=='company')throw Error('company');
+ const opportunity=OpportunityResult.parse(await runtime.business(session,'opportunity',{operation:'create',commandId:randomUUID(),companyId:company.company.id,role:'Actual seam'}));if(opportunity.kind!=='opportunity')throw Error('opportunity');
+ const submitted=SubmissionResult.parse(await runtime.business(session,'submission',{operation:'submission.record-first',commandId:randomUUID(),opportunityId:opportunity.opportunity.id,expectedOpportunityRevision:1,resume:{kind:'retained',candidate:{kind:'artifact',id:file.id}},greeting:{kind:'not_used'},businessTime:{kind:'unknown'},historical:true,reason:'Actual sent bytes'}));expect(submitted.kind).toBe('submission');
+ const prepared=AiResult.parse(await runtime.business(session,'ai',{operation:'ai.prepare',commandId:randomUUID(),sources:[receipt.source],target:{scope:'personal'},budget:{requests:2,inputBytes:524288,outputBytes:196608}}));if(prepared.kind!=='task')throw Error('prepare');const operation=prepared.task.operations[0];
+ const authorized=AiResult.parse(await runtime.business(session,'ai',{operation:'ai.authorize',commandId:randomUUID(),operationId:operation.id,manifestDigest:operation.manifestDigest}));expect(authorized.kind).toBe('task');
+ let proposalId='';await expect.poll(async()=>{const state=AiResult.parse(await runtime.business(session,'ai',{operation:'ai.read',taskId:prepared.task.id}));if(state.kind==='task'&&state.task.operations.some(op=>op.state==='failure'))throw Error(JSON.stringify(state));if(state.kind==='task')proposalId=state.task.proposals[0]?.id??'';return proposalId;},{timeout:5000}).not.toBe('');
+ expect(AiResult.parse(await runtime.business(session,'ai',{operation:'ai.decide',commandId:randomUUID(),proposalId,action:'edit-accept',edited:{title:'Human accepted',body:'Human edited knowledge',nature:'observation'}}))).toMatchObject({kind:'decided',state:'accepted'});
+ const wiki=WikiResult.parse(await runtime.business(session,'wiki',{operation:'list'}));expect(wiki).toMatchObject({kind:'list',items:[{origin:'ai_accepted',verification:'not_verified',trustedProvenance:[{objectId:receipt.materialId}]}]});
+ const backup=DataResult.parse(await runtime.business(session,'application',{operation:'data.backup'}));expect(backup.kind).toBe('backup');if(backup.kind!=='backup')throw Error(JSON.stringify(backup));
+ const candidate=DataResult.parse(await runtime.business(session,'application',{operation:'data.restore.prepare',backupId:backup.copy.id}));if(candidate.kind!=='restore_candidate')throw Error(JSON.stringify(candidate));const oldSession=session;
+ const restored=DataResult.parse(await runtime.business(session,'application',{operation:'data.restore.activate',candidateId:candidate.copy.id,confirmed:true}));if(restored.kind!=='restored')throw Error(JSON.stringify(restored));session=await runtime.connectHuman();expect(session.workspaceInstance).not.toBe(oldSession.workspaceInstance);await expect(runtime.business(oldSession,'wiki',{operation:'list'})).rejects.toThrow('invalid_capability');expect(JSON.parse(await readFile(path.join(root,'active-workspace-pointer.json'),'utf8')).workspaceInstance).toBe(session.workspaceInstance);
+ expect(await runtime.materials.read(session,receipt.materialId)).toMatchObject({text:'Sensitive A actual protected text'});
+ const task=AiResult.parse(await runtime.business(session,'ai',{operation:'ai.read',taskId:prepared.task.id}));expect(task).toMatchObject({kind:'task',task:{operations:[{authorized:false}],proposals:[{state:'accepted'}]}});
+ const currentWiki=WikiResult.parse(await runtime.business(session,'wiki',{operation:'list'}));if(currentWiki.kind!=='list')throw Error('wiki');const references=[{owner:'materials',objectId:receipt.materialId},{owner:'actual-artifact',objectId:file.id},{owner:'submission',objectId:submitted.kind==='submission'?submitted.submission.id:''},...currentWiki.items.map(item=>({owner:'wiki',objectId:item.id}))];
+ const plan=DataResult.parse(await runtime.business(session,'application',{operation:'data.purge.plan',references}));if(plan.kind!=='purge_plan')throw Error(JSON.stringify(plan));expect(plan.plan.copies.some(c=>c.kind==='old_workspace')).toBe(true);expect(plan.plan.copies.some(c=>c.kind==='staging')).toBe(true);
+ const cleared=DataResult.parse(await runtime.business(session,'application',{operation:'data.purge.confirm',planId:plan.plan.id,selectedCopyIds:plan.plan.copies.map(c=>c.id),confirmed:true}));expect(cleared).toMatchObject({kind:'purged',scope:'all_managed_copies'});expect(await runtime.materials.list(session)).toEqual([]);expect(await runtime.business(session,'wiki',{operation:'list'})).toMatchObject({items:[]});
+ expect(AiResult.parse(await runtime.business(session,'ai',{operation:'ai.read',taskId:prepared.task.id}))).toMatchObject({kind:'task',task:{state:'purged',sources:[],proposals:[]}});expect(await readdir(path.join(root,restored.copy.relativePath,'blobs'))).toEqual([]);
+ }finally{await runtime.close();await rm(root,{recursive:true,force:true});}
+},30000);

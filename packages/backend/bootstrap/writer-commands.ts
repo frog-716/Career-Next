@@ -15,11 +15,11 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  const authority=createSessions(workspaceInstance,generation);
  const materials=createMaterialsStore(db,workspaceInstance,generation,authority);
  const root=path.dirname(db.name),ledger=createLedger(db),fence=createPersistenceFence(db,{workspaceInstance,backendGeneration:generation});
- let human=false;let ai!:ReturnType<typeof createAiRuntime>;let lifecycle!:ReturnType<typeof composeLifecycle>;
+ let human=false;let currentHuman:HumanSession|undefined;let ai!:ReturnType<typeof createAiRuntime>;let lifecycle!:ReturnType<typeof composeLifecycle>;
  const domains=composeDomains(db,materials,{ai:{handle:input=>ai.handle(input,'human')},application:{handle:input=>lifecycle.handle(input,'human')}});
- ai=createAiRuntime(db,composeAiPorts(domains,materials,root,{workspaceInstance,backendGeneration:generation},fence,()=>human));
+ ai=createAiRuntime(db,composeAiPorts(domains,materials,root,{workspaceInstance,backendGeneration:generation},fence,()=>{try{if(!currentHuman)return false;authority.check(currentHuman);return true;}catch{return false;}}));
  const control=options?.control??{drain:async()=>{},beforeActivate:async()=>{},maintenance:async<T>(work:()=>Promise<T>)=>work(),closeWorkspace:()=>{throw Error('restore_unavailable');}};
- lifecycle=composeLifecycle(db,domains,materials,fence,ai,root,options?.dataRoot??root,control);
+ lifecycle=composeLifecycle(db,domains,materials,fence,ai,root,options?.dataRoot??root,control,()=>currentHuman);
  const producers=new Map<string,PersistenceToken>();
  function capture(id:string,inputs:PersistenceReference[],targets:PersistenceReference[]){const token=fence.capture({producerId:id,inputs,targets});producers.set(id,token);return token;}
  function assertProducer(id:string){const token=producers.get(id);if(!token)throw Error('invalid_capability');fence.assert(token);return token;}
@@ -28,6 +28,7 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  function recoverPending(){for(const id of domains.resume.recoverPendingVersions())ledger.fail(physicalCommand(id),'invalid_capability');}
  recoverPending();
  return {...materials,
+  connect(){currentHuman=materials.connect();return currentHuman;},
   async business(session:HumanSession,module:BusinessModule,input:unknown){authority.check(session);human=true;try{const result=await domains.handle(module,input);if(module==='resume'){const parsed=ResumeResult.parse(result);if(parsed.status==='pending-job')capture((input as {commandId:string}).commandId,[{owner:'resume',objectId:parsed.job.resumeId},{owner:'profile',objectId:'current'}],[{owner:'resume',objectId:parsed.job.resumeId}]);}return result;}finally{human=false;}},
   begin(session:HumanSession,name:string){const id=materials.begin(session,name);capture(id,[],[{owner:'import',objectId:id}]);return id;},
   valid(session:HumanSession,id:string){assertProducer(id);return materials.valid(session,id);},

@@ -3,6 +3,7 @@ const Ref=z.strictObject({owner:z.string().min(1).max(80),objectId:z.string().mi
 export const BackupSettings=z.strictObject({enabled:z.boolean(),periodHours:z.number().int().min(1).max(8760),retainCount:z.number().int().min(1).max(1000)});
 export const Request=z.discriminatedUnion('operation',[
  z.strictObject({operation:z.literal('data.status')}),
+ z.strictObject({operation:z.literal('data.targets')}),
  z.strictObject({operation:z.literal('data.settings'),settings:BackupSettings}),
  z.strictObject({operation:z.literal('data.backup')}),
  z.strictObject({operation:z.literal('data.restore.prepare'),backupId:z.uuid()}),
@@ -14,6 +15,7 @@ export const Copy=z.strictObject({id:z.uuid(),relativePath:z.string(),kind:z.str
 export const Impact=z.strictObject({references:z.array(Ref),description:z.string().max(300),independentReferences:z.array(z.string().max(200)).max(1000),files:z.array(z.string().max(500).regex(/^(blobs|staging|cache|quarantine|proposals|summaries)\/[^/].*$/)).max(10000),dependencies:z.string().max(256)});
 export const Plan=z.strictObject({id:z.uuid(),createdAt:z.string(),impact:Impact,copies:z.array(Copy),externalLimit:z.string()});
 export const Result=z.discriminatedUnion('kind',[
+ z.strictObject({kind:z.literal('data_targets'),targets:z.array(z.strictObject({owner:z.string().max(80),objectId:z.string().max(160),label:z.string().max(255)})).max(10000)}),
  z.strictObject({kind:z.literal('data_status'),settings:BackupSettings,copies:z.array(Copy),activeWorkspace:z.string(),lastCompleteAt:z.string().optional(),automaticDue:z.boolean(),pendingPurgeCount:z.number().int().nonnegative(),provider:z.literal('deterministic fake only; real provider not configured')}),
  z.strictObject({kind:z.literal('backup'),copy:Copy}),z.strictObject({kind:z.literal('restore_candidate'),copy:Copy}),
  z.strictObject({kind:z.literal('restored'),workspaceInstance:z.uuid(),copy:Copy}),z.strictObject({kind:z.literal('purge_plan'),plan:Plan}),

@@ -14,7 +14,7 @@ it('G3 real release failure rolls every new owner back while keeping the release
   const failed=[releases[0],{...releases[1],fragments:[...releases[1].fragments,{id:'test.g3-failure',dependencies:['offer.initial.v1'],sql:'INVALID SQL'}]}];
   await expect(openWorkspace(root,materialsMigration,failed)).rejects.toThrow('migration_failed');
   const inspect=new Database(path.join(root,'career.sqlite'),{readonly:true});try{expect(inspect.pragma('user_version',{simple:true})).toBe(2);expect(inspect.prepare('SELECT * FROM platform_migration_fragments').all()).toEqual(manifest);expect(inspect.prepare("SELECT name FROM sqlite_master WHERE name='research_items' OR name='interview_sessions' OR name='opportunity_offer'").all()).toEqual([]);}finally{inspect.close();}
-  const latest=await openWorkspace(root,materialsMigration,releases);expect(latest.workspaceInstance).toBe(identity);expect(latest.database.pragma('user_version',{simple:true})).toBe(3);expect(latest.database.pragma('foreign_key_check')).toEqual([]);latest.close();
+  const latest=await openWorkspace(root,materialsMigration,releases.slice(0,2));expect(latest.workspaceInstance).toBe(identity);expect(latest.database.pragma('user_version',{simple:true})).toBe(3);expect(latest.database.pragma('foreign_key_check')).toEqual([]);latest.close();
   const altered=[releases[0],{...releases[1],fragments:releases[1].fragments.map((fragment,index)=>index===0?{...fragment,sql:fragment.sql+'\n-- changed release'}:fragment)}];
   await expect(openWorkspace(root,materialsMigration,altered)).rejects.toThrow('migration_mismatch');
   await expect(openWorkspace(root,materialsMigration,releases.slice(0,1))).rejects.toThrow('db_failed');

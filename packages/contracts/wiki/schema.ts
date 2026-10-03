@@ -19,7 +19,7 @@ export const Request=z.discriminatedUnion('operation',[
  z.object({operation:z.literal('list'),includeRetired:z.boolean().optional(),scope:Scope.optional(),scopeId:z.uuid().optional()}).strict(),
  z.object({operation:z.literal('history'),id:z.uuid()}).strict(),
  z.object({operation:z.literal('receipt'),commandId:z.uuid()}).strict(),
-]);
+]).superRefine((value,ctx)=>{if('scope' in value&&value.operation!=='list'){const local=['personal','cognition'].includes(value.scope);if(local?value.scopeId!==undefined:!value.scopeId)ctx.addIssue({code:'custom',message:'scope identity required'});}});
 export type Request=z.infer<typeof Request>;
 export const Result=z.discriminatedUnion('kind',[
  z.object({kind:z.literal('knowledge'),knowledge:Knowledge}).strict(),

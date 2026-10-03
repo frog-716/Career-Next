@@ -1,3 +1,4 @@
+import {safeManagedPath} from '../platform/backup/managed-copies';
 import {randomUUID,createHash} from 'node:crypto';
 import {mkdir,open,readFile} from 'node:fs/promises';
 import {constants} from 'node:fs';
@@ -34,7 +35,9 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await writer.call('persistenceAssert',token);});
  materials=await createMaterialsBackend(root,undefined,undefined,writer,async id=>adapter(await writer.call('producerToken',id)));
  blobs=createBlobBroker(root,maximumPdfBytes);await blobs.initialize();
- const aiWriter=writer;controller=createAiController({prepareDispatch:id=>aiWriter.call('aiPrepareDispatch',id),markProcessing:id=>aiWriter.call('aiMarkProcessing',id),settle:(id,value)=>aiWriter.call('aiSettle',id,value),markUnknown:(id,reason)=>aiWriter.call('aiMarkUnknown',id,reason),failOperation:(id,reason)=>aiWriter.call('aiFailOperation',id,reason),cancelBeforeHandoff:id=>aiWriter.call('aiCancelBeforeHandoff',id),stop:async(taskId,mode)=>{if(!currentSession)throw Error('invalid_capability');await aiWriter.call('business',currentSession,'ai',{operation:'ai.stop',commandId:randomUUID(),taskId,mode});}},createDeterministicFakeProvider());
+ makeController();
+ }
+ function makeController(){const aiWriter=writer;controller=createAiController({prepareDispatch:id=>aiWriter.call('aiPrepareDispatch',id),markProcessing:id=>aiWriter.call('aiMarkProcessing',id),settle:(id,value)=>aiWriter.call('aiSettle',id,value),markUnknown:(id,reason)=>aiWriter.call('aiMarkUnknown',id,reason),failOperation:(id,reason)=>aiWriter.call('aiFailOperation',id,reason),cancelBeforeHandoff:id=>aiWriter.call('aiCancelBeforeHandoff',id),stop:async(taskId,mode)=>{if(!currentSession)throw Error('invalid_capability');await aiWriter.call('business',currentSession,'ai',{operation:'ai.stop',commandId:randomUUID(),taskId,mode});}},createDeterministicFakeProvider());
  }
  // Writer startup recovery can request drain before there is any producer/sink.
  gate=createPersistenceSinkGate(()=>{throw Error('persistence_denied');});await initialize();
@@ -56,6 +59,7 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
   const result=await writer.call('business',session,module,input);
   if(module==='ai'){const request=AiRequest.parse(input),value=AiResult.parse(result);if(request.operation==='ai.authorize'&&value.kind==='task'){controller.openAfterAuthorization(value.task.id);void controller.start(value.task.id,request.operationId).catch(()=>{});}}
   if(module==='application'){const value=DataResult.parse(result);if(value.kind==='restored'){await writer.close();root=path.resolve(dataRoot,value.copy.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}}
+  if(module==='application'&&!admission&&DataResult.parse(result).kind==='failure'){await writer.close();const pointer=JSON.parse(await readFile(path.join(dataRoot,'active-workspace-pointer.json'),'utf8'));root=safeManagedPath(dataRoot,pointer.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}
   return result;
  })());},
  async selectSentFile(session:HumanSession,filename:string){allowed();if(!['.pdf','.txt','.md'].includes(path.extname(filename).toLowerCase()))throw Error('unsupported_file');return track((async()=>{const token=await writer.call('artifactToken',session),sink=adapter(token);let prepared:{id:string;blobId:string}|undefined;

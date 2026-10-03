@@ -48,6 +48,7 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
   try {
    if(request.operation==='resume.name-version'||request.operation==='resume.export')return prepareVersion(request);
    if(request.operation==='resume.read')return Result.parse(read(request.resumeId));
+   if(request.operation==='resume.lookup'){const row=db.prepare('SELECT id FROM resume_documents WHERE opportunity_id=?').get(request.opportunityId) as {id:string}|undefined;return row?read(row.id):{status:'not-found'};}
    if(request.operation==='resume.candidates'){const row=db.prepare('SELECT id FROM resume_documents WHERE opportunity_id=?').get(request.opportunityId) as {id:string}|undefined;if(!row)return {status:'versions',versions:[]};return handle({operation:'resume.versions',resumeId:row.id});}
    if(request.operation==='resume.receipt'){const receipt=commandReceipt(db,'resume',request.commandId);if(receipt)return Result.parse(receipt);const job=db.prepare('SELECT snapshot_json,name FROM resume_render_jobs WHERE command_id=?').get(request.commandId) as {snapshot_json:string;name:string}|undefined;return job?{status:'pending-job',job:Snapshot.parse(JSON.parse(job.snapshot_json)),name:job.name}:{status:'not-found'};}
    if(request.operation==='resume.versions'){if(!document(request.resumeId))return {status:'not-found'};return Result.parse({status:'versions',versions:(db.prepare('SELECT body FROM resume_versions WHERE resume_id=? ORDER BY rowid DESC').all(request.resumeId) as {body:string}[]).map(row=>JSON.parse(row.body))});}

@@ -16,7 +16,8 @@ async function releasedWriter(directory:string) {
  execFileSync(process.execPath,[path.join(directory,'scripts/generate-modules.mjs')],{cwd:directory,stdio:'pipe'});
  const output=path.join(directory,'built');
  await build({configFile:false,logLevel:'error',build:{outDir:output,target:'node24',lib:{entry:path.join(directory,'packages/backend/bootstrap/writer.ts'),formats:['cjs'],fileName:()=> 'g2-writer.cjs'},rolldownOptions:{external:[/^node:/,'better-sqlite3']}}});
- return path.join(output,'g2-writer.cjs');
+ await build({configFile:false,logLevel:'error',build:{outDir:output,emptyOutDir:false,target:'node24',lib:{entry:path.join(directory,'packages/backend/bootstrap/runtime.ts'),formats:['cjs'],fileName:()=> 'g2-runtime.cjs'},rolldownOptions:{external:[/^node:/,'better-sqlite3']}}});
+ return {writer:path.join(output,'g2-writer.cjs'),runtime:path.join(output,'g2-runtime.cjs')};
 }
 
 it('upgrades the actual released G2 writer workspace once while retaining original bytes, public owner identities and receipts',async()=>{
@@ -25,7 +26,7 @@ it('upgrades the actual released G2 writer workspace once while retaining origin
  const root=await mkdtemp(path.join(tmpdir(),'career-g2-g3-upgrade-')),workspace=path.join(root,'workspace');
  let runtime:Awaited<ReturnType<typeof createRuntimeBackend>>|undefined;
  try {
-  const artifact=await releasedWriter(buildRoot);runtime=await createRuntimeBackend(workspace,artifact);
+  const artifact=await releasedWriter(buildRoot);const released=await import(artifact.runtime) as {createRuntimeBackend:typeof createRuntimeBackend};runtime=await released.createRuntimeBackend(workspace,artifact.writer);
   const session=await runtime.connectHuman();const file=path.join(root,'Evidence.txt');await writeFile(file,'G2 original unchanged through G3.');
   const preview=await runtime.materials.selectFile(session,file);
   const originalIntent={commandId:crypto.randomUUID(),importId:preview.importId,expectedRevision:1 as const,digest:preview.digest};
@@ -43,13 +44,13 @@ it('upgrades the actual released G2 writer workspace once while retaining origin
   expect(await runtime.materials.receipt(current,originalIntent.commandId)).toEqual(receipt);
   expect(await runtime.business(current,'opportunity',{operation:'read',id:o.opportunity.id})).toEqual(o);
   expect(await runtime.business(current,'opportunity',{operation:'receipt',commandId:create.commandId})).toEqual(o);
-  expect(await runtime.business(current,'wiki',{operation:'read',id:k.knowledge.id})).toEqual(k);
+  expect(await runtime.business(current,'wiki',{operation:'read',id:k.knowledge.id})).toEqual({...k,knowledge:{...k.knowledge,reviewRequired:false}});
   expect(await runtime.materials.collectGarbage()).toBe(0);
   await runtime.close();runtime=undefined;
   const db=new Database(path.join(workspace,'career.sqlite'),{readonly:true});
-  try{expect(db.pragma('user_version',{simple:true})).toBe(3);expect(db.pragma('foreign_key_check')).toEqual([]);expect(db.prepare('SELECT name FROM platform_migration_batches ORDER BY version').all()).toEqual([{name:'001-g1'},{name:'002-g2-first-batch'},{name:'003-g3-submodules'}]);}finally{db.close();}
+  try{expect(db.pragma('user_version',{simple:true})).toBe(4);expect(db.pragma('foreign_key_check')).toEqual([]);expect(db.prepare('SELECT name FROM platform_migration_batches ORDER BY version').all()).toEqual([{name:'001-g1'},{name:'002-g2-first-batch'},{name:'003-g3-submodules'},{name:'004-g4-seams'}]);}finally{db.close();}
   const copies=JSON.parse(await readFile(path.join(workspace,'managed-copies.json'),'utf8')) as {copies:{fromVersion:number;toVersion:number;state:string}[]};
-  expect(copies.copies.at(-1)).toMatchObject({fromVersion:2,toVersion:3,state:'ready'});
+  expect(copies.copies.at(-1)).toMatchObject({fromVersion:2,toVersion:4,state:'ready'});
   runtime=await createRuntimeBackend(workspace,path.resolve('dist/application/writer.cjs'));const restarted=await runtime.connectHuman();expect(await runtime.materials.read(restarted,raw.id)).toEqual(raw);
   expect((JSON.parse(await readFile(path.join(workspace,'managed-copies.json'),'utf8')) as {copies:unknown[]}).copies).toHaveLength(copies.copies.length);
  }finally{await runtime?.close();await rm(root,{recursive:true,force:true});await rm(buildRoot,{recursive:true,force:true});}

@@ -31,6 +31,7 @@ export const Request=z.discriminatedUnion('operation',[
  z.strictObject({operation:z.literal('resume.save'),commandId:Id,resumeId:Id,expectedRevision:Revision,expectedProfileRevision:Revision,content:CareerDocument}),
  NameVersion,Export,
  z.strictObject({operation:z.literal('resume.versions'),resumeId:Id}),
+ z.strictObject({operation:z.literal('resume.lookup'),opportunityId:Id}),
  z.strictObject({operation:z.literal('resume.candidates'),opportunityId:Id}),
  z.strictObject({operation:z.literal('resume.version'),resumeId:Id,versionId:Id}),
  z.strictObject({operation:z.literal('resume.restore'),commandId:Id,resumeId:Id,versionId:Id,expectedRevision:Revision,expectedProfileRevision:Revision}),
