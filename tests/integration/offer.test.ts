@@ -125,3 +125,13 @@ for(const reverse of [true,false])it('correcting two mistaken withdrawals in eit
   expect(offer.handle({operation:'offer.history',opportunityId:id})).toMatchObject({kind:'history',acceptances:history.acceptances});
  }finally{db.close();}
 });
+it('generic current-end correction must not silently correct an old true end when the current ending is Offer-owned',()=>{
+ const {db,opportunity,offer,id}=fixture();try{
+  opportunity.handle({operation:'end',commandId:randomUUID(),id,expectedRevision:1,outcome:'withdrawn',businessTime:unknown,reason:'Earlier true end'});
+  opportunity.handle({operation:'recontinue',commandId:randomUUID(),id,expectedRevision:2,businessTime:unknown,reason:'Later real continuation'});
+  offer.handle({operation:'offer.receive',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:3,conditions,original:{kind:'never_existed',explanation:'Verbal Offer'},businessTime:unknown,reason:'Real Offer'});
+  offer.handle({operation:'offer.accept',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:4,expectedRevision:1,businessTime:unknown,reason:'Accepted',historical:false});
+  offer.handle({operation:'offer.withdraw',commandId:randomUUID(),opportunityId:id,expectedOpportunityRevision:5,expectedRevision:2,businessTime:unknown,reason:'Mistaken current user withdrawal',by:'user',historical:false});
+  const before=opportunity.handle({operation:'history',id});expect(opportunity.handle({operation:'correct-end',commandId:randomUUID(),id,expectedRevision:6,businessTime:unknown,reason:'Correct CURRENT ending'})).toEqual({kind:'failure',code:'invalid_transition'});expect(opportunity.handle({operation:'history',id})).toEqual(before);
+ }finally{db.close();}
+});
