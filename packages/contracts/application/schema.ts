@@ -11,7 +11,7 @@ export const Request=z.discriminatedUnion('operation',[
  z.strictObject({operation:z.literal('data.purge.confirm'),planId:z.uuid(),selectedCopyIds:z.array(z.uuid()).max(10000),confirmed:z.literal(true)})
 ]);
 export const Copy=z.strictObject({id:z.uuid(),relativePath:z.string(),kind:z.string(),state:z.string(),createdAt:z.string(),sourceCopyId:z.uuid().optional(),reason:z.string().optional()});
-export const Impact=z.strictObject({references:z.array(Ref),description:z.string().max(300),independentReferences:z.array(z.string().max(200)).max(1000),files:z.array(z.string().max(500)).max(10000),dependencies:z.string().max(256)});
+export const Impact=z.strictObject({references:z.array(Ref),description:z.string().max(300),independentReferences:z.array(z.string().max(200)).max(1000),files:z.array(z.string().max(500).regex(/^(blobs|staging|cache|quarantine|proposals|summaries)\/[^/].*$/)).max(10000),dependencies:z.string().max(256)});
 export const Plan=z.strictObject({id:z.uuid(),createdAt:z.string(),impact:Impact,copies:z.array(Copy),externalLimit:z.string()});
 export const Result=z.discriminatedUnion('kind',[
  z.strictObject({kind:z.literal('data_status'),settings:BackupSettings,copies:z.array(Copy),activeWorkspace:z.string(),lastCompleteAt:z.string().optional(),automaticDue:z.boolean(),pendingPurgeCount:z.number().int().nonnegative(),provider:z.literal('deterministic fake only; real provider not configured')}),
