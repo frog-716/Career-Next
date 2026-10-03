@@ -1,0 +1,67 @@
+{
+  "scope": "G6 F4 normal local search with F3 lifecycle",
+  "lifecycleTests": 3,
+  "greenCombinedFiles": 2,
+  "greenCombinedTests": 4,
+  "red": {
+    "command": "npx vitest run tests/integration/g6-search-lifecycle.test.ts --maxWorkers=1",
+    "exit": 1,
+    "passed": 1,
+    "failed": 2,
+    "log": "/tmp/career-g6-search-lifecycle/red-jd-detail.log",
+    "failure": "normal release6 save-jd storage_failed while dirty entry already exists; v5 succeeds"
+  },
+  "green": {
+    "command": "npx vitest run tests/integration/g6-search-lifecycle.test.ts tests/integration/g6-search-control.test.ts --maxWorkers=1",
+    "exit": 0,
+    "log": "/tmp/career-g6/root-seams-green.log",
+    "passed": 4,
+    "failed": 0,
+    "exitConfirmedBy": "integration owner: write_stdin session 84803 exit_code 0"
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit",
+    "exit": 0,
+    "log": "/tmp/career-g6-search-lifecycle/typecheck.log"
+  },
+  "frozen": {
+    "baseline": "befe2437a9b260237ae5f08a2d11517437a27032",
+    "productUnchanged": 12,
+    "productCount": 12,
+    "architectureUnchanged": 8,
+    "architectureCount": 8
+  },
+  "cases": [
+    {
+      "case": "owner dirty notifications and fresh Chinese body search",
+      "status": "PASS"
+    },
+    {
+      "case": "purge excludes sensitive search documents/chunks/FTS and actual SQLite bytes",
+      "status": "PASS"
+    },
+    {
+      "case": "filtered v6 backup excludes derived search cache and rebuilds dirty queue",
+      "status": "PASS"
+    },
+    {
+      "case": "v5 backup restore migration, new identity, old capability refusal and actual body reindex",
+      "status": "PASS"
+    },
+    {
+      "case": "v6 filtered backup restore, actual body reindex and no purged-content revival",
+      "status": "PASS"
+    }
+  ],
+  "notRun": [
+    "packaged UI",
+    "physical macOS power cut",
+    "real provider",
+    "real search service",
+    "real Feishu",
+    "Developer ID",
+    "notarization",
+    "x64",
+    "every unrelated AI summary/cache format"
+  ]
+}
