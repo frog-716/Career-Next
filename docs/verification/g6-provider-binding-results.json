@@ -1,0 +1,45 @@
+{
+  "scope": "trusted owner recipient getter / deterministic fake, no network",
+  "newTests": 12,
+  "relatedTests": 60,
+  "finalExit": 0,
+  "typecheckExit": 0,
+  "red": {
+    "generation": {
+      "failed": 2,
+      "exit": 1
+    },
+    "oldAuthorization": {
+      "failed": 2,
+      "passed": 2,
+      "exit": 1
+    },
+    "handoff": {
+      "failed": 2,
+      "passed": 6,
+      "exit": 1
+    }
+  },
+  "logs": [
+    {
+      "path": "/tmp/g6-provider-binding-red.log",
+      "sha256": "a1051f72995453595df5dc69d7505fd970e6dadfb03cdbff6847b6b23b13cc2f"
+    },
+    {
+      "path": "/tmp/g6-provider-binding-authorize-red.log",
+      "sha256": "15aac20782611f8a46a7d067eadc0cc32019efb9a61c5d62b0f10293fb5b74a0"
+    },
+    {
+      "path": "/tmp/g6-provider-binding-handoff-red.log",
+      "sha256": "646d1dd61624c5753645bff1386738926f51388e240ed8eb14bdbfe31cce0af4"
+    },
+    {
+      "path": "/tmp/g6-provider-binding-final.log",
+      "sha256": "f7b2af745a095b8cb18b05d8f1421fac534beb99124cbbc5332ecf1c240d1536"
+    },
+    {
+      "path": "/tmp/g6-provider-binding-typecheck.log",
+      "sha256": "ce31c06d44db372d7ffaac4fd8fb58dd89015c5ebc06e7293a3f5f882e13d1e9"
+    }
+  ]
+}

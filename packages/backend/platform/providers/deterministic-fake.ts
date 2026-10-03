@@ -3,8 +3,8 @@ import {createHash} from 'node:crypto';
 import {Recipient,ProviderOutput} from '../../../contracts/ai/schema';
 import type {ProviderAdapter} from '../../../contracts/ai/provider';
 /** Local, bounded, repeatable protocol fixture. No SDK, key, HTTP, telemetry, or retries. */
-export function createDeterministicFakeProvider():ProviderAdapter {
- return {recipient:Recipient.parse({service:'deterministic-fake',endpoint:'local://career-wiki-fake',account:'local-no-credential',generation:'fake-v1',model:'wiki-organizer-v1'}),network:'none',async send({manifest,manifestDigest},signal){
+export function createDeterministicFakeProvider(generation='fake-v1'):ProviderAdapter {
+ return {recipient:Recipient.parse({service:'deterministic-fake',endpoint:'local://career-wiki-fake',account:'local-no-credential',generation,model:'wiki-organizer-v1'}),network:'none',async send({manifest,manifestDigest},signal){
   if(signal.aborted)throw Error('not_sent');if(createHash('sha256').update(JSON.stringify(manifest)).digest('hex')!==manifestDigest)throw Error('manifest_mismatch');
   if(manifest.product){
    const context=manifest.product;

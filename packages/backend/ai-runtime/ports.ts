@@ -4,6 +4,8 @@ export interface WikiSnapshot extends Content {id:string;revision:number;status:
 export interface SourceSnapshot {ref:SourceRef;body:string;nature:string;restrictions:{read:boolean;egress:boolean};provenance:Provenance[]}
 export interface FenceToken {id:string;producerId:string;workspaceInstance:string;backendGeneration:string;inputs:{owner:string;objectId:string;revision?:number;generation:number}[];targets:{owner:string;objectId:string;revision?:number;generation:number}[]}
 export interface AiPorts {
+ /** Trusted configuration only; omission preserves the local fake baseline. */
+ recipient?:()=>Manifest['recipient'];
  product?:import('./product/ports').ProductPorts;
  identity:{workspaceInstance:string;backendGeneration:string};
  sources:{read(ref:SourceRef):SourceSnapshot|undefined;current(ref:SourceRef):SourceSnapshot|undefined;provenanceCurrent(input:Provenance):{revision:number;read:boolean;egress:boolean}|undefined};

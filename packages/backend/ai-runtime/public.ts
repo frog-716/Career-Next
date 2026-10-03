@@ -51,7 +51,7 @@ function createWikiRuntime(db:Database.Database,ports:AiPorts){
   if(provenance.some(item=>!item.restrictions.read||!ports.sources.provenanceCurrent(item)?.read))throw Error('source_unavailable');
   if(provenance.some(item=>item.kind==='simulation'))throw Error('simulation_selection_confirmation_required');
   const knowledge=currentKnowledge.map(({id,revision,title,body,nature})=>({id,revision,title,body,nature}));
-  const manifest:Manifest={taskId:value.id,target:value.target,recipient:Recipient.parse({service:'deterministic-fake',endpoint:'local://career-wiki-fake',account:'local-no-credential',generation:'fake-v1',model:'wiki-organizer-v1'}),granularity:'fulltext',system,tools:[],materials:selected.map(source=>({ref:source.ref,body:source.body,nature:source.nature})),knowledge,budget:value.budget,validity:{...ports.identity,expiresAt:new Date(Date.now()+3600000).toISOString()},stopBoundary:'before-handoff',provenance};
+  const manifest:Manifest={taskId:value.id,target:value.target,recipient:Recipient.parse(ports.recipient?.()??{service:'deterministic-fake',endpoint:'local://career-wiki-fake',account:'local-no-credential',generation:'fake-v1',model:'wiki-organizer-v1'}),granularity:'fulltext',system,tools:[],materials:selected.map(source=>({ref:source.ref,body:source.body,nature:source.nature})),knowledge,budget:value.budget,validity:{...ports.identity,expiresAt:new Date(Date.now()+3600000).toISOString()},stopBoundary:'before-handoff',provenance};
   if(Buffer.byteLength(JSON.stringify(manifest))>value.budget.inputBytes)throw Error('input_budget_exceeded');
   const id=randomUUID(),fence=freshFence(id,{sources:value.sources,provenance,target:value.target});ports.fence.assert(fence);
   const operation:Operation={id,taskId:value.id,state:'not_sent',manifestDigest:createHash('sha256').update(JSON.stringify(manifest)).digest('hex'),manifest,provenance,recipient:manifest.recipient,reserved:{requests:1,inputBytes:Buffer.byteLength(JSON.stringify(manifest)),outputBytes:value.budget.outputBytes},authorized:false};
@@ -76,6 +76,7 @@ function createWikiRuntime(db:Database.Database,ports:AiPorts){
     if(request.operation==='ai.authorize'){
      const op=operation(request.operationId),value=task(op.taskId);if(['stopped','revoked','purged'].includes(value.state))throw Error('task_closed');
      if(op.state!=='not_sent'||op.manifestDigest!==request.manifestDigest||!op.manifest)throw Error('authorization_mismatch');
+     if(ports.recipient&&JSON.stringify(Recipient.parse(ports.recipient()))!==JSON.stringify(op.manifest.recipient))throw Error('provider_binding_changed');
      if(op.manifest.validity.workspaceInstance!==ports.identity.workspaceInstance||op.manifest.validity.backendGeneration!==ports.identity.backendGeneration||Date.parse(op.manifest.validity.expiresAt)<=Date.now())throw Error('authorization_expired');
      if(op.manifest.provenance.some(item=>!item.restrictions.egress||!ports.sources.provenanceCurrent(item)?.egress)||op.manifest.materials.some(item=>!ports.sources.current(item.ref)?.restrictions.egress))throw Error('egress_forbidden');
      sourceCurrent({sources:value.sources,provenance:op.manifest.provenance});
@@ -118,6 +119,7 @@ function createWikiRuntime(db:Database.Database,ports:AiPorts){
   return db.transaction(()=>{
    const op=operation(id),value=task(op.taskId);if(!execution.has(id))throw Error('authorization_required');
    if(!op.manifest||op.state!=='not_sent'||['stopped','revoked','purged'].includes(value.state))throw Error('task_closed');
+   if(ports.recipient&&JSON.stringify(Recipient.parse(ports.recipient()))!==JSON.stringify(op.manifest.recipient))throw Error('provider_binding_changed');
    if(op.manifest.validity.workspaceInstance!==ports.identity.workspaceInstance||op.manifest.validity.backendGeneration!==ports.identity.backendGeneration||Date.parse(op.manifest.validity.expiresAt)<=Date.now())throw Error('authorization_expired');
    ports.fence.assert(token(id));sourceCurrent({sources:value.sources,provenance:op.manifest.provenance});
    if(!ports.humanAllowed()||op.manifest.materials.some(item=>!ports.sources.current(item.ref)?.restrictions.egress)||op.manifest.provenance.some(item=>!ports.sources.provenanceCurrent(item)?.egress))throw Error('permission_revoked');
