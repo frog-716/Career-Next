@@ -12,3 +12,11 @@ export function createFileCandidates(db:Database.Database,root:string){const led
  purge(id:string){ledger.releaseRetention('actual-artifact',id);db.prepare('DELETE FROM platform_file_candidates WHERE id=?').run(id);},
  recover(){for(const row of db.prepare("SELECT id FROM platform_file_candidates WHERE status='pending'").all() as {id:string}[])this.purge(row.id);},
 };}
+
+export function validateFileCandidates(db:Database.Database){
+ for(const row of db.prepare('SELECT id,blob_id,name,status FROM platform_file_candidates').all() as {id:string;blob_id:string;name:string;status:string}[]){
+  if(!/^[0-9a-f-]{36}$/i.test(row.id)||!/^[0-9a-f-]{36}$/i.test(row.blob_id)||!row.name||row.name.length>255||!['pending','ready'].includes(row.status))throw Error('backup_file_candidate_invalid');
+  const blob=createLedger(db).describe(row.blob_id);
+  if(!blob||(row.status==='ready'&&blob.state!=='published')||!createLedger(db).retentionReasons(row.blob_id).some(ref=>ref.owner==='actual-artifact'&&ref.objectId===row.id))throw Error('backup_file_candidate_invalid');
+ }
+}

@@ -79,3 +79,5 @@ export function createOfferDomain(db:Database.Database,dependencies:OfferDepende
  function purge(id:string){db.transaction(()=>{const impact=purgeImpact(id);if(!impact)return;if(impact.retentions.length&&!dependencies.releaseRetention)throw Error('storage_failed');for(const retention of impact.retentions)dependencies.releaseRetention!(retention.objectId);db.prepare('DELETE FROM opportunity_offer_acceptance WHERE offer_id=?').run(id);db.prepare('DELETE FROM opportunity_offer_history WHERE offer_id=?').run(id);db.prepare('DELETE FROM opportunity_offer WHERE id=?').run(id);redactOwnerReceipts(db,'offer',[id,...impact.relatedIds],{kind:'failure',code:'not_found'});})();}
  return {handle,purgeImpact,purge};
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

@@ -20,3 +20,5 @@ export function createProfileDomain(db:Database.Database){
  }
  return {read,handle,purgeImpact(id:string){return id==='current'?{id,revision:read().revision,name:'当前本人资料',blobIds:[],retentions:[]}:undefined;},purge(id:string){if(id!=='current')return;db.transaction(()=>{db.prepare('UPDATE profile_current SET revision=revision+1,body=? WHERE id=1').run(JSON.stringify({name:'',contact:'',links:[]}));redactedCommandResults(db,'profile',()=>true,{status:'not-found'});})();}};
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

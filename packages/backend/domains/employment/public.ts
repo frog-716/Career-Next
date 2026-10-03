@@ -102,3 +102,5 @@ return value?PersonRelation.parse({id:value.id,employmentId:value.employmentId,n
 },
  };
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

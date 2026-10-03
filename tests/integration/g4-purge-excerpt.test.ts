@@ -1,0 +1,13 @@
+import {it,expect} from 'vitest';
+import {randomUUID} from 'node:crypto';
+import {mkdtemp,rm} from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import {openWorkspace} from '../../packages/backend/platform/database/database';
+import {materialsMigration} from '../../packages/backend/domains/materials/migration';
+import {releases} from '../../packages/backend/bootstrap/releases';
+import {createOpportunityDomain} from '../../packages/backend/domains/opportunity/public';
+import {createResearchDomain} from '../../packages/backend/domains/opportunity/research/public';
+it('purging support removes Research source excerpts from current, historical and receipt views while preserving independent conclusion',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'g4-purge-excerpt-')),workspace=await openWorkspace(root,materialsMigration,releases);try{const core=createOpportunityDomain(workspace.database);const company=core.handle({operation:'company.create',commandId:randomUUID(),name:'fixture'});if(company.kind!=='company')throw Error();const opportunity=core.handle({operation:'create',commandId:randomUUID(),companyId:company.company.id,role:'fixture'});if(opportunity.kind!=='opportunity')throw Error();const owner={kind:'opportunity' as const,id:opportunity.opportunity.id},ref={owner:'materials' as const,objectId:randomUUID(),revision:1 as const,locator:'whole' as const,scope:'personal' as const};let readable=true;const research=createResearchDomain(workspace.database,{core:core.capabilities,resolveSource:()=>readable?{ref,status:'readable'}:undefined});const commandId=randomUUID();const created=research.handle({operation:'create',commandId,owner,title:'independent',body:'Independent human conclusion',nature:'inference',sources:[{ref,purpose:'support',excerpt:'Sensitive source excerpt A',assessment:'supports'}],leads:[],userConfirmed:true,independentlyVerified:false});if(created.kind!=='item')throw Error();readable=false;workspace.database.transaction(()=>research.redactSource(ref))();const current=research.handle({operation:'resolve',id:created.item.id,viewer:owner});expect(current).toMatchObject({kind:'resolution',resolution:{reviewRequired:true,item:{body:'Independent human conclusion',sources:[{excerpt:'',assessment:'needs_review'}]}}});const history=research.handle({operation:'history',id:created.item.id,owner});expect(JSON.stringify(history)).not.toContain('Sensitive source excerpt A');expect(research.handle({operation:'receipt',commandId})).toEqual({kind:'failure',code:'content_purged'});}finally{workspace.close();await rm(root,{recursive:true,force:true});}
+});

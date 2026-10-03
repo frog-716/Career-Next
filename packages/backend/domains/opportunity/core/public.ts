@@ -101,3 +101,5 @@ function effectiveResult(events:History[],newCorrection:string):Opportunity['res
  }
  return result;
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

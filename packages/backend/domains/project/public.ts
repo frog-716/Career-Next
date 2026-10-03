@@ -97,3 +97,5 @@ export function createProjectDomain(db:Database.Database,dependencies:ProjectDep
   catch(error){return failure(error instanceof Error&&error.message==='conflict'?'conflict':'storage_error');}
  }};
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

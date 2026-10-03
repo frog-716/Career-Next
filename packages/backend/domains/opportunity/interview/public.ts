@@ -68,3 +68,5 @@ export function createInterviewDomain(db:Database.Database,dependencies:{core:Op
   return {metadata:{id:session.id,revision:session.transcript.version,scope:'opportunity',source},text:ref.revision===session.transcript.version?session.transcript.text:undefined,nature:session.kind==='real'?'real_correctable_record':'simulation',opportunityId:session.opportunityId};
  }};
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

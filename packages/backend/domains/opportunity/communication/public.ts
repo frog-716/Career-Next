@@ -46,3 +46,5 @@ export function createCommunicationDomain(db:Database.Database,ports:SentMateria
  function purge(id:string){db.transaction(()=>{const commands=(db.prepare('SELECT command_id FROM opportunity_communication_commands WHERE communication_id=?').all(id) as {command_id:string}[]).map(row=>row.command_id);redactOwnerReceipts(db,'communication',[id,...commands],{kind:'purged',id});ports.releaseRetention?.('communication',id);db.prepare('DELETE FROM opportunity_communication_commands WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication_history WHERE communication_id=?').run(id);db.prepare('DELETE FROM opportunity_communication WHERE id=?').run(id);})();}
  return {handle,resolveSource,resolveSourceMetadata,describePurge,purge};
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

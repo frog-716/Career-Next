@@ -115,3 +115,5 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
   };
 }
 export type MaterialsBackend = Awaited<ReturnType<typeof createMaterialsBackend>>;
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

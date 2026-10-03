@@ -83,3 +83,5 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
  };
 }
 export {renderSnapshot} from './render';
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

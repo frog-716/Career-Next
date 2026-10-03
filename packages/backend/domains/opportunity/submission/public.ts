@@ -46,3 +46,5 @@ export function createSubmissionDomain(db:Database.Database,ports:SentMaterialPo
  function purge(id:string){db.transaction(()=>{const item=describePurge(id);if(item)db.prepare('INSERT OR IGNORE INTO opportunity_submission_purged VALUES (?,?)').run(item.id,item.opportunityId);const commands=(db.prepare('SELECT command_id FROM opportunity_submission_commands WHERE submission_id=?').all(id) as {command_id:string}[]).map(row=>row.command_id);redactOwnerReceipts(db,'submission',[id,...commands],{kind:'purged',id});ports.releaseRetention?.('submission',id);db.prepare('DELETE FROM opportunity_submission_commands WHERE submission_id=?').run(id);db.prepare('DELETE FROM opportunity_submission WHERE id=?').run(id);})();}
  return {handle,hasFirstSubmission:(opportunityId:string)=>!!read(opportunityId)||!!tombstone(opportunityId),describePurge,purge};
 }
+
+export {validateCandidate,candidateRelations} from './candidate-validation';

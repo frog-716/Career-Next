@@ -21,3 +21,18 @@ export async function maintenanceTargets(d:ReturnType<typeof composeDomains>,mat
  }
  add('profile','current','当前本人身份');return targets;
 }
+/** Object-owned scopes expand through public interfaces; shared facts stay independent. */
+export function ownedRelatedReferences(d:ReturnType<typeof composeDomains>,ref:{owner:string;objectId:string}){
+ const refs:{owner:string;objectId:string}[]=[];const add=(owner:string,objectId:string)=>refs.push({owner,objectId});
+ if(['project','employment','person','opportunity'].includes(ref.owner)){const knowledge=d.wiki.handle({operation:'list',includeRetired:true,scope:ref.owner,scopeId:ref.objectId});if(knowledge.kind==='list')for(const item of knowledge.items)add('wiki',item.id);}
+ if(ref.owner==='company'||ref.owner==='opportunity'){const result=d.research.handle({operation:'read',owner:{kind:ref.owner,id:ref.objectId}});if(result.kind==='document')for(const item of result.items)add('research',item.item.id);}
+ if(ref.owner==='employment'){const details=d.employment.handle({operation:'read',id:ref.objectId});if(details.kind==='employment')for(const person of details.people)add('person',person.id);}
+ if(ref.owner==='opportunity'){
+ const sub=d.submission.handle({operation:'submission.read',opportunityId:ref.objectId});if(sub.kind==='submission')add('submission',sub.submission.id);
+ const comm=d.communication.handle({operation:'communication.list',opportunityId:ref.objectId});if(comm.kind==='list')for(const item of comm.items)add('communication',item.id);
+ const rounds=d.interview.handle({operation:'interview.list',opportunityId:ref.objectId});if(rounds.kind==='sessions')for(const round of rounds.items)add('interview',round.id);
+ const offer=d.offer.handle({operation:'offer.read',opportunityId:ref.objectId});if(offer.kind==='offer')add('offer',offer.offer.id);
+ const resume=d.resume.handle({operation:'resume.lookup',opportunityId:ref.objectId});if(resume.status==='document')add('resume',resume.document.id);
+ }
+ return refs;
+}

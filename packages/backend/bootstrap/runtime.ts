@@ -28,12 +28,12 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  let controller!:ReturnType<typeof createAiController>;
  function track<T>(job:Promise<T>){operations.add(job);void job.finally(()=>operations.delete(job)).catch(()=>{});return job;}
  function allowed(){if(closing||maintenance||!admission)throw Error('maintenance_busy');}
- function adapter(token:PersistenceToken):ProductionSinkAdapter {tokens.set(token.id,token);return {controlledSink:filename=>gate.controlledSink(token,filename),withLease:work=>gate.withLease(token,work)};}
+ function adapter(token:PersistenceToken,boundGate=gate):ProductionSinkAdapter {tokens.set(token.id,token);return {controlledSink:filename=>boundGate.controlledSink(token,filename),withLease:work=>boundGate.withLease(token,work)};}
  async function drain(refs:readonly PersistenceReference[]){controller?.revokeReferences(refs);await gate.drain(refs);}
  async function initialize(){await mkdir(root,{recursive:true,mode:0o700});admission=true;
  writer=await startWriter<RuntimeStore>(root,randomUUID(),writerArtifact,{dataRoot,control:async(action,args)=>{if(action==='drain'){await drain(args[0] as PersistenceReference[]);return;}if(action==='beforeActivate'){admission=false;controller?.shutdown();await drain([...tokens.values()].flatMap(t=>[...t.inputs,...t.targets]));return;}if(action==='maintenance'){maintenance=args[0]===true;return;}throw Error('invalid_request');}});
- gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await writer.call('persistenceAssert',token);});
- materials=await createMaterialsBackend(root,undefined,undefined,writer,async id=>adapter(await writer.call('producerToken',id)));
+ const boundWriter=writer;gate=createPersistenceSinkGate(async token=>{if(!admission)throw Error('persistence_denied');await boundWriter.call('persistenceAssert',token);});
+ const boundGate=gate;materials=await createMaterialsBackend(root,undefined,undefined,boundWriter,async id=>adapter(await boundWriter.call('producerToken',id),boundGate));
  blobs=createBlobBroker(root,maximumPdfBytes);await blobs.initialize();
  makeController();
  }
@@ -42,15 +42,15 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  // Writer startup recovery can request drain before there is any producer/sink.
  gate=createPersistenceSinkGate(()=>{throw Error('persistence_denied');});await initialize();
  const automatic=setInterval(()=>{if(!closing&&!maintenance&&admission)void writer.call('automaticBackup').catch(()=>{});},60000);automatic.unref();
- async function completePdf(session:HumanSession,commandId:string,input:Uint8Array):Promise<ResumeResult>{
-  await writer.call('pdfCheck',session,commandId);const token=await writer.call('producerToken',commandId),sink=adapter(token),bytes=Buffer.from(input);
-  if(bytes.length===0||bytes.length>maximumPdfBytes||bytes.subarray(0,5).toString()!=='%PDF-'||!bytes.subarray(-1024).includes(Buffer.from('%%EOF')))return writer.call('pdfFail',commandId);
+ async function completePdf(session:HumanSession,commandId:string,input:Uint8Array):Promise<ResumeResult>{const boundWriter=writer,boundMaterials=materials,boundBlobs=blobs;
+  await boundWriter.call('pdfCheck',session,commandId);const token=await boundWriter.call('producerToken',commandId),sink=adapter(token),bytes=Buffer.from(input);
+  if(bytes.length===0||bytes.length>maximumPdfBytes||bytes.subarray(0,5).toString()!=='%PDF-'||!bytes.subarray(-1024).includes(Buffer.from('%%EOF')))return boundWriter.call('pdfFail',commandId);
   const artifact={blobId:randomUUID(),digest:createHash('sha256').update(bytes).digest('hex'),size:bytes.length};
-  try{const prepared=await writer.call('pdfPrepare',session,commandId,artifact);if(prepared.kind==='receipt')return ResumeResult.parse(prepared.result);
-   await blobs.publishBytes(artifact.blobId,bytes,artifact.digest,()=>writer.call('persistenceAssert',token),sink);
-   const published=await blobs.readBytes(artifact.blobId,artifact.digest,sink);if(published.length!==artifact.size)throw Error('storage_failed');
-   await writer.call('pdfPublished',session,commandId,artifact.blobId);return ResumeResult.parse(await writer.call('pdfCommit',session,commandId,artifact));
-  }catch{const result=await writer.call('pdfFail',commandId);await materials.collectGarbage().catch(()=>{});return ResumeResult.parse(result);}
+  try{const prepared=await boundWriter.call('pdfPrepare',session,commandId,artifact);if(prepared.kind==='receipt')return ResumeResult.parse(prepared.result);
+   await boundBlobs.publishBytes(artifact.blobId,bytes,artifact.digest,()=>boundWriter.call('persistenceAssert',token),sink);
+   const published=await boundBlobs.readBytes(artifact.blobId,artifact.digest,sink);if(published.length!==artifact.size)throw Error('storage_failed');
+   await boundWriter.call('pdfPublished',session,commandId,artifact.blobId);return ResumeResult.parse(await boundWriter.call('pdfCommit',session,commandId,artifact));
+  }catch{const result=await boundWriter.call('pdfFail',commandId);await boundMaterials.collectGarbage().catch(()=>{});return ResumeResult.parse(result);}
  }
  return {get materials(){return materials;},
  async connectHuman(){allowed();currentSession=await materials.connectHuman();await Promise.allSettled([...operations]);await writer.call('recoverPending');await materials.collectGarbage();return currentSession;},
@@ -62,13 +62,13 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
   if(module==='application'&&!admission&&DataResult.parse(result).kind==='failure'){await writer.close();const pointer=JSON.parse(await readFile(path.join(dataRoot,'active-workspace-pointer.json'),'utf8'));root=safeManagedPath(dataRoot,pointer.relativePath);tokens.clear();prints.clear();currentSession=undefined;await initialize();}
   return result;
  })());},
- async selectSentFile(session:HumanSession,filename:string){allowed();if(!['.pdf','.txt','.md'].includes(path.extname(filename).toLowerCase()))throw Error('unsupported_file');return track((async()=>{const token=await writer.call('artifactToken',session),sink=adapter(token);let prepared:{id:string;blobId:string}|undefined;
- try{const bytes=await sink.withLease(async()=>{await writer.call('persistenceAssert',token);const handle=await open(filename,constants.O_RDONLY|constants.O_NOFOLLOW);try{const info=await handle.stat();if(!info.isFile()||info.size<1||info.size>maximumPdfBytes)throw Error('unsupported_file');const buffer=Buffer.alloc(info.size+1);let count=0;while(count<buffer.length){await writer.call('persistenceAssert',token);const value=await handle.read(buffer,count,Math.min(65536,buffer.length-count),count);if(!value.bytesRead)break;count+=value.bytesRead;}if(count!==info.size)throw Error('file_failed');return buffer.subarray(0,count);}finally{await handle.close();}});
- const digest=createHash('sha256').update(bytes).digest('hex');prepared=await writer.call('artifactPrepare',session,token,path.basename(filename),digest,bytes.length);await blobs.publishBytes(prepared.blobId,bytes,digest,()=>writer.call('persistenceAssert',token),sink);return await writer.call('artifactComplete',session,token,prepared.id);
- }catch(error){if(prepared)await writer.call('artifactFail',prepared.id).catch(()=>{});await materials.collectGarbage().catch(()=>{});throw error;}})());},
+ async selectSentFile(session:HumanSession,filename:string){allowed();const boundWriter=writer,boundMaterials=materials,boundBlobs=blobs;if(!['.pdf','.txt','.md'].includes(path.extname(filename).toLowerCase()))throw Error('unsupported_file');return track((async()=>{const token=await boundWriter.call('artifactToken',session),sink=adapter(token);let prepared:{id:string;blobId:string}|undefined;
+ try{const bytes=await sink.withLease(async()=>{await boundWriter.call('persistenceAssert',token);const handle=await open(filename,constants.O_RDONLY|constants.O_NOFOLLOW);try{const info=await handle.stat();if(!info.isFile()||info.size<1||info.size>maximumPdfBytes)throw Error('unsupported_file');const buffer=Buffer.alloc(info.size+1);let count=0;while(count<buffer.length){await boundWriter.call('persistenceAssert',token);const value=await handle.read(buffer,count,Math.min(65536,buffer.length-count),count);if(!value.bytesRead)break;count+=value.bytesRead;}if(count!==info.size)throw Error('file_failed');return buffer.subarray(0,count);}finally{await handle.close();}});
+ const digest=createHash('sha256').update(bytes).digest('hex');prepared=await boundWriter.call('artifactPrepare',session,token,path.basename(filename),digest,bytes.length);await boundBlobs.publishBytes(prepared.blobId,bytes,digest,()=>boundWriter.call('persistenceAssert',token),sink);return await boundWriter.call('artifactComplete',session,token,prepared.id);
+ }catch(error){if(prepared)await boundWriter.call('artifactFail',prepared.id).catch(()=>{});await boundMaterials.collectGarbage().catch(()=>{});throw error;}})());},
  async printHtml(session:HumanSession,commandId:string){allowed();const snapshot=await writer.call('pdfCheck',session,commandId);return {html:renderSnapshot(snapshot)};},
  completePdf(session:HumanSession,commandId:string,input:Uint8Array){allowed();const key=session.connectionGeneration+'/'+commandId,previous=prints.get(key);if(previous)return previous;const job=track(completePdf(session,commandId,input));prints.set(key,job);void job.finally(()=>prints.delete(key)).catch(()=>{});return job;},
- failPdf(session:HumanSession,commandId:string){return track((async()=>{await writer.call('pdfCheck',session,commandId);return writer.call('pdfFail',commandId);})());},
+ failPdf(session:HumanSession,commandId:string){const boundWriter=writer;return track((async()=>{await boundWriter.call('pdfCheck',session,commandId);return boundWriter.call('pdfFail',commandId);})());},
  async close(){closing=true;clearInterval(automatic);await Promise.allSettled([...operations]);await materials.close();},
  };
 }
