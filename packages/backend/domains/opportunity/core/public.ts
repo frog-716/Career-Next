@@ -3,6 +3,9 @@ import {randomUUID} from 'node:crypto';
 import {Opportunity,OpportunityView,CoreRequest,Result,History,type Company} from '../../../../contracts/opportunity/schema';
 import type {BusinessTime} from '../../../../contracts/common/business-time';
 import {executeCommand} from '../../../platform/commands/receipts';
+import { z } from 'zod';
+import { BusinessTime as BusinessTimeSchema } from '../../../../contracts/common/business-time';
+import type { OpportunityCapabilities } from '../../../../contracts/opportunity/capabilities';
 export const coreMigration=`CREATE TABLE opportunity_core(id TEXT PRIMARY KEY,company_id TEXT NOT NULL REFERENCES opportunity_company(id),revision INTEGER NOT NULL,content_json TEXT NOT NULL);
 CREATE TABLE opportunity_core_history(id TEXT PRIMARY KEY,opportunity_id TEXT NOT NULL REFERENCES opportunity_core(id),revision INTEGER NOT NULL,history_json TEXT NOT NULL,UNIQUE(opportunity_id,revision));`;
 export function createOpportunityCore(db:Database.Database,dependencies:{resolveCompany(id:string):Company|undefined}){
@@ -44,7 +47,36 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
   });
  }
  function resolveOpportunity(id:string){try{const opportunity=view(read(id));return {id:opportunity.id,companyName:opportunity.companyName,role:opportunity.role};}catch{return undefined;}}
- return {handle,resolveOpportunity};
+ // Only injected backend Offer composition receives this capability. Renderer
+ // Request does not accept arbitrary result values or acceptance-basis claims.
+ const recordOfferEvent: OpportunityCapabilities['recordOfferEvent'] = input => {
+  const request=z.object({commandId:z.uuid(),opportunityId:z.uuid(),expectedRevision:z.number().int().positive(),action:z.enum(['accepted','conditions_replaced','recruiter_withdrew','user_withdrew','acceptance_corrected']),businessTime:BusinessTimeSchema,reason:z.string().trim().min(1).max(1000),basisId:z.uuid().optional(),correctedEventId:z.uuid().optional(),historical:z.boolean().optional()}).strict().parse(input);
+  return executeCommand(db,'opportunity.offer-event',request.commandId,request,()=>{
+   const old=read(request.opportunityId);if(old.revision!==request.expectedRevision)throw Error('conflict');
+   const opportunity={...old,revision:old.revision+1,recordedAt:new Date().toISOString()};
+   const types={accepted:'offer_accepted',conditions_replaced:'offer_conditions_replaced',recruiter_withdrew:'offer_recruiter_withdrew',user_withdrew:'offer_user_withdrew',acceptance_corrected:'offer_acceptance_corrected'} as const;
+   if(request.action==='accepted'&&(!request.basisId||old.phase!=='offer'))throw Error('invalid_transition');
+   if(request.action==='acceptance_corrected'){
+    const rows=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));
+    const target=rows.find(row=>row.id===request.correctedEventId&&row.type==='offer_accepted');
+    if(!target||rows.some(row=>row.correctedEventId===target.id))throw Error('invalid_transition');
+    const laterResult=rows.some(row=>row.revision>target.revision&&row.previousResult!==undefined&&row.result!==row.previousResult&&!row.historical);
+    if(!laterResult&&!request.historical)opportunity.result=target.previousResult??'active';
+   }else if(!request.historical){
+    switch(request.action){
+     case 'accepted':opportunity.result='accepted';break;
+     case 'conditions_replaced':if(old.result==='accepted')opportunity.result='active';break;
+     case 'recruiter_withdrew':opportunity.result='recruiter_ended';break;
+     case 'user_withdrew':opportunity.result='withdrawn';break;
+    }
+   }
+   const history=History.parse({id:randomUUID(),opportunityId:old.id,revision:opportunity.revision,type:types[request.action],reason:request.reason,companyId:old.companyId,role:old.role,businessTime:request.businessTime,phase:opportunity.phase,result:opportunity.result,previousResult:old.result,recordedAt:opportunity.recordedAt,...request.basisId?{basisId:request.basisId}:{},...request.correctedEventId?{correctedEventId:request.correctedEventId}:{},...request.historical?{historical:true}:{}});
+   db.prepare('UPDATE opportunity_core SET revision=?,content_json=? WHERE id=?').run(opportunity.revision,JSON.stringify(opportunity),old.id);
+   db.prepare('INSERT INTO opportunity_core_history VALUES (?,?,?,?)').run(history.id,old.id,history.revision,JSON.stringify(history));
+   return {opportunity:view(opportunity),eventId:history.id};
+  });
+ };
+ return {handle,resolveOpportunity,recordOfferEvent};
 }
 
 function earliest(prior:BusinessTime,next:BusinessTime):BusinessTime {
