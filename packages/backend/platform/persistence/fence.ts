@@ -23,7 +23,7 @@ export function createPersistenceFence(db:Database.Database,binding:{workspaceIn
 export function createPersistenceSinkGate(check:(token:PersistenceToken)=>void|Promise<void>) {
  type SinkState={token:PersistenceToken;tail:Promise<void>;closed:boolean;handle?:FileHandle;closing?:Promise<void>};const active=new Set<SinkState>(),revoked=new Set<string>();
  const denied=(state:SinkState)=>state.closed||revoked.has(state.token.producerId);
- function closeState(state:SinkState){state.closed=true;if(!state.closing)state.closing=(async()=>{await state.tail;const handle=state.handle;state.handle=undefined;try{if(handle){await handle.sync();await handle.close();}}finally{active.delete(state);}})();return state.closing;}
+ function closeState(state:SinkState){state.closed=true;if(!state.closing)state.closing=(async()=>{await state.tail;const handle=state.handle;state.handle=undefined;try{if(handle){try{await handle.sync();}finally{await handle.close();}}}finally{active.delete(state);}})();return state.closing;}
  async function controlledSink(token:PersistenceToken,internalPath:string){PersistenceTokenSchema.parse(token);await check(token);if(revoked.has(token.producerId))throw Error('persistence_denied');const state:SinkState={token,tail:Promise.resolve(),closed:false};active.add(state);
  try{state.handle=await open(internalPath,'wx',0o600);await check(token);}catch(error){state.closed=true;await state.handle?.close();active.delete(state);throw error;}
  async function close(){await closeState(state);}
