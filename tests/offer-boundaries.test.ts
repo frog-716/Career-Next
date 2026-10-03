@@ -10,6 +10,7 @@ import {commandMigration} from '../packages/backend/platform/commands/receipts';
 import Database from 'better-sqlite3';
 import {randomUUID} from 'node:crypto';
 it('renderer cannot assert accepted/result, inject source text, guess dates or mutate another module',()=>{
+ expect(Request.safeParse({operation:'offer.accept',commandId:randomUUID(),opportunityId:randomUUID(),expectedOpportunityRevision:1,expectedRevision:1,businessTime:{kind:'unknown'},reason:'Reality',historical:false,previousValid:true}).success).toBe(false);
  expect(Request.safeParse({operation:'offer.set-result',result:'accepted'}).success).toBe(false);
  const db=new Database(':memory:');db.exec(commandMigration);db.exec(opportunityMigration);db.exec(offerMigration);const opportunity=createOpportunityDomain(db);const company=opportunity.handle({operation:'company.create',commandId:randomUUID(),name:'Boundary'});if(company.kind!=='company')throw Error('fixture');const created=opportunity.handle({operation:'create',commandId:randomUUID(),companyId:company.company.id,role:'Role'});if(created.kind!=='opportunity')throw Error('fixture');const owner=createOfferDomain(db,{core:opportunity.capabilities,validateSource:()=>({status:'unavailable'})});
  try{

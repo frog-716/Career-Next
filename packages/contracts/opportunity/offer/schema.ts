@@ -24,7 +24,7 @@ export const Request = z.discriminatedUnion('operation',[
  z.object({operation:z.literal('offer.receive'),...Shared,conditions:Conditions,original:OriginalInput}).strict(),
  z.object({operation:z.literal('offer.correct'),...Existing,conditions:Conditions}).strict(),
  z.object({operation:z.literal('offer.replace'),...Existing,conditions:Conditions,original:OriginalInput,historical:z.boolean().default(false)}).strict(),
- z.object({operation:z.literal('offer.accept'),...Existing,historical:z.boolean(),previousValid:z.boolean().optional(),conditionsId:z.uuid().optional()}).strict(),
+ z.object({operation:z.literal('offer.accept'),...Existing,historical:z.boolean(),conditionsId:z.uuid().optional()}).strict(),
  z.object({operation:z.literal('offer.withdraw'),...Existing,by:z.enum(['recruiter','user']),historical:z.boolean()}).strict(),
  z.object({operation:z.literal('offer.correct-acceptance'),...Existing,coreEventId:z.uuid()}).strict(),
  z.object({operation:z.literal('offer.correct-withdrawal'),...Existing,coreEventId:z.uuid()}).strict(),
