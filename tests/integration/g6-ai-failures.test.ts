@@ -41,14 +41,14 @@ async function fixture(){
  return {root,db,workspace,identity,domains,fence,ports,runtime,fake,company,opportunity,round,source,read,call,prepare,authorize,generate,writer};
 }
 it('F2 product unknown A permits exactly one explicitly prepared B awaiting its own authorization',async()=>{
- const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id});const a=f.authorize(task);f.runtime.prepareDispatch(a.id);f.runtime.markProcessing(a.id);f.runtime.markUnknown(a.id);
+ const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id,includeName:false});const a=f.authorize(task);f.runtime.prepareDispatch(a.id);f.runtime.markProcessing(a.id);f.runtime.markUnknown(a.id);
  const retry=()=>f.runtime.handle({operation:'product.retry-explicit',commandId:randomUUID(),taskId:task.id,acknowledgeUnknown:true},'human');
  const b=retry();expect(b.kind).toBe('product_task');
  expect(retry()).toEqual({kind:'failure',code:'operation_pending'});
  expect(f.read(task.id).operations).toHaveLength(2);
 });
 it('F2 credential generation change after handoff rejects an ignoring-abort provider late body',async()=>{
- const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id}),op=f.authorize(task);
+ const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id,includeName:false}),op=f.authorize(task);
  let respond!:(value:unknown)=>void;const adapter={...f.fake,recipient:{...f.fake.recipient},send:()=>new Promise<any>(resolve=>{respond=resolve;})};
  const controller=createAiController(f.writer,adapter);controller.openAfterAuthorization(task.id,op.id);const pending=controller.start(task.id,op.id);
  await expect.poll(()=>!!respond).toBe(true);adapter.recipient.generation='fake-v2';
@@ -57,7 +57,7 @@ it('F2 credential generation change after handoff rejects an ignoring-abort prov
  expect(f.read(task.id).operations[0]).toMatchObject({state:'outcome_unknown'});
 });
 it('F2 unknown A, explicit operation B and late A keep independent bodies and shared spent budget',async()=>{
- const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id},[f.source],2),a=f.authorize(task),intentA=f.runtime.prepareDispatch(a.id);f.runtime.markProcessing(a.id);f.runtime.markUnknown(a.id);
+ const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id,includeName:false},[f.source],2),a=f.authorize(task),intentA=f.runtime.prepareDispatch(a.id);f.runtime.markProcessing(a.id);f.runtime.markUnknown(a.id);
  const retry=f.runtime.handle({operation:'product.retry-explicit',commandId:randomUUID(),taskId:task.id,acknowledgeUnknown:true},'human');if(retry.kind!=='product_task')throw Error(JSON.stringify(retry));const b=f.authorize(retry.task),intentB=f.runtime.prepareDispatch(b.id);f.runtime.markProcessing(b.id);
  const output=(body:string)=>({proposals:[{kind:'create',content:{title:body,body,nature:'hypothesis'},reason:'isolated controlled result',citations:[],unknowns:[]}]});
  f.runtime.settle(b.id,output('B current operation body'));f.runtime.settle(a.id,output('A late operation body'));
@@ -67,7 +67,7 @@ it('F2 unknown A, explicit operation B and late A keep independent bodies and sh
  expect(intentA.operationId).not.toBe(intentB.operationId);expect(read.proposals.every(p=>p.state==='pending')).toBe(true);
 });
 it.each(['stop','revoke','source-purge','source-pause','provider-disable','backend-shutdown'] as const)('F2 ignoring-abort late output after %s never starts another call or adopts content',async(cut)=>{
- const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id}),op=f.authorize(task);
+ const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id,includeName:false}),op=f.authorize(task);
  let respond!:(value:unknown)=>void,sends=0;const controller=createAiController(f.writer,{...f.fake,send:()=>{sends++;return new Promise<any>(resolve=>{respond=resolve;});}});
  controller.openAfterAuthorization(task.id,op.id);const pending=controller.start(task.id,op.id);await expect.poll(()=>!!respond).toBe(true);
  if(cut==='stop'||cut==='revoke')await controller.stop(task.id,cut);
@@ -80,7 +80,7 @@ it.each(['stop','revoke','source-purge','source-pause','provider-disable','backe
  else {expect(result.proposals).toEqual([]);expect(JSON.stringify(result)).not.toContain('G6-LATE-ISOLATED-CONTENT');}
 });
 it('F2 provider disable while SQLite intent is awaiting cannot hand off, and new generation cannot reuse the original grant',async()=>{
- const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id}),op=f.authorize(task);let release!:()=>void;const sent:string[]=[];
+ const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id,includeName:false}),op=f.authorize(task);let release!:()=>void;const sent:string[]=[];
  const writer={...f.writer,prepareDispatch:async(id:string)=>{const intent=await f.writer.prepareDispatch(id);await new Promise<void>(resolve=>{release=resolve;});return intent;}};
  const controller=createAiController(writer,{...f.fake,send:async request=>{sent.push(request.operationId);return {proposals:[]};}}),pending=controller.start(task.id,op.id);await expect.poll(()=>!!release).toBe(true);
  controller.setProviderBinding(undefined);release();await pending;expect(sent).toEqual([]);expect(f.read(task.id).usedRequests).toBe(0);
@@ -108,7 +108,7 @@ it.each(targetKinds)('RV-P0-01 %s output rejects source R1→R2 in final Apply w
  expect({resume:f.call('resume',{operation:'resume.list'}),wiki:f.call('wiki',{operation:'list'}),research:f.call('research',{operation:'read',owner:{kind:'opportunity',id:f.opportunity.id}}),companyResearch:f.call('research',{operation:'read',owner:{kind:'company',id:f.company.id}}),communication:f.call('communication',{operation:'communication.draft.read',opportunityId:f.opportunity.id}),offer:f.call('offer',{operation:'offer.read',opportunityId:f.opportunity.id})}).toEqual(before);
 });
 it('F2 AI/Proposal storage reaches actual SQLITE_FULL quota and never reports success or partially stores proposals',async()=>{
- const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id}),op=f.authorize(task);f.runtime.prepareDispatch(op.id);f.runtime.markProcessing(op.id);
+ const f=await fixture(),task=f.prepare({kind:'greeting',opportunityId:f.opportunity.id,includeName:false}),op=f.authorize(task);f.runtime.prepareDispatch(op.id);f.runtime.markProcessing(op.id);
  const pages=f.db.pragma('page_count',{simple:true}) as number;f.db.pragma('max_page_count='+pages);
  let storageError:unknown;try{f.runtime.settle(op.id,{proposals:[{kind:'create',content:{title:'quota',body:'G6-QUOTA-CONTENT '.repeat(3500),nature:'hypothesis'},reason:'controlled SQLite page cap',citations:[],unknowns:[]}]});}catch(error){storageError=error;}
  f.db.pragma('max_page_count=1073741823');const result=f.read(task.id);expect(result.proposals).toEqual([]);expect(result.operations[0]?.state).not.toBe('success');
@@ -142,7 +142,7 @@ it.each(['same-block','unrelated-block'] as const)('RV-P1-03 second-window %s ch
  expect(f.call('resume',{operation:'resume.read',resumeId:target.resumeId})).toEqual(current);
 });
 it('F2 unregistered model subtask/manual/authorization/self-accept requests cannot mint another budget or factual action',async()=>{
- const f=await fixture(),task=await f.generate(f.prepare({kind:'greeting',opportunityId:f.opportunity.id})),proposal=task.proposals[0]!;
+ const f=await fixture(),task=await f.generate(f.prepare({kind:'greeting',opportunityId:f.opportunity.id,includeName:false})),proposal=task.proposals[0]!;
  for(const input of [{operation:'product.decide',commandId:randomUUID(),proposalIds:[proposal.id],action:'accept'}, {operation:'product.prepare',commandId:randomUUID(),input:task.input,budget:task.budget},{operation:'product.authorize',commandId:randomUUID(),operationId:task.operations[0]!.id,manifestDigest:task.operations[0]!.manifestDigest},{operation:'ai.subtask',parentTaskId:task.id,userApproved:true,actor:'human'}]){
   expect(f.runtime.handle(input,'ai')).toMatchObject({kind:'failure'});expect(f.runtime.handle({...input,actor:'human',userApproved:true},'ai')).toMatchObject({kind:'failure'});
  }

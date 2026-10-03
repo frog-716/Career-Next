@@ -1,4 +1,3 @@
-import type {Recipient} from '../../contracts/ai/schema';
 import type {ProviderAdapter} from '../../contracts/ai/provider';
 import type {DispatchIntent} from './ports';
 export interface AiWriterControllerPort {
@@ -12,7 +11,7 @@ export interface AiWriterControllerPort {
 }
 /** Lives on utility control loop. Never owns SQLite or exposes a manual user session. */
 export function createAiController(writer:AiWriterControllerPort,adapter:ProviderAdapter){
- const closed=new Set<string>(),purged=new Set<string>(),paused=new Map<string,number>(),pauseLeases=new Map<object,string[]>(),activePauses=new Map<string,number>(),authorized=new Map<string,Map<string,number>>(),running=new Map<string,{taskId:string;abort:AbortController;intent?:DispatchIntent}>();let shutDown=false,binding:Recipient|undefined=structuredClone(adapter.recipient);
+ const closed=new Set<string>(),purged=new Set<string>(),paused=new Map<string,number>(),pauseLeases=new Map<object,string[]>(),activePauses=new Map<string,number>(),authorized=new Map<string,Map<string,number>>(),running=new Map<string,{taskId:string;abort:AbortController;intent?:DispatchIntent}>();let shutDown=false,binding:DispatchIntent['manifest']['recipient']|undefined=structuredClone(adapter.recipient);
  const bindingMatches=(intent:DispatchIntent)=>!!binding&&JSON.stringify(intent.manifest.recipient)===JSON.stringify(binding)&&JSON.stringify(intent.manifest.recipient)===JSON.stringify(adapter.recipient);
  const references=(intent:DispatchIntent)=>[...intent.manifest.provenance.map(ref=>ref.owner+'/'+ref.objectId),...intent.manifest.product?.dependencies.map(ref=>ref.owner+'/'+ref.objectId)??[],'wiki/'+(intent.manifest.target.scopeId??`scope:${intent.manifest.target.scope}`),...(intent.manifest.target.scopeId?[intent.manifest.target.scope+'/'+intent.manifest.target.scopeId]:[])];
  const touches=(intent:DispatchIntent,operationId:string)=>references(intent).some(key=>purged.has(key)||(activePauses.get(key)??0)>0||(paused.get(key)??0)>(authorized.get(operationId)?.get(key)??0));
@@ -39,7 +38,7 @@ export function createAiController(writer:AiWriterControllerPort,adapter:Provide
  function closeAffected(){for(const [id,entry] of running)if(entry.intent&&touches(entry.intent,id)){closed.add(entry.taskId);entry.abort.abort();}}
  return {start,stop,
   /** Main's trusted configuration bridge narrows admission synchronously; never accepts model payloads. */
-  setProviderBinding(recipient:Recipient|undefined){binding=recipient?structuredClone(recipient):undefined;for(const entry of running.values())if(!entry.intent||!bindingMatches(entry.intent)){closed.add(entry.taskId);entry.abort.abort();}},
+  setProviderBinding(recipient:DispatchIntent['manifest']['recipient']|undefined){binding=recipient?structuredClone(recipient):undefined;for(const entry of running.values())if(!entry.intent||!bindingMatches(entry.intent)){closed.add(entry.taskId);entry.abort.abort();}},
   /** Capture on the utility loop when the live human authorization request enters, before awaiting the writer. */
   captureAuthorization:():ReadonlyMap<string,number>=>new Map([...paused].filter(([key])=>!activePauses.has(key))),
   openAfterAuthorization:(taskId:string,operationId?:string,snapshot?:ReadonlyMap<string,number>)=>{if(operationId&&running.has(operationId))return;closed.delete(taskId);if(operationId)authorized.set(operationId,new Map(snapshot??[]));},isClosed:(taskId:string)=>shutDown||closed.has(taskId),
