@@ -11,7 +11,7 @@ CREATE TABLE opportunity_core_history(id TEXT PRIMARY KEY,opportunity_id TEXT NO
 export function createOpportunityCore(db:Database.Database,dependencies:{resolveCompany(id:string):Company|undefined}){
  function read(id:string){const row=db.prepare('SELECT content_json FROM opportunity_core WHERE id=?').get(id) as {content_json:string}|undefined;if(!row)throw Error('not_found');return Opportunity.parse(JSON.parse(row.content_json));}
  function view(opportunity:Opportunity){const company=dependencies.resolveCompany(opportunity.companyId);if(!company)throw Error('not_found');return OpportunityView.parse({...opportunity,companyName:company.name});}
- function handle(input:CoreRequest):Result{
+ function handle(input:CoreRequest,stageOwner?:'interview'|'offer'):Result{
   const request=CoreRequest.parse(input);
   if(request.operation==='read')return {kind:'opportunity',opportunity:view(read(request.id))};
   if(request.operation==='list')return Result.parse({kind:'opportunities',items:(db.prepare("SELECT content_json FROM opportunity_core ORDER BY json_extract(content_json,'$.recordedAt') DESC,rowid DESC LIMIT 500").all() as {content_json:string}[]).map(row=>view(Opportunity.parse(JSON.parse(row.content_json))))});
@@ -31,7 +31,7 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
       const history=(db.prepare('SELECT history_json FROM opportunity_core_history WHERE opportunity_id=? ORDER BY revision').all(old.id) as {history_json:string}[]).map(row=>History.parse(JSON.parse(row.history_json)));
       const events=new Map<string,{stage:'submitted'|'interview'|'offer';time:History['businessTime'];voided:boolean}>();
       for(const item of history){if(item.type==='stage_reached'&&item.stage&&item.stage!=='preparation')events.set(item.id,{stage:item.stage,time:item.businessTime,voided:false});if(item.type==='stage_corrected'&&item.correctedEventId&&item.stage&&item.stage!=='preparation')events.set(item.correctedEventId,{stage:item.stage,time:item.businessTime,voided:!!item.voided});}
-      if(!events.has(request.eventId))throw Error('not_found');events.set(request.eventId,{stage:request.stage,time:request.businessTime,voided:request.voided});correctedEventId=request.eventId;
+      if(!events.has(request.eventId))throw Error('not_found');if(history.some(item=>item.id===request.eventId&&item.stageOwner))throw Error('invalid_transition');events.set(request.eventId,{stage:request.stage,time:request.businessTime,voided:request.voided});correctedEventId=request.eventId;
       opportunity.phase='preparation';opportunity.stageDates={submitted:{kind:'unknown'},interview:{kind:'unknown'},offer:{kind:'unknown'}};const ranks={preparation:0,submitted:1,interview:2,offer:3};
       for(const event of events.values()){if(event.voided)continue;if(ranks[event.stage]>ranks[opportunity.phase])opportunity.phase=event.stage;opportunity.stageDates[event.stage]=earliest(opportunity.stageDates[event.stage],event.time);}
       type='stage_corrected';break;
@@ -42,7 +42,7 @@ export function createOpportunityCore(db:Database.Database,dependencies:{resolve
     }
    }
    db.prepare('INSERT INTO opportunity_core VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET company_id=excluded.company_id,revision=excluded.revision,content_json=excluded.content_json').run(opportunity.id,opportunity.companyId,opportunity.revision,JSON.stringify(opportunity));
-   const history={id:randomUUID(),opportunityId:opportunity.id,revision:opportunity.revision,type,companyId:opportunity.companyId,role:opportunity.role,...previousCompanyId?{previousCompanyId,previousRole}:{},reason:request.operation==='create'?'创建一次尝试':request.reason,businessTime:request.operation==='create'?{kind:'unknown'}:request.businessTime,phase:opportunity.phase,result:opportunity.result,recordedAt,...previousResult?{previousResult}:{},...correctedEventId?{correctedEventId}:{},...request.operation==='record-stage'||request.operation==='correct-stage'?{stage:request.stage}:{},...request.operation==='correct-stage'?{voided:request.voided}:{}};
+   const history={id:randomUUID(),opportunityId:opportunity.id,revision:opportunity.revision,type,companyId:opportunity.companyId,role:opportunity.role,...previousCompanyId?{previousCompanyId,previousRole}:{},reason:request.operation==='create'?'创建一次尝试':request.reason,businessTime:request.operation==='create'?{kind:'unknown'}:request.businessTime,phase:opportunity.phase,result:opportunity.result,recordedAt,...stageOwner?{stageOwner}:{},...previousResult?{previousResult}:{},...correctedEventId?{correctedEventId}:{},...request.operation==='record-stage'||request.operation==='correct-stage'?{stage:request.stage}:{},...request.operation==='correct-stage'?{voided:request.voided}:{}};
    db.prepare('INSERT INTO opportunity_core_history VALUES (?,?,?,?)').run(history.id,opportunity.id,opportunity.revision,JSON.stringify(history));return Result.parse({kind:'opportunity',opportunity:view(opportunity)});
   });
  }

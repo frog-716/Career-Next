@@ -62,3 +62,10 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `frontend/app/` 装配 `shell/` 的四入口和对应真实页面；保持编辑会话，任职成功写入后机械刷新项目的公开关系投影。
 - Resume 使用 Career 自有文档合同；Tiptap 仅作输入适配。当前稿、Profile 当前身份、命名版本各守自己的语义。后端冻结快照，Desktop 受限打印窗口生成 PDF，平台以 hold / retention 保住实际文件，再由 Resume 完成版本回执。
 - [G2 Issue #3](https://github.com/frog-716/Career-Next/issues/3) 及六个业务 Issue 是任务和验收正本；运行和真人中文 IME 的 PASS 证据见 [G2 第一批验收](docs/verification/g2-first-batch.md)；接口与并行边界见 [G2 集成约定](docs/agents/g2-integration.md)，统一术语见 [GLOSSARY](GLOSSARY.md)。根依赖、迁移批次和运行装配由 integration owner 串行维护。
+
+## G3 入口
+
+- `contracts/opportunity/{research,interview,offer}/manifest.ts` 注册三个强子模块；`backend/domains/opportunity/<module>/public.ts` 各自管理状态与迁移。Bootstrap 只组合公开能力，不由兄弟 owner 读写私有表。
+- `frontend/app/opportunity-submodules.tsx` 在机会内接入三个入口，保留编辑会话；Wiki 的 `features/wiki/research.tsx` 仅经公开查询显示同一研究正文及所属机会导航。
+- 版本 3 迁移批次追加研究、面试、Offer 与 Offer 原件独立保留原因，已发布 G1/G2 SQL 不变；真实原件在 writer 中有界校验后才可绑定。
+- [G3 umbrella #10](https://github.com/frog-716/Career-Next/issues/10) 与子 Issue #11 / #12 / #13 保存任务和验收状态。

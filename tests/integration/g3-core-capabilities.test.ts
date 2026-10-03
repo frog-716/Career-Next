@@ -29,6 +29,11 @@ function setup() {
   if (o.kind !== 'opportunity') throw Error('fixture failed');
   return { db, domain, id: o.opportunity.id, companyId: c.company.id };
 }
+it('renderer stage correction cannot void a real submodule-owned stage behind its owner',()=>{
+ const {domain,id}=setup();const event=domain.capabilities.recordStage({commandId:randomUUID(),opportunityId:id,expectedRevision:1,stage:'offer',businessTime:{kind:'unknown'},reason:'Actual Offer owner fact'});
+ expect(domain.handle({operation:'correct-stage',commandId:randomUUID(),id,expectedRevision:2,eventId:event.eventId,stage:'offer',voided:true,reason:'Bypass the real Offer',businessTime:{kind:'unknown'}})).toEqual({kind:'failure',code:'invalid_transition'});
+ expect(domain.capabilities.readOpportunity(id)).toMatchObject({phase:'offer',revision:2});
+});
 
 it('DM-05/27 real unknown-date round advances through public capability without false predecessor dates', () => {
   const { domain, id, companyId } = setup();

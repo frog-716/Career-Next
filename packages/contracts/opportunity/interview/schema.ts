@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {BusinessTime} from '../../common/business-time';
+import {BusinessTime} from '../../common/business-time.ts';
 const Id=z.uuid(),Revision=z.number().int().positive();
 export const RoundState=z.enum(['awaiting_schedule','scheduled','awaiting_rebooking','completed','permanently_cancelled']);
 export type RoundState=z.infer<typeof RoundState>;

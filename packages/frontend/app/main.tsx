@@ -5,6 +5,8 @@ import {QueryClient,QueryClientProvider} from '@tanstack/react-query';
 import {CareerShell,resolveRoute,resumePath} from '../shell';
 import {RawImport} from '../features/materials/RawImport';
 import {WikiPage} from '../features/wiki';
+import {WikiResearchReferences} from '../features/wiki/research';
+import {OpportunitySubmodules,researchRequest} from './opportunity-submodules';
 import {EmploymentPage} from '../features/employment';
 import {ProjectPage} from '../features/project';
 import {OpportunityPage} from '../features/opportunity';
@@ -25,6 +27,7 @@ const profileRequest=async(input:ProfileRequest)=>ProfileResult.parse(await wind
 function Workspace(){
  const [workspace,setWorkspace]=useState<string>(),[error,setError]=useState(''),[epoch,setEpoch]=useState(0);
  const [focusOpportunity,setFocusOpportunity]=useState<{id:string;sequence:number}>();
+ const [researchFocus,setResearchFocus]=useState<{id:string;sequence:number}>();
  const [client]=useState(()=>new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}}));
  const route=resolveRoute(useLocation().pathname),navigate=useNavigate();
  const lastResume=useRef<string|undefined>(undefined);if(route.view==='resume')lastResume.current=route.opportunityId;
@@ -32,10 +35,10 @@ function Workspace(){
  useEffect(()=>{void window.career.ready().then(value=>setWorkspace(Identity.parse(value).workspaceInstance)).catch(()=>setError('工作区连接失败，请重新连接。'));},[]);
  if(!workspace)return <main><p>{error||'正在打开工作区…'}</p>{error&&<button onClick={async()=>{try{setWorkspace(Identity.parse(await window.career.reconnect()).workspaceInstance);setError('');}catch{setError('连接暂不可用，请重试。');}}}>重新连接工作区</button>}</main>;
  return <QueryClientProvider client={client}><CareerShell pages={{
-  wiki:<><WikiPage request={wikiRequest} materials={window.careerMaterials} workspaceInstance={workspace}/><RawImport/></>,
+  wiki:<><WikiPage request={wikiRequest} materials={window.careerMaterials} workspaceInstance={workspace}/><WikiResearchReferences opportunityRequest={opportunityRequest} researchRequest={researchRequest} onOpenOwner={id=>{setFocusOpportunity(previous=>({id,sequence:(previous?.sequence??0)+1}));setResearchFocus(previous=>({id,sequence:(previous?.sequence??0)+1}));navigate('/opportunity');}}/><RawImport/></>,
   employment:<EmploymentPage request={employmentRequest}/>,
   project:<ProjectPage request={projectRequest} employmentRequest={employmentRequest} relationEpoch={epoch}/>,
-  opportunity:<OpportunityPage focusOpportunity={focusOpportunity} request={opportunityRequest} workspaceInstance={workspace} onOpenResume={id=>navigate(resumePath(id))}/>,
+  opportunity:<OpportunityPage focusOpportunity={focusOpportunity} request={opportunityRequest} workspaceInstance={workspace} onOpenResume={id=>navigate(resumePath(id))} renderSubmodules={(opportunity,onChanged)=><OpportunitySubmodules opportunity={opportunity} workspaceInstance={workspace} onChanged={onChanged} openResearch={researchFocus?.id===opportunity.id?researchFocus.sequence:undefined}/>}/>,
  }} resume={lastResume.current?<ResumePage request={resumeRequest} profileRequest={profileRequest} opportunityId={lastResume.current} active={route.view==='resume'} onReturn={()=>{const id=lastResume.current;if(id)setFocusOpportunity(previous=>({id,sequence:(previous?.sequence??0)+1}));navigate('/opportunity');}}/>:undefined}/></QueryClientProvider>;
 }
 createRoot(document.getElementById('root')!).render(<HashRouter><Workspace/></HashRouter>);

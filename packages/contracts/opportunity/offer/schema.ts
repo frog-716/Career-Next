@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { BusinessTime, CommandId, Revision } from '../../common/business-time';
-import { SourceRef } from '../../materials/schema';
-import { OpportunityView } from '../schema';
+import { BusinessTime, CommandId, Revision } from '../../common/business-time.ts';
+import { SourceRef } from '../../materials/schema.ts';
+import { OpportunityView } from '../schema.ts';
 export const Condition = z.discriminatedUnion('kind', [z.object({kind:z.literal('unknown')}).strict(),z.object({kind:z.literal('known'),value:z.string().trim().min(1).max(4000)}).strict()]);
 export const Conditions = z.object({role:Condition,location:Condition,guaranteedCash:Condition,variableIncome:Condition,equity:Condition,oneTime:Condition,paymentCycle:Condition,other:Condition}).strict();
 export type Conditions = z.infer<typeof Conditions>;
