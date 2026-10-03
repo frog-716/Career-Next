@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { findFragments } from '../scripts/module-fragments';
+import { findFragments } from '../scripts/module-fragments.mts';
 
 it('mechanical discovery includes independently owned nested Opportunity fragments in stable order', async () => {
   const root=await mkdtemp(path.join(tmpdir(),'career-manifests-'));

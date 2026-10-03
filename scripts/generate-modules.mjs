@@ -1,5 +1,5 @@
 import { writeFile,mkdir } from 'node:fs/promises';
-import { findFragments } from './module-fragments.ts';
+import { findFragments } from './module-fragments.mts';
 const root=new URL('../',import.meta.url);
 const fragments=[];
 for(const fragment of await findFragments(new URL('packages/contracts/',root),'manifest.ts')){

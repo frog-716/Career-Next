@@ -60,6 +60,11 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
       const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(input.objectId) as RawRow | undefined;
       return row ? summary(row) : undefined;
     },
+    resolveSourceArtifact(input: SourceRef) {
+      if(input.owner!=='materials'||input.revision!==1||input.scope!=='personal'||input.locator!=='whole')return undefined;
+      const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(input.objectId) as RawRow|undefined;
+      return row?{...summary(row),digest:row.digest,blobId:row.blob_id}:undefined;
+    },
     receipt(session: HumanSession, commandId: string) { check(session); return receipt(commandId); },
     prepare(session: HumanSession, input: Confirm) {
       check(session);
