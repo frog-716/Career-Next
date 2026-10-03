@@ -1095,5 +1095,66 @@
     "externalProviderSearchFeishu": "NOT TESTED",
     "developerIdNotarizationX64": "READY / NOT RUN",
     "oldCareer": "NOT READ"
+  },
+  "revokePersistenceFollowUp": {
+    "status": "PASS_LOCAL_CONTROLLER_OWNER_PATH",
+    "command": "npx vitest run tests/integration/g6-ai-failures.test.ts tests/g4-ai-controller.test.ts tests/g6-ai-control-ui.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/g6-f2-revoke-persistence-green.json",
+    "exitCode": 0,
+    "files": 3,
+    "passed": 45,
+    "failed": 0,
+    "startTime": 1791020234693,
+    "red": {
+      "command": "npx vitest run tests/integration/g6-ai-failures.test.ts --maxWorkers=1",
+      "exitCode": 1,
+      "passed": 34,
+      "failed": 2,
+      "actual": "revoke writer persistence failed; ignoring-abort late body became pending in actual owner SQLite",
+      "log": "/tmp/g6-f2-revoke-persistence-red.log",
+      "sha256": "b5bd12b0be921ae849886da4be4f9cb3d9bac1280c0377020420e2215f71467f"
+    },
+    "tests": [
+      {
+        "name": "F2 stop live gate survives actual-SQLITE_BUSY stop persistence failure before ignoring-abort late output",
+        "status": "passed"
+      },
+      {
+        "name": "F2 revoke live gate survives actual-SQLITE_BUSY stop persistence failure before ignoring-abort late output",
+        "status": "passed"
+      },
+      {
+        "name": "F2 stop live gate survives writer-SQLITE_FULL stop persistence failure before ignoring-abort late output",
+        "status": "passed"
+      },
+      {
+        "name": "F2 revoke live gate survives writer-SQLITE_FULL stop persistence failure before ignoring-abort late output",
+        "status": "passed"
+      },
+      {
+        "name": "F2 source reference live revoke remains closed with no persistent permission change, even after another authorization",
+        "status": "passed"
+      },
+      {
+        "name": "F2 egress reference live revoke remains closed with no persistent permission change, even after another authorization",
+        "status": "passed"
+      }
+    ],
+    "faultBoundaries": {
+      "SQLITE_BUSY": "actual second SQLite connection BEGIN IMMEDIATE; actual public owner stop transaction returns failure, no persistent stop receipt or state",
+      "SQLITE_FULL": "controlled failure at AiWriterControllerPort.stop Promise before owner mutation, not actual whole system disk full; original Proposal settle actual SQLite quota test is separate",
+      "sourceEgressRevoke": "same synchronous reference revoke capability; actual owner permissions deliberately remain read:true/egress:true so authority cannot substitute for live gate",
+      "ordinaryStop": "both stop persistence-failure paths still retain a legal pending Proposal; no autoApply or followup",
+      "revoke": "both paths discard late body and keep task live-revoked even after a later openAfterAuthorization attempt"
+    },
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "evidence": "/tmp/g6-f2-revoke-typecheck.log"
+    },
+    "diffcheck": {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    "remaining": "root production runtime and final packaged integration re-run; no new bootstrap/owner/schema edits"
   }
 }

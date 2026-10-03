@@ -67,3 +67,23 @@ git diff --check
 - 当前来源权限撤销通过公开 Source authority policy port 收紧，实际正文/版本仍来自 owner SQLite；purge 使用实际 owner purge/fence。没有修改生产表模拟版本或伪造 source snapshot。
 - 正常 arm64 package / packaged smoke：本线 NOT RUN，由 root 最终集成执行。REAL PROVIDER / SEARCH / FEISHU：NOT TESTED；Developer ID / Notarization / x64：READY / NOT RUN；Migration M 未进入。
 - Frozen Product Spec **12/12 SHA 不变**；Frozen Architecture **8/8 SHA 不变**（相对基线逐文件 SHA256 已存 JSON）。旧 Career NOT READ。
+
+
+## 补审：revoke 持久化失败仍必须拒绝迟到正文
+
+Root 独立审查发现普通 stop 与 revoke 在控制器上仅共享 closed/AbortSignal；若 revoke 写 worker 失败，旧 owner grant 未持久撤销，忽略 abort 的 Provider 返回仍能走 settle。补测真实红灯：**34 PASS / 2 FAIL，exit 1**，两个 revoke 场景均实际保存了迟到 pending 正文。证据 `/tmp/g6-f2-revoke-persistence-red.log`，SHA 已写 JSON。
+
+最小修复只在 controller 维护同步 revoked task 集合：在调用 writer 前设定；接到结果后在任何 settle 之前拒绝；后续同 task 授权不能重新打开永久 revoke。普通 stop 继续允许原合法保留范围的 pending 迟到结果，不能一刀切丢弃。
+
+- SQLITE_BUSY：第二个真实 SQLite 连接 BEGIN IMMEDIATE 锁定实际 fixture DB；公开 stop owner 事务失败，task 仍 running、原命令 receipt_missing。解除锁后返回 Provider 结果，revoke 不保存正文，普通 stop 保留 pending。
+- SQLITE_FULL：注入公开 writer stop Promise adapter 的存储失败、尚未调用 owner；不是填满系统盘。实际 SQLite Proposal page-quota 耗尽测试仍单独保留，不以两种故障互相冒充。
+- Source/Egress 活闸：同步 revokeReferences 后，实际 owner metadata 仍 read/egress=true（模拟权限变更尚未持久）；另一次 authorization 也不能让旧实际输入的迟到正文保存。两个控制事件都走该同一可信 reference gate。
+- 四个失败持久化场景 + 两个 reference 场景全部通过，且根预算已用次数不释放、无正式 owner 自动修改。
+
+```sh
+npx vitest run tests/integration/g6-ai-failures.test.ts tests/g4-ai-controller.test.ts tests/g6-ai-control-ui.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/g6-f2-revoke-persistence-green.json
+npx tsc --noEmit
+git diff --check
+```
+
+分别 exit 0 / 0 / 0；**3 文件 45/45 PASS**（F2 runtime 36 + controller 5 + control UI 4）。日志 `/tmp/g6-f2-revoke-persistence-green.log`，机器补测记录已追加同一 JSON。本补丁没有更改 bootstrap 接线、owner、schema 或 Frozen；Root 继续最终 production runtime/package 集成回归。原 88/88 是先前广回归记录，不冒充本追加补丁的 packaged 回归。
