@@ -21,15 +21,16 @@ export function createPersistenceFence(db:Database.Database,binding:{workspaceIn
 }
 /** Utility-side gate accepts a bounded writer RPC assertion. No DB handle crosses workers. */
 export function createPersistenceSinkGate(check:(token:PersistenceToken)=>void|Promise<void>) {
- type SinkState={token:PersistenceToken;tail:Promise<void>;closed:boolean;handle?:FileHandle;closing?:Promise<void>};const active=new Set<SinkState>(),revoked=new Set<string>();
- const denied=(state:SinkState)=>state.closed||revoked.has(state.token.producerId);
+ type SinkState={token:PersistenceToken;tail:Promise<void>;closed:boolean;handle?:FileHandle;closing?:Promise<void>};const active=new Set<SinkState>(),revoked=new Set<string>(),blockedRefs=new Map<string,PersistenceReference>();
+ const tokenDenied=(token:PersistenceToken)=>revoked.has(token.producerId)||touches(token,[...blockedRefs.values()]);
+ const denied=(state:SinkState)=>state.closed||tokenDenied(state.token);
  function closeState(state:SinkState){state.closed=true;if(!state.closing)state.closing=(async()=>{await state.tail;const handle=state.handle;state.handle=undefined;try{if(handle){try{await handle.sync();}finally{await handle.close();}}}finally{active.delete(state);}})();return state.closing;}
- async function controlledSink(token:PersistenceToken,internalPath:string){PersistenceTokenSchema.parse(token);await check(token);if(revoked.has(token.producerId))throw Error('persistence_denied');const state:SinkState={token,tail:Promise.resolve(),closed:false};active.add(state);
+ async function controlledSink(token:PersistenceToken,internalPath:string){PersistenceTokenSchema.parse(token);if(tokenDenied(token))throw Error('persistence_denied');await check(token);if(tokenDenied(token))throw Error('persistence_denied');const state:SinkState={token,tail:Promise.resolve(),closed:false};active.add(state);
  const opening=(async()=>{state.handle=await open(internalPath,'wx',0o600);await check(token);if(denied(state))throw Error('persistence_denied');})();state.tail=opening.catch(()=>{});
  try{await opening;}catch(error){await closeState(state);throw error;}
  async function close(){await closeState(state);}
  return {append(bytes:Uint8Array){if(bytes.byteLength>65536)return Promise.reject(Error('sink_chunk_exceeded'));const copy=Buffer.from(bytes);const operation=state.tail.then(async()=>{if(denied(state))throw Error('persistence_denied');await check(token);if(denied(state))throw Error('persistence_denied');await state.handle!.write(copy);await state.handle!.sync();});state.tail=operation.catch(()=>{});return operation;},close};}
  async function withLease<T>(token:PersistenceToken,work:()=>Promise<T>):Promise<T>{PersistenceTokenSchema.parse(token);const state:SinkState={token,tail:Promise.resolve(),closed:false};active.add(state);let finish!:()=>void;state.tail=new Promise<void>(resolve=>{finish=resolve;});try{await check(token);if(denied(state))throw Error('persistence_denied');return await work();}finally{state.closed=true;finish();active.delete(state);}}
- return {controlledSink,withLease,revoke(producerId:string){revoked.add(producerId);for(const s of active)if(s.token.producerId===producerId)s.closed=true;},async drain(refs:readonly PersistenceReference[]){const targets=[...active].filter(s=>touches(s.token,refs));for(const s of targets)s.closed=true;await Promise.all(targets.map(closeState));}};
+ return {controlledSink,withLease,revoke(producerId:string){revoked.add(producerId);for(const s of active)if(s.token.producerId===producerId)s.closed=true;},async drain(refs:readonly PersistenceReference[]){for(const ref of refs)blockedRefs.set(JSON.stringify([ref.owner,ref.objectId]),ref);const targets=[...active].filter(s=>touches(s.token,refs));for(const s of targets)s.closed=true;await Promise.all(targets.map(closeState));}};
 }
 export type PersistenceFence=ReturnType<typeof createPersistenceFence>;
