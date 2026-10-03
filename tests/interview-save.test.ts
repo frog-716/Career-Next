@@ -1,0 +1,5 @@
+import {expect,it} from 'vitest';
+import {sendInterviewIntent} from '../packages/frontend/features/opportunity/interview/save';
+import {randomUUID} from 'node:crypto';
+it('a lost response queries the original intent receipt without issuing a second command',async()=>{const commandId=randomUUID(),id=randomUUID();const intent={operation:'interview.save-document' as const,commandId,id,expectedRevision:1,document:'transcript' as const,text:'正文'};const inputs:unknown[]=[];const result=await sendInterviewIntent(async input=>{inputs.push(input);if(input.operation==='interview.receipt')return {kind:'saved',id,revision:2};throw Error('transport lost');},intent);expect(inputs).toEqual([intent,{operation:'interview.receipt',commandId}]);expect(result).toEqual({kind:'saved',id,revision:2});});
+it('an unavailable receipt remains unknown and never invents failure or success',async()=>{expect(await sendInterviewIntent(async()=>{throw Error('backend offline');},{operation:'interview.confirm',commandId:randomUUID(),opportunityId:randomUUID(),expectedOpportunityRevision:1,title:'真实一面',confirmationTime:{kind:'unknown'}})).toEqual({kind:'unknown'});});
