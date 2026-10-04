@@ -23,3 +23,4 @@ export function createCompanyDomain(db:Database.Database){
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+export {importCompanySnapshot} from './staging';

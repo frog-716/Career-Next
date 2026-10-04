@@ -22,3 +22,4 @@ export function createProfileDomain(db:Database.Database){
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+export {importProfileSnapshot} from './staging';

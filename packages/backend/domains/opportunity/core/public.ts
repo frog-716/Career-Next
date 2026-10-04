@@ -104,3 +104,4 @@ function effectiveResult(events:History[],newCorrection:string):Opportunity['res
 }
 
 export {validateCandidate,candidateRelations} from './candidate-validation';
+export {importOpportunitySnapshot} from './staging';

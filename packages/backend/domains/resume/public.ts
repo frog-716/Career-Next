@@ -125,3 +125,4 @@ export {renderSnapshot} from './render';
 export {validateCandidate,candidateRelations} from './candidate-validation';
 
 export {createResumeAiPolicy} from './ai-policy';
+export {importResumeSnapshot,hasResumeSnapshots} from './staging';
