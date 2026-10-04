@@ -1,3 +1,4 @@
+import {LegacyHistoryRequest,LegacyHistoryResult} from './legacy-history/schema.ts';
 import {SearchRequest,SearchResult} from './search.ts';
 import {ProductRequest,ProductResult} from './product.ts';
 import {z} from 'zod';
@@ -35,7 +36,7 @@ export const WikiResult=z.discriminatedUnion('kind',[
 ]);
 export type WikiResult=z.infer<typeof WikiResult>;
 
-export const Request=z.discriminatedUnion('operation',[...WikiRequest.options,...ProductRequest.options,...SearchRequest.options]);export type Request=z.infer<typeof Request>;
+export const Request=z.discriminatedUnion('operation',[...WikiRequest.options,...ProductRequest.options,...SearchRequest.options,...LegacyHistoryRequest.options]);export type Request=z.infer<typeof Request>;
 // Acknowledges only synchronous admission closure; the original command receipt remains authoritative.
 export const ExecutionBlocked=z.object({kind:z.literal('execution_blocked'),taskId:z.uuid(),commandId:z.uuid(),mode:z.enum(['stop','revoke']),dispatchBlocked:z.literal(true),persistencePending:z.literal(true)}).strict();
-export const Result=z.discriminatedUnion('kind',[...WikiResult.options,...ProductResult.options,...SearchResult.options,ExecutionBlocked]);export type Result=z.infer<typeof Result>;
+export const Result=z.discriminatedUnion('kind',[...WikiResult.options,...ProductResult.options,...SearchResult.options,...LegacyHistoryResult.options,ExecutionBlocked]);export type Result=z.infer<typeof Result>;

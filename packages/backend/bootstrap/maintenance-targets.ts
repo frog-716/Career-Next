@@ -23,6 +23,7 @@ export async function maintenanceTargets(d:ReturnType<typeof composeDomains>,mat
  }
  for(const run of d.search.list())add('search',run.id,'受控搜索 '+run.query);
  for(const item of d.feedback.list())add('feedback',item.id,item.entries[0]!.text.slice(0,80));
+ for(const item of d.legacyHistory.maintenanceObjects())add('ai-legacy-history',item.id,'历史 AI 建议 '+item.title);
  add('profile','current','当前本人身份');return targets;
 }
 /** Object-owned scopes expand through public interfaces; shared facts stay independent. */

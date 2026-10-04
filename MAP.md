@@ -1,6 +1,6 @@
 # Career-Next 项目地图
 
-当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1 未开始，尚未执行迁移。
+当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 暂停，尚未执行真实迁移。
 
 ## 目标与当前阶段
 
@@ -116,4 +116,9 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - [Resume 对齐能力](docs/verification/resume-alignment.md)（[#32](https://github.com/frog-716/Career-Next/issues/32)）：PASS；Career 文稿/编辑/版本/PDF与 AI Undo 保留对齐，真人 IME及packaged桌面验收通过。仅隔离 TEST DATA，不执行 Migration M。
 - [M0 盘点](docs/migration/M0-INVENTORY.md) / [结构化清单](docs/migration/M0-INVENTORY.json)：保留分类前历史证据；两套旧运行实例单独记录。
 - [M0.5 最终分类基线](docs/migration/M0.5-SUMMARY.md)：Primary REAL=14、TEST=65、UNKNOWN=5，共84条；backup-only TEST=30。19组均已分类；仅14条 REAL 可作为后续候选，TEST 禁止迁移，UNKNOWN 默认不迁移且不自动升级。
-- 未迁移、导入、修正或合并；停在 M0.5，M1 未开始，后续操作需要独立明确授权。本地人工审阅文件保持 Git ignored。
+- 未迁移、导入、修正或合并；M0.5 已固化，M1-B #33 保持暂停，后续迁移操作需要独立明确授权。本地人工审阅文件保持 Git ignored。
+
+## Legacy Proposal 只读历史能力
+
+- [#34](https://github.com/frog-716/Career-Next/issues/34) / [验证](docs/verification/legacy-proposal-history.md)：`contracts/ai/legacy-history/`、`backend/ai-runtime/legacy-history/`、`frontend/support/ai/legacy-history.tsx`。独立强类型历史、list/read、受控 staging 私有写入、备份/恢复及 purge；设置内查看，不加入当前 AI 任务或恢复旧执行权。
+- schema 8 追加独立历史表，旧发布批次不变。全部以 synthetic TEST DATA 验证；#33 仍 OPEN，M1-B 未继续执行，未进入 M2。

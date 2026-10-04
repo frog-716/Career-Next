@@ -24,7 +24,7 @@ export function createWriterCommands(db:Database.Database,workspaceInstance:stri
  const root=path.dirname(db.name),ledger=createLedger(db),fence=createPersistenceFence(db,{workspaceInstance,backendGeneration:generation});
  const preferences=createPreferences(db);let providerBinding:ProviderBinding={enabled:true,generation:'fake-v1'};
  let human=false;let currentHuman:HumanSession|undefined;let ai!:ReturnType<typeof createAiRuntime>;let lifecycle!:ReturnType<typeof composeLifecycle>;
- const domains=composeDomains(db,materials,{ai:{handle:input=>(input as {operation:string}).operation.startsWith('search.')?domains.search.handle(input):ai.handle(input,'human')},application:{handle:input=>PreferencesRequest.safeParse(input).success?preferences.handle(input):FeedbackRequest.safeParse(input).success?domains.feedback.handle(input):lifecycle.handle(input,'human')}});
+ const domains=composeDomains(db,materials,{ai:{handle:input=>(input as {operation:string}).operation.startsWith('legacy-history.')?domains.legacyHistory.handle(input):(input as {operation:string}).operation.startsWith('search.')?domains.search.handle(input):ai.handle(input,'human')},application:{handle:input=>PreferencesRequest.safeParse(input).success?preferences.handle(input):FeedbackRequest.safeParse(input).success?domains.feedback.handle(input):lifecycle.handle(input,'human')}});
  const localSearch=composeLocalSearch(db,domains);
  const aiPorts=composeAiPorts(domains,materials,root,{workspaceInstance,backendGeneration:generation},fence,()=>{try{if(!currentHuman)return false;authority.check(currentHuman);return true;}catch{return false;}});
  aiPorts.recipient=()=>{if(!providerBinding.enabled)throw Error('provider_disabled');return providerRecipient(providerBinding);};

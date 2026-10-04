@@ -1,3 +1,4 @@
+import {legacyHistoryMigration} from '../ai-runtime/legacy-history/public';
 import {localSearchMigration} from '../platform/search/public';
 import {localSearchNotifications} from './local-search-migration';
 import {searchMigration} from '../ai-runtime/search/public';
@@ -63,4 +64,6 @@ export const releases:readonly MigrationBatch[]=[{version:2,name:'002-g2-first-b
  {id:'platform.local-search-notifications.v1',dependencies:['platform.local-search.v1'],sql:localSearchNotifications},
 ]},{version:7,name:'007-j07-material-origin',fragments:[
  {id:'materials.origin.v1',dependencies:['materials.targets.v1'],sql:materialOriginMigration},
+]},{version:8,name:'008-legacy-proposal-history',fragments:[
+ {id:'ai.legacy-history.v1',dependencies:['platform.persistence.v1'],sql:legacyHistoryMigration},
 ]}];
