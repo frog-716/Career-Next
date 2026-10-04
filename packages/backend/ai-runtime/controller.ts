@@ -26,13 +26,13 @@ export function createAiController(writer:AiWriterControllerPort,adapter:Provide
   try{
    const intent=await writer.prepareDispatch(operationId);
    entry.intent=intent;if(shutDown||closed.has(taskId)||entry.abort.signal.aborted||touches(intent,operationId)){await writer.cancelBeforeHandoff(operationId);return;}
-   if(intent.taskId!==taskId||!bindingMatches(intent)||adapter.network!=='none'){await writer.cancelBeforeHandoff(operationId);throw Error('provider_binding_mismatch');}
+   if(intent.taskId!==taskId||!bindingMatches(intent)){await writer.cancelBeforeHandoff(operationId);throw Error('provider_binding_mismatch');}
    // No await between final live-gate check and transport handoff.
    const response=adapter.send({operationId,manifest:intent.manifest,manifestDigest:intent.manifestDigest},entry.abort.signal);
    // A fast rejection is handled while a slow writer records processing.
    void response.catch(()=>{});
    await writer.markProcessing(operationId);
-   try{const output=await response;if(shutDown||revoked.has(taskId)||touches(intent,operationId)||!bindingMatches(intent)){await writer.markUnknown(operationId,'remote_outcome_unconfirmed');return;}await writer.settle(operationId,output);}catch(error){const reason=error instanceof Error?error.message:'provider_failure';if(['timeout','outcome_unknown','aborted'].includes(reason)||entry.abort.signal.aborted)await writer.markUnknown(operationId,'remote_outcome_unconfirmed');else await writer.failOperation(operationId,'provider_failure');}
+   try{const output=await response;if(shutDown||revoked.has(taskId)||touches(intent,operationId)||!bindingMatches(intent)){await writer.markUnknown(operationId,'remote_outcome_unconfirmed');return;}await writer.settle(operationId,output);}catch(error){const reason=error instanceof Error?error.message:'provider_failure';if(['not_sent','manifest_mismatch','unsupported_provider_task'].includes(reason))await writer.cancelBeforeHandoff(operationId);else if(['timeout','outcome_unknown','aborted'].includes(reason)||entry.abort.signal.aborted)await writer.markUnknown(operationId,'remote_outcome_unconfirmed');else await writer.failOperation(operationId,'provider_failure');}
   }finally{running.delete(operationId);authorized.delete(operationId);}
  }
  // Called only after a new, trusted human authorization has committed in the writer.

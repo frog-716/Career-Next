@@ -71,7 +71,7 @@ export function RawImport({purgeNotice}:{purgeNotice?:PurgeNotice}={}) {
     <p id="status" role="status" aria-live="polite">{status}</p>
     {preview&&<section aria-label="尚未保存的预览"><h2>尚未保存</h2><p>{preview.name} · {preview.size} 字节 · {preview.target?.kind??'personal'} 范围</p><pre id="preview-text">{preview.text}</pre><div className="actions"><button disabled={busy||unresolved||previewInvalid} onClick={()=>void confirm()}>{save?.phase==='not_recorded'?'继续原保存':save?.phase==='failed'||save?.phase==='conflict'?'重新确认保存':'确认保存原件'}</button><button disabled={busy||unresolved} onClick={()=>void cancel()}>取消导入</button></div></section>}
     {unresolved&&<button disabled={busy} onClick={()=>void verify()}>{save.phase==='saved_unread'?'重新读取已保存材料':'核对保存结果'}</button>}
-    {raw&&<section aria-label="正式材料回读"><h2>{raw.name}</h2><p>{raw.scope} 范围 · 已保存的原件 · 来源：本材料</p><pre id="saved-text">{raw.text}</pre><button disabled={busy} onClick={()=>void read(raw.id)}>重新读取原件</button></section>}
+    {raw&&<section aria-label="正式材料回读"><h2>{raw.name}</h2><p>{raw.scope} 范围 · 已保存的原件 · 来源：{raw.origin?'飞书（用户身份，只读导入）':'本材料'}</p>{raw.origin&&<p>原文 revision：{raw.origin.revisionId} · 文档：{raw.origin.documentId}<br/>{raw.origin.url}</p>}<pre id="saved-text">{raw.text}</pre><button disabled={busy} onClick={()=>void read(raw.id)}>重新读取原件</button></section>}
     <section aria-label="已保存材料"><h2>已保存材料</h2>{items.length===0?<p>尚无已保存材料。</p>:<ul>{items.map(item=><li key={item.id}><button disabled={busy||Boolean(preview)||unresolved} onClick={()=>void read(item.id)}>{item.name}</button></li>)}</ul>}</section>
   </main>;
 }

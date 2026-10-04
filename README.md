@@ -1,8 +1,10 @@
 # Career-Next
 
+G0–G5 已 PASS，[J-07 真实外部链](docs/verification/j07-real-external.md) 使用隔离 TEST DATA 验收完成。G6 本地故障/恢复 PASS；Developer ID、Notarization、x64 仍 READY / NOT RUN，Migration M 未开始。
+
 Career 是保存在个人电脑上的长期职业工作台，帮助用户推进求职、记录真实工作，并积累可找回、可复用的职业资料。
 
-G0、G1、G2 第一批和 G3 已 PASS。G4 增加真实首次投递与再次沟通、跨域来源复核、Wiki 整理提案，以及备份、恢复和永久清除；验收见 [G4 证据](docs/verification/g4-cross-domain.md)。四个一级入口固定为 Wiki、机会、项目、任职。简历当前稿自动保存，命名版本和未命名导出冻结当时内容、身份及真实 PDF；真实中文 IME 已由用户人工验收。AI 目前仅使用本地 deterministic fake，需要逐次授权和人工采纳，不连接真实 Provider / Search / Feishu。完整 Career 应用尚未建成；停在 G5 之前。
+G0、G1、G2 第一批和 G3 已 PASS。G4 增加真实首次投递与再次沟通、跨域来源复核、Wiki 整理提案，以及备份、恢复和永久清除；验收见 [G4 证据](docs/verification/g4-cross-domain.md)。四个一级入口固定为 Wiki、机会、项目、任职。简历当前稿自动保存，命名版本和未命名导出冻结当时内容、身份及真实 PDF；真实中文 IME 已由用户人工验收。AI 发送需要最终预览授权，正式内容由人工采纳后通过业务 owner 写入。真实 Tavily 与 DeepSeek 已完成受控验收；Feishu 通过 user 身份只读 CLI 读取指定文档，确认缓存后由 Materials 保存，未增加内置 live Feishu adapter。完整发布与正式迁移尚未完成。
 
 - [冻结产品规格 Frozen R3](docs/product-spec/rebuild-spec/README.md)
 - [冻结架构 V2](docs/architecture/ARCHITECTURE.md)

@@ -1,10 +1,12 @@
 # Career-Next 项目地图
 
+当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M = NOT STARTED。
+
 ## 目标与当前阶段
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；AI 只用 deterministic fake，不调用真实 AI / Search / Feishu，G5 本轮普通产品链和真人桌面已 PASS，总状态 PARTIAL 仅因 J-07 真实外部未测；见 [G5 最终证据](docs/verification/g5-complete-journeys.md)，当前已获 G6 独立授权。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；G4 历史范围只用 deterministic fake；G5 产品、真人桌面与 J-01～J-09 已 PASS，见 [G5 最终证据](docs/verification/g5-complete-journeys.md)。G6 本地故障与恢复已 PASS，见 [G6 矩阵](docs/verification/g6-failure-matrix.md)。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
 
 ## 冻结输入与阅读入口
 

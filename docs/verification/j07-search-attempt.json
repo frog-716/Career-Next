@@ -1,0 +1,24 @@
+{
+  "status": "NOT RUN - pre-handoff credential_unavailable",
+  "query": "OpenAI official website",
+  "recipient": "Tavily",
+  "requestCount": 0,
+  "state": "not_sent",
+  "runId": "ce5026c3-7cff-4538-a94a-0f128db5fe99",
+  "previewDigest": "b7e69204012bdce7dd3b0e66c14434873ac4788f4c2e223137b2ed27ad8059b7",
+  "resultCount": 0,
+  "researchCandidates": 0,
+  "businessCountsUnchanged": true,
+  "privateCareerDataSent": 0,
+  "deepSeekCalls": 0,
+  "feishuCalls": 0,
+  "keyPatternFindings": {
+    "Git": 0,
+    "logs": 0,
+    "business_db_files_backups": 0
+  },
+  "keyReadByAgent": false,
+  "frozenProductSpec": "12/12 unchanged",
+  "frozenArchitecture": "8/8 unchanged",
+  "artifactAsarSha256": "56e3a000b6f8dbd1353117c81b50d669b7a90dad35f3beb22e17ed8c357fc1fb"
+}

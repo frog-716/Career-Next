@@ -1,0 +1,210 @@
+{
+  "recordedAt": "2026-10-04T02:55:01.912577+00:00",
+  "baseline": "65a5d67789172905abc0b0c3fa8d241843b04e79",
+  "issue": 31,
+  "j07": "PASS",
+  "g5": "PASS",
+  "g6": "LOCAL PASS",
+  "acceptance104": {
+    "PASS_ALREADY": 38,
+    "PASS_G5": 32,
+    "PASS_G6": 28,
+    "DEFER_M": 5,
+    "CONDITIONAL": 1,
+    "EXTERNAL_LIVE_PENDING": 0,
+    "DEFER_G6": 0,
+    "total": 104,
+    "uniqueFrozenIDsMatch": true
+  },
+  "realCounts": {
+    "SEARCH_REQUEST_COUNT": 1,
+    "PROVIDER_REQUEST_COUNT": 1,
+    "FEISHU_BODY_READ_COUNT": 1,
+    "FEISHU_WRITE_COUNT": 0,
+    "CAREER_TO_FEISHU": 0
+  },
+  "realServices": {
+    "Search": "PASS",
+    "Provider": "PASS",
+    "Feishu": "PASS"
+  },
+  "testDataOnly": true,
+  "careerPrivateUserDataExternalized": 0,
+  "externalRequestsInCloseout": 0,
+  "review": {
+    "Standards": "PASS",
+    "Spec": "PASS",
+    "Architecture": "PASS",
+    "PrivacySecretFlows": "PASS",
+    "finding": "Provider authentication-value reflection rejected before Proposal/DB; quoted/escaped values covered in both DeepSeek and Tavily",
+    "redEvidence": [
+      "final-deepseek-echo-red.log",
+      "final-deepseek-quoted-echo-red.log",
+      "final-tavily-quoted-echo-red.log"
+    ],
+    "fixed": true,
+    "reReview": "Separate read-only Standards / Spec / Architecture agents; synthetic credentials only"
+  },
+  "tests": [
+    {
+      "scope": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "result": "PASS",
+      "files": null,
+      "tests": null,
+      "log": "out/j07-real-external/final-typecheck.log",
+      "logSHA256": "ce31c06d44db372d7ffaac4fd8fb58dd89015c5ebc06e7293a3f5f882e13d1e9"
+    },
+    {
+      "scope": "build",
+      "command": "npm run build",
+      "exitCode": 0,
+      "result": "PASS",
+      "files": null,
+      "tests": null,
+      "log": "out/j07-real-external/final-build.log",
+      "logSHA256": "c7802530927c1680d90e1166d8da54fa79ece6938f794ac201c670106837fe93"
+    },
+    {
+      "scope": "unit",
+      "command": "npm run test -- --no-file-parallelism",
+      "exitCode": 0,
+      "result": "PASS",
+      "files": 54,
+      "tests": 164,
+      "log": "out/j07-real-external/final-unit-green.log",
+      "logSHA256": "c7ec3a518429cbdb95f0e591251fc79c466e83b4ca92840ac843850a5269cfd4"
+    },
+    {
+      "scope": "integration",
+      "command": "npm run test:integration -- --no-file-parallelism",
+      "exitCode": 0,
+      "result": "PASS",
+      "files": 80,
+      "tests": 401,
+      "log": "out/j07-real-external/final-integration-green.log",
+      "logSHA256": "5595fd9cdd8b6462cb33d6657fc47fb8d9f53a2c759205994270ff22df78d0d2"
+    },
+    {
+      "scope": "arm64 package",
+      "command": "npm run package",
+      "exitCode": 0,
+      "result": "PASS",
+      "files": null,
+      "tests": null,
+      "log": "out/j07-real-external/final-package.log",
+      "logSHA256": "d42cef7fa8fcaa4f1a6b446e76a2dbe496fc2cb6cbaaafa4382d7d9886e3df38"
+    },
+    {
+      "scope": "packaged smoke",
+      "command": "CAREER_PACKAGED=1 vitest run tests/desktop/j07-credential-bridge.electron.test.ts tests/desktop/j07-credential-wait.electron.test.ts tests/desktop/j07-native-vault.electron.test.ts tests/desktop/materials.electron.test.ts --no-file-parallelism",
+      "exitCode": 0,
+      "result": "PASS",
+      "files": 4,
+      "tests": 12,
+      "log": "out/j07-real-external/final-packaged-smoke.log",
+      "logSHA256": "222e653aa22eb47b48becc048c04ebbd7b93afcbbdb0487dbce34e2af725eac0"
+    }
+  ],
+  "packagedApp": {
+    "asarSHA256": "cca34e1adf813a706ffa79e37c8705a57ccb08d959a832997def5acd58523e5c",
+    "unexpectedTopLevelCount": 0,
+    "distFilesMatch": true
+  },
+  "safetyAudit": {
+    "recordedAt": "2026-10-04T02:55:01.817Z",
+    "method": "Pattern and channel/flow audit, no stored credential read or exact-value comparison; only whitelisted public metadata returned",
+    "categories": {
+      "git": {
+        "files": 556,
+        "keyPatternHits": 0
+      },
+      "gitHistory": {
+        "keyPatternHits": 0
+      },
+      "logs": {
+        "files": 107,
+        "keyPatternHits": 0
+      },
+      "sqliteRecorderBackupBusinessFiles": {
+        "files": 17,
+        "keyPatternHits": 0
+      },
+      "verificationDocs": {
+        "files": 62,
+        "keyPatternHits": 0
+      },
+      "cliArgs": {
+        "projectProcesses": 7,
+        "keyPatternHits": 0
+      }
+    },
+    "frozen": {
+      "docs/product-spec/": {
+        "files": 12,
+        "changed": 0
+      },
+      "docs/architecture/": {
+        "files": 8,
+        "changed": 0
+      }
+    },
+    "actualCounts": {
+      "SEARCH_REQUEST_COUNT": 1,
+      "PROVIDER_REQUEST_COUNT": 1,
+      "FEISHU_BODY_READ_COUNT": 1,
+      "FEISHU_WRITE_COUNT": 0,
+      "CAREER_TO_FEISHU": 0
+    },
+    "persisted": {
+      "providerRequestCount": 1,
+      "taskState": "completed",
+      "proposalState": "accepted",
+      "proposalNature": "hypothesis",
+      "researchItemPresent": true,
+      "researchNature": "inference",
+      "independentlyVerified": false,
+      "rawId": "f4211cdf-86a2-408b-95b6-df378ca71045",
+      "rawBodySHA256": "e2f08857e9bef4d2277642613a5547ea9537a139d5d1fed0e9d37630b05aca7c",
+      "rawBytes": 224,
+      "rawOrigin": {
+        "kind": "feishu",
+        "identity": "user",
+        "url": "https://fcnxusey6bqe.feishu.cn/wiki/BEySweDliiGwbpk56zTcA88Snxc",
+        "wikiNodeId": "BEySweDliiGwbpk56zTcA88Snxc",
+        "documentId": "EVRwdPQMoo9WSbxo2xockU5qnJg",
+        "revisionId": 25
+      },
+      "rawTotal": 2,
+      "researchTotal": 1
+    },
+    "feishuCacheSHA256": "e2f08857e9bef4d2277642613a5547ea9537a139d5d1fed0e9d37630b05aca7c",
+    "feishuCacheMatchesSaved": true,
+    "externalRequestsInCloseout": 0
+  },
+  "releaseEnvironment": {
+    "DeveloperID": "READY / NOT RUN",
+    "Notarization": "READY / NOT RUN",
+    "x64": "READY / NOT RUN",
+    "MigrationM": "NOT STARTED"
+  },
+  "limits": [
+    "Feishu real read used official user CLI; cached confirmed revision25 persisted through formal Materials; no built-in live Feishu adapter added.",
+    "Search and Provider used separately authorized TEST DATA; no Tavily results were sent to DeepSeek, so no claim of the same live Search-result-to-Provider material path.",
+    "Provider success HTTP class 2xx; exact status was not retained; cost not supplied by service.",
+    "Secret audit detects patterns and reviews channels; no stored Key was read or used for exact-value comparison.",
+    "OS cancellation/denial classifications use fixture codes; native safeStorage can report a generic unavailable result."
+  ],
+  "initialRegressionFailures": {
+    "integration": "400/401 passed; G1 upgrade still expected schema6; updated latest version7 assertion, preserved released migration history; full rerun401/401 PASS.",
+    "unit": "162/164 passed in initial run while quoted credential counterexamples were introduced; missing guards fixed; full stable rerun164/164 PASS.",
+    "echoIntegrationAssertion": "First assertion expected invalid_output operation state; existing control contract uses failure/provider_failure; test corrected without changing control semantics."
+  },
+  "gitPolicy": {
+    "onlyCodeTestsVerificationNavigation": true,
+    "runtimeDataCachesBuildOutputExcluded": true,
+    "checkpoint": "J-07 external-validation, committed after final audit; commit/push/Issue close referenced in Git and Issue31 records"
+  },
+  "next": "STOP; do not enter Migration M"
+}

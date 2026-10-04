@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-04",
+  "realSearch": "FAIL - pre-HTTP credential resolution; actual Tavily service NOT RUN",
+  "query": "OpenAI official website",
+  "recipient": "Tavily",
+  "endpoint": "POST https://api.tavily.com/search",
+  "body": {
+    "query": "OpenAI official website"
+  },
+  "explicitReauthorization": true,
+  "uiExecuteClicks": 1,
+  "requestCount": 0,
+  "previousRequestCount": 0,
+  "totalActualHttpRequests": 0,
+  "state": "not_sent",
+  "operationId": "4e565026-6f8e-437c-8f73-20e1e05e15e5",
+  "httpStatus": null,
+  "failureStage": "credential_resolve",
+  "stages": {
+    "credential_resolve": "FAIL",
+    "request_build": "NOT RUN",
+    "connect": "NOT RUN",
+    "TLS": "NOT RUN",
+    "HTTP auth": "NOT RUN",
+    "HTTP response": "NOT RUN",
+    "parse": "NOT RUN"
+  },
+  "resultCount": 0,
+  "researchCandidates": 0,
+  "formalResearchWritten": false,
+  "independentlyVerified": false,
+  "privateCareerDataSent": 0,
+  "deepSeekCalls": 0,
+  "feishuCalls": 0,
+  "retry": false,
+  "redirect": false,
+  "fallback": false,
+  "credentialSlotConfirmedBeforeSend": "Tavily",
+  "credentialPlaintextReadByAgent": false,
+  "safety": {
+    "git": {
+      "files": 538,
+      "keyPatternMatches": 0
+    },
+    "logs": {
+      "files": 49,
+      "keyPatternMatches": 0
+    },
+    "dbBusinessRecorderAndBackup": {
+      "files": 11,
+      "keyPatternMatches": 0
+    },
+    "processArgumentsKeyPatternMatches": 0
+  },
+  "frozen": {
+    "product-spec": {
+      "files": 12,
+      "changed": []
+    },
+    "architecture": {
+      "files": 8,
+      "changed": []
+    }
+  },
+  "businessCounts": {
+    "research_documents": 0,
+    "research_items": 0,
+    "research_history": 0,
+    "research_references": 0,
+    "ai_tasks": 0,
+    "ai_operations": 0,
+    "ai_proposals": 0,
+    "ai_search_runs": 0,
+    "ai_product_tasks": 0,
+    "ai_product_operations": 0,
+    "ai_product_proposals": 0
+  },
+  "normalPackageAsarSha256": "8ca63f76294d9d1980498e96c82e5cb09eab5f47239a09bf51b9261a8c317a42",
+  "originalFailurePreserved": true,
+  "next": "Stop. Private Main-to-Search credential handoff still unproven; another attempt requires new authorization."
+}

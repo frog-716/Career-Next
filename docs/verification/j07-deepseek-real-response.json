@@ -1,0 +1,127 @@
+{
+  "recordedAt": "2026-10-04T00:41:05.588450+00:00",
+  "result": "REAL_REQUEST_AND_PENDING_PROPOSAL_PASS",
+  "fullProviderOwnerAcceptance": "PENDING_USER_ACCEPTANCE",
+  "operationId": "2f8fbd5c-9943-4ab1-9fa0-8ce0e699fb59",
+  "taskId": "e0f36547-68bf-4845-a603-279893b88435",
+  "previewEvidence": "j07-deepseek-egress-preview.json",
+  "preDispatchBodyExactMatch": true,
+  "manifestDigest": "8f7d99c4dc940cc4c13f6572250676357e69f988afa1566e1ae8e372c7d37b7e",
+  "provider": "DeepSeek",
+  "displayModel": "DeepSeek V4.1-Flash",
+  "apiModel": "deepseek-flash",
+  "endpoint": "https://api.deepseek.com/chat/completions",
+  "thinking": "disabled",
+  "fallback": "none",
+  "requestCount": 1,
+  "requestCountEvidence": "usedRequests=1, single operation success; adapter has one fetch and no retry/fallback",
+  "httpStatus": null,
+  "httpStatusClass": "2xx",
+  "httpStatusEvidence": "Formal adapter requires response.ok before parsing; exact code not retained, so not asserted as 200",
+  "responseValid": true,
+  "providerUsage": {
+    "model": "deepseek-flash",
+    "inputTokens": 262,
+    "outputTokens": 186,
+    "totalTokens": 448,
+    "cost": "not_reported"
+  },
+  "proposalCount": 1,
+  "proposals": [
+    {
+      "id": "09d38be6-4275-4d78-9828-82222653f0ad",
+      "taskId": "e0f36547-68bf-4845-a603-279893b88435",
+      "operationId": "2f8fbd5c-9943-4ab1-9fa0-8ce0e699fb59",
+      "target": {
+        "kind": "research-organize",
+        "owner": {
+          "kind": "opportunity",
+          "id": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+        }
+      },
+      "kind": "create",
+      "contentSHA256": "5109230fd533df9d617d3c3bef0823fe9cb8d9f3e568535d2f2f295049f71b67",
+      "bodySHA256": "bac3895e42dd05ef89a11670246c376782a73943466ba19e6ab891ced805c545",
+      "nature": "hypothesis",
+      "citations": [
+        "c2952434-9355-4954-a7d5-a5d8fa9e91bf"
+      ],
+      "unknownCount": 3,
+      "state": "pending",
+      "validity": "current"
+    }
+  ],
+  "formalResearchCounts": {
+    "research_documents": 0,
+    "research_items": 0,
+    "research_history": 0,
+    "research_references": 0
+  },
+  "independentlyVerified": false,
+  "testDataOnly": true,
+  "privateCareerDataSent": false,
+  "tavilyResultsSent": false,
+  "tavilyCallsThisStep": 0,
+  "feishuCallsThisStep": 0,
+  "agentReadKey": false,
+  "secretPatternScan": {
+    "git": {
+      "files": 548,
+      "filesWithKeyPattern": 0
+    },
+    "logs": {
+      "files": 73,
+      "filesWithKeyPattern": 0
+    },
+    "businessFilesIncludingDBRecorderBackup": {
+      "files": 11,
+      "filesWithKeyPattern": 0
+    },
+    "cliArgsKeyPatternHits": 0,
+    "method": "Key-pattern scan only; no Key read or exact-value comparison; encrypted security stores excluded"
+  },
+  "operationRecord": {
+    "productTarget": {
+      "kind": "research-organize",
+      "owner": {
+        "kind": "opportunity",
+        "id": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      }
+    },
+    "productTargets": [
+      {
+        "owner": "opportunity",
+        "objectId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      }
+    ],
+    "id": "2f8fbd5c-9943-4ab1-9fa0-8ce0e699fb59",
+    "taskId": "e0f36547-68bf-4845-a603-279893b88435",
+    "state": "success",
+    "manifestDigest": "8f7d99c4dc940cc4c13f6572250676357e69f988afa1566e1ae8e372c7d37b7e",
+    "recipient": {
+      "service": "deepseek",
+      "endpoint": "https://api.deepseek.com/chat/completions",
+      "account": "device-credential",
+      "generation": "054399fc-083a-4d46-8f7a-d490d7810f3c",
+      "model": "deepseek-flash"
+    },
+    "reserved": {
+      "requests": 1,
+      "inputBytes": 4049,
+      "outputBytes": 196608
+    },
+    "authorized": false,
+    "providerUsage": {
+      "model": "deepseek-flash",
+      "inputTokens": 262,
+      "outputTokens": 186,
+      "totalTokens": 448,
+      "cost": "not_reported"
+    },
+    "actualOutputBytes": 914
+  },
+  "noApply": true,
+  "next": "User reviews/accepts pending proposal; no further network request authorized",
+  "snapshotStage": "historical pending proposal before user Apply",
+  "responseStorage": "必要ID、摘要、状态、用量；完整响应/正文未复制到Git，留在隔离测试workspace。"
+}

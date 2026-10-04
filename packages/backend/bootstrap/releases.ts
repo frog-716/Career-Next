@@ -2,6 +2,7 @@ import {localSearchMigration} from '../platform/search/public';
 import {localSearchNotifications} from './local-search-migration';
 import {searchMigration} from '../ai-runtime/search/public';
 import {importTargetMigration} from '../domains/materials/public';
+import {materialOriginMigration} from '../domains/materials/origin';
 import {draftMigration} from '../domains/opportunity/communication/public';
 import {productMigration} from '../ai-runtime/product/migration';
 import {feedbackMigration} from '../application/feedback/public';
@@ -60,4 +61,6 @@ export const releases:readonly MigrationBatch[]=[{version:2,name:'002-g2-first-b
 ]},{version:6,name:'006-g6-failure-gates',fragments:[
  {id:'platform.local-search.v1',dependencies:['wiki.initial.v1','project.initial.v1','opportunity.initial.v1'],sql:localSearchMigration},
  {id:'platform.local-search-notifications.v1',dependencies:['platform.local-search.v1'],sql:localSearchNotifications},
+]},{version:7,name:'007-j07-material-origin',fragments:[
+ {id:'materials.origin.v1',dependencies:['materials.targets.v1'],sql:materialOriginMigration},
 ]}];

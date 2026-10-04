@@ -1,3 +1,4 @@
+import {CredentialFailure} from '../../contracts/ai/secret-input';
 import {ProviderBinding} from '../platform/providers/binding';
 import {safeManagedPath} from '../platform/backup/managed-copies';
 import {randomUUID,createHash} from 'node:crypto';
@@ -11,6 +12,9 @@ import {createBlobBroker} from '../platform/files/blobs';
 import {createPersistenceSinkGate,type PersistenceToken,type PersistenceReference} from '../platform/persistence/fence';
 import type {ProductionSinkAdapter} from '../platform/files/staging';
 import {createAiController} from '../ai-runtime/controller';
+import {createTavilySearch} from '../platform/providers/tavily';
+import {TavilyRequest,TavilyResult,tavilyPreviewPayload,tavilyPreviewDigest} from '../../contracts/ai/tavily-search';
+import {createDeepSeekProvider} from '../platform/providers/deepseek';
 import {createDeterministicFakeProvider} from '../platform/providers/deterministic-fake';
 import {Request as AiRequest,Result as AiResult} from '../../contracts/ai/schema';
 import {Request as DataRequest,Result as DataResult} from '../../contracts/application/schema';
@@ -21,8 +25,8 @@ import type {RuntimeStore} from './writer-commands';
 import {createLocalSearch} from '../platform/search/public';
 import {LocalSearchRequest,LocalSearchResult} from '../../contracts/application/local-search';
 const maximumPdfBytes=16*1024*1024;
-export async function createRuntimeBackend(initialRoot:string,writerArtifact?:string,dataRoot=initialRoot,options?:{automaticBackups?:boolean;providerBinding?:ProviderBinding}){
- let providerBinding:ProviderBinding=options?.providerBinding??{enabled:true,generation:'fake-v1'},bindingEpoch=0;let root=initialRoot,closing=false,maintenance=false,admission=true,currentSession:HumanSession|undefined;
+export async function createRuntimeBackend(initialRoot:string,writerArtifact?:string,dataRoot=initialRoot,options?:{automaticBackups?:boolean;providerBinding?:ProviderBinding;providerKey?:(generation:string)=>Promise<string>;providerTransport?:typeof fetch;tavilyKey?:(generation:string)=>Promise<string>;tavilyTransport?:typeof fetch}){
+ let providerBinding:ProviderBinding=options?.providerBinding??{enabled:true,generation:'fake-v1'},bindingEpoch=0,tavilyEpoch=0;let root=initialRoot,closing=false,maintenance=false,admission=true,currentSession:HumanSession|undefined;
  const purgePlans=new Map<string,{workspace:string;refs:PersistenceReference[];copies:string[]}>();
  const operations=new Set<Promise<unknown>>(),prints=new Map<string,Promise<ResumeResult>>(),tokens=new Map<string,PersistenceToken>();
  let writer!:Awaited<ReturnType<typeof startWriter<RuntimeStore>>>;
@@ -30,6 +34,7 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  let blobs!:ReturnType<typeof createBlobBroker>;
  let gate!:ReturnType<typeof createPersistenceSinkGate>;
  let controller!:ReturnType<typeof createAiController>;
+ const tavily=createTavilySearch(dataRoot,options?.tavilyKey??(async()=>{throw Error('credential_unavailable');}),options?.tavilyTransport);
  let localSearch!:ReturnType<typeof createLocalSearch>;
  function track<T>(job:Promise<T>){operations.add(job);void job.finally(()=>operations.delete(job)).catch(()=>{});return job;}
  function assertCurrent(session:HumanSession){if(!currentSession||session.actor?.kind!=='human'||session.actor.token!==currentSession.actor.token||session.workspaceInstance!==currentSession.workspaceInstance||session.backendGeneration!==currentSession.backendGeneration||session.connectionGeneration!==currentSession.connectionGeneration)throw Error('invalid_capability');}
@@ -45,7 +50,7 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
  makeController();
  localSearch=createLocalSearch(root,writerArtifact?path.join(path.dirname(writerArtifact),'local-search.cjs'):undefined);
  }
- function makeController(){const aiWriter=writer;controller=createAiController({prepareDispatch:id=>aiWriter.call('aiPrepareDispatch',id),markProcessing:id=>aiWriter.call('aiMarkProcessing',id),settle:(id,value)=>aiWriter.call('aiSettle',id,value),markUnknown:(id,reason)=>aiWriter.call('aiMarkUnknown',id,reason),failOperation:(id,reason)=>aiWriter.call('aiFailOperation',id,reason),cancelBeforeHandoff:id=>aiWriter.call('aiCancelBeforeHandoff',id),stop:async(taskId,mode,commandId)=>{if(!currentSession||!commandId)throw Error('invalid_capability');await aiWriter.call('business',currentSession,'ai',{operation:'ai.stop',commandId,taskId,mode});}},createDeterministicFakeProvider(providerBinding.generation));if(!providerBinding.enabled)controller.setProviderBinding(undefined);
+ function makeController(){const aiWriter=writer;controller=createAiController({prepareDispatch:id=>aiWriter.call('aiPrepareDispatch',id),markProcessing:id=>aiWriter.call('aiMarkProcessing',id),settle:(id,value)=>aiWriter.call('aiSettle',id,value),markUnknown:(id,reason)=>aiWriter.call('aiMarkUnknown',id,reason),failOperation:(id,reason)=>aiWriter.call('aiFailOperation',id,reason),cancelBeforeHandoff:id=>aiWriter.call('aiCancelBeforeHandoff',id),stop:async(taskId,mode,commandId)=>{if(!currentSession||!commandId)throw Error('invalid_capability');await aiWriter.call('business',currentSession,'ai',{operation:'ai.stop',commandId,taskId,mode});}},providerBinding.provider==='deepseek-v4.1-flash'?createDeepSeekProvider(providerBinding.generation,options?.providerKey??(async()=>{throw Error('credential_unavailable');}),options?.providerTransport):createDeterministicFakeProvider(providerBinding.generation));if(!providerBinding.enabled)controller.setProviderBinding(undefined);
  }
  // Writer startup recovery can request drain before there is any producer/sink.
  gate=createPersistenceSinkGate(()=>{throw Error('persistence_denied');});await initialize();
@@ -61,8 +66,24 @@ export async function createRuntimeBackend(initialRoot:string,writerArtifact?:st
   }catch{const result=await boundWriter.call('pdfFail',commandId);await boundMaterials.collectGarbage().catch(()=>{});return ResumeResult.parse(result);}
  }
  return {
+ invalidateTavily(){tavilyEpoch++;},
  configureProvider(input:unknown){const next=ProviderBinding.parse(input),epoch=++bindingEpoch;controller.setProviderBinding(undefined);controller.shutdown();providerBinding=next;track(writer.call('providerBinding',next).then(()=>{if(!closing&&epoch===bindingEpoch)makeController();})).catch(()=>{});},
  get materials(){return materials;},
+ async externalSearch(session:HumanSession,input:unknown,generation?:string){allowed();assertCurrent(session);const epoch=tavilyEpoch,request=TavilyRequest.parse(input);
+  if(request.operation==='credential.check'){
+   const started=Date.now();let value:string|undefined;
+   try{if(!generation||!options?.tavilyKey)throw Error('credential_unavailable');value=await options.tavilyKey(generation);allowed();assertCurrent(session);if(epoch!==tavilyEpoch||!value)throw Error('credential_unavailable');return TavilyResult.parse({kind:'credential_readiness',available:true,elapsedMs:Date.now()-started});}
+   catch(error){return TavilyResult.parse({kind:'credential_readiness',available:false,elapsedMs:Date.now()-started,failureReason:CredentialFailure.safeParse(error instanceof Error?error.message:undefined).data??'credential_unavailable'});}
+   finally{value=undefined;}
+  }
+  const marker=await tavily.read();
+  if(request.operation==='receipt'){if(marker?.state==='captured'&&marker.workspaceInstance===session.workspaceInstance){const value=await writer.call('business',session,'ai',{operation:'search.read',id:marker.id}) as {kind:string;run?:unknown};if(value.kind==='search_run')return TavilyResult.parse({kind:'candidate',run:value.run});}return TavilyResult.parse({kind:'state',state:marker?.state??'not_run',requestCount:marker?.requestCount??0,...marker?{runId:marker.id,...marker.failureStage?{failureStage:marker.failureStage}:{},...marker.httpStatus?{httpStatus:marker.httpStatus}:{},...marker.credentialFailure?{credentialFailure:marker.credentialFailure}:{},...marker.stages?{stages:marker.stages}:{}}:{}});}
+  const boundWriter=writer,token=await boundWriter.call('searchExternalPrepare',session,request.operation==='run'?request.commandId:randomUUID(),request.owner);
+  if(request.operation==='preview')return TavilyResult.parse({kind:'preview',recipient:'Tavily',endpoint:tavilyPreviewPayload.recipient.endpoint,query:tavilyPreviewPayload.body.query,previewDigest:tavilyPreviewDigest,configured:!!generation,enabled:!!generation,used:!!marker});
+  if(!generation)return TavilyResult.parse({kind:'failure',code:'credential_unavailable'});
+  if(marker)return TavilyResult.parse({kind:'failure',code:'already_consumed'});
+  return track((async()=>{try{const live=()=>{allowed();assertCurrent(session);if(epoch!==tavilyEpoch)throw Error('credential_unavailable');if(writer!==boundWriter)throw Error('disconnected');};const captured=await tavily.send(request,generation,session.workspaceInstance,()=>boundWriter.call('persistenceAssert',token),live);live();const value=await boundWriter.call('searchExternalRecord',session,token,request.owner,captured);await tavily.captured(captured.id);return TavilyResult.parse({kind:'candidate',run:value.run});}catch(error){const reason=error instanceof Error?error.message:'';return TavilyResult.parse({kind:'failure',code:['credential_unavailable','credential_timeout','credential_cancelled','credential_denied','preflight_denied','already_consumed','search_failed','outcome_unknown'].includes(reason)?reason:'capture_pending',...await tavily.read().then(value=>value?{...value.failureStage?{failureStage:value.failureStage}:{},...value.httpStatus?{httpStatus:value.httpStatus}:{},...value.credentialFailure?{credentialFailure:value.credentialFailure}:{},...value.stages?{stages:value.stages}:{}}:{}).catch(()=>({}))});}})());
+ },
  async search(session:HumanSession,input:unknown){
   allowed();assertCurrent(session);const request=LocalSearchRequest.parse(input),bound=localSearch,boundWriter=writer;
   // One bounded maintenance batch, then yield back to the independent control loop.

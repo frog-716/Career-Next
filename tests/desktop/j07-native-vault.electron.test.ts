@@ -1,0 +1,15 @@
+import {it,expect} from 'vitest';import {_electron} from 'playwright';import {mkdtemp,rm} from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
+const executablePath=path.resolve('out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext');
+it('native Main local readiness checks return only status, with no network or credential read API',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'j07-native-readiness-')),application=await _electron.launch({executablePath,args:['--user-data-dir='+root]});
+ try{const page=await application.firstWindow();await page.getByRole('button',{name:'设置与资料维护'}).waitFor();
+  const result=await page.evaluate(async()=>{const saved=await window.careerTavilySecrets.request({operation:'save',value:'J07_SYNTHETIC_NATIVE_CREDENTIAL'});const checked=await window.careerTavilySecrets.request({operation:'check'});const rejected=await window.careerTavilySecrets.request({operation:'read'} as never);const receipt=await window.careerTavilySearch.request({operation:'receipt'});return {saved,checked,rejected,receipt};});
+  expect(result.saved).toMatchObject({kind:'status',status:{configured:true,readiness:'unchecked'}});expect(result.checked).toMatchObject({kind:'status',status:{configured:true,enabled:true,readiness:'available'}});expect(result.rejected).toEqual({kind:'failure',code:'invalid_request'});expect(result.receipt).toMatchObject({kind:'state',state:'not_run',requestCount:0});expect(JSON.stringify(result)).not.toContain('J07_SYNTHETIC_NATIVE_CREDENTIAL');
+  expect(await application.evaluate(({safeStorage})=>safeStorage.isEncryptionAvailable())).toBe(true);
+ }finally{await application.close();await rm(root,{recursive:true,force:true});}
+},30000);
+it('the same isolated profile resolves its native Tavily credential after restart without another save or network',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'j07-native-restart-'));let application:Awaited<ReturnType<typeof _electron.launch>>|undefined;
+ const launch=()=>_electron.launch({executablePath,args:['--user-data-dir='+root]});
+ try{application=await launch();let page=await application.firstWindow();await page.getByRole('button',{name:'设置与资料维护'}).waitFor();expect(await page.evaluate(()=>window.careerTavilySecrets.request({operation:'save',value:'J07_SYNTHETIC_RESTART_CREDENTIAL'}))).toMatchObject({kind:'status',status:{configured:true}});await application.close();application=undefined;application=await launch();page=await application.firstWindow();await page.getByRole('button',{name:'设置与资料维护'}).waitFor();expect(await page.evaluate(()=>window.careerTavilySecrets.request({operation:'status'}))).toMatchObject({kind:'status',status:{configured:true,readiness:'unchecked'}});expect(await page.evaluate(()=>window.careerTavilySecrets.request({operation:'check'}))).toMatchObject({kind:'status',status:{configured:true,readiness:'available'}});expect(await page.evaluate(()=>window.careerTavilySearch.request({operation:'receipt'}))).toMatchObject({kind:'state',requestCount:0});}finally{await application?.close();await rm(root,{recursive:true,force:true});}
+},30000);

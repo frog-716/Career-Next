@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-10-04T00:51:35.738475+00:00",
+  "applyExecuted": true,
+  "proposalId": "09d38be6-4275-4d78-9828-82222653f0ad",
+  "proposalStatus": "accepted",
+  "proposalChangeUnmodified": true,
+  "proposalNature": "hypothesis",
+  "formalResearchNature": "inference",
+  "natureRequirementDifference": "Proposal remains hypothesis; current Research owner persists inference. Not changed or silently described as hypothesis.",
+  "researchOwner": "OpportunityResearch",
+  "researchItem": {
+    "id": "e75ffb05-8a6e-4bc3-b997-f12ead5521ac",
+    "owner": {
+      "kind": "opportunity",
+      "id": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+    },
+    "revision": 1,
+    "nature": "inference",
+    "sources": [
+      {
+        "ref": {
+          "owner": "materials",
+          "objectId": "c2952434-9355-4954-a7d5-a5d8fa9e91bf",
+          "revision": 1,
+          "locator": "whole",
+          "scope": "opportunity",
+          "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+        },
+        "purpose": "实际受控任务输入",
+        "excerpt": "",
+        "assessment": "lead_only"
+      }
+    ],
+    "leads": [],
+    "origin": "ai_accepted",
+    "userConfirmed": true,
+    "independentlyVerified": false,
+    "active": true,
+    "recordedAt": "2026-10-04T00:50:48.473Z",
+    "bodySHA256": "bac3895e42dd05ef89a11670246c376782a73943466ba19e6ab891ced805c545",
+    "titleSHA256": "d0fd31456527f7192604ec52fc1e50aa773c5220d851dbd5825aba053141b826"
+  },
+  "researchItemCountBefore": 0,
+  "researchItemCountAfter": 1,
+  "duplicateCreated": false,
+  "atomicityEvidence": "Formal product.decide executeCommand transaction includes owner.applyProposal, accepted state, and ai.product receipt; nested owner receipt resolves same item.",
+  "aiReceipt": {
+    "kind": "product_decided",
+    "proposalIds": [
+      "09d38be6-4275-4d78-9828-82222653f0ad"
+    ],
+    "state": "accepted",
+    "receiptId": "4da6e05d-a624-4fb9-91df-f3d4a1050e69",
+    "owner": "research",
+    "objectId": "e75ffb05-8a6e-4bc3-b997-f12ead5521ac"
+  },
+  "researchOwnerReceipt": {
+    "kind": "item",
+    "itemId": "e75ffb05-8a6e-4bc3-b997-f12ead5521ac",
+    "revision": 1,
+    "bodySHA256": "bac3895e42dd05ef89a11670246c376782a73943466ba19e6ab891ced805c545"
+  },
+  "independentlyVerified": false,
+  "userConfirmed": true,
+  "externalRequestsThisStep": 0,
+  "providerCumulativeRequestCount": 1,
+  "noModelOrSearchOrFeishuCall": true,
+  "snapshotStage": "historical user-authorized local Apply",
+  "natureResolution": "用户随后明确接受 hypothesis -> inference，见 j07-research-nature-mapping.json；旧条目未修改。"
+}

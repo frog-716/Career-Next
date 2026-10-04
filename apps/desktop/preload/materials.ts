@@ -14,4 +14,7 @@ contextBridge.exposeInMainWorld('career',career);
 contextBridge.exposeInMainWorld('careerSentFiles',{select:()=>ipcRenderer.invoke('career:sent-file')});
 
 contextBridge.exposeInMainWorld('careerSecrets',{request:(input:import('zod').infer<typeof import('../../../packages/contracts/ai/secret-input').SecretInput>)=>ipcRenderer.invoke('career:secret-input',input)});
+contextBridge.exposeInMainWorld('careerTavilySecrets',{request:(input:import('zod').infer<typeof import('../../../packages/contracts/ai/secret-input').SecretInput>)=>ipcRenderer.invoke('career:tavily-secret-input',input)});
 contextBridge.exposeInMainWorld('careerSearch',{request:(input:import('../../../packages/contracts/application/local-search').LocalSearchRequest)=>ipcRenderer.invoke('career:local-search',input)});
+
+contextBridge.exposeInMainWorld('careerTavilySearch',{request:(input:import('../../../packages/contracts/ai/tavily-search').TavilyRequest)=>ipcRenderer.invoke('career:tavily-search',input)});

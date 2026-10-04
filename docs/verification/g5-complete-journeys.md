@@ -1,6 +1,8 @@
 # G5｜完整旅程与真实桌面连续性（最终收尾）
 
-G5 STATUS：PARTIAL，仅真实外部 J-07 待验。本轮普通产品链与用户亲自完成的 MANUAL DESKTOP 均 PASS；原任务要求外部关键步骤未验时总状态保持 PARTIAL。基线 `66ede4cd2f51787b5375caa8489512972edb28d0`；[umbrella #20](https://github.com/frog-716/Career-Next/issues/20) 与已完成子任务 #21–25 按最新用户授权收尾关闭并创建 checkpoint / push，不代表真实外部已通过。不进入 G6 或 M。
+最终状态（2026-10-04）：**G5 PASS**，J-01～J-09 产品、真人桌面及 J-07 真实三个服务分支均已通过。证据见 [J-07](j07-real-external.md)。G6 LOCAL PASS；104 最终结算为 38 PASS_ALREADY / 32 PASS_G5 / 28 PASS_G6 / 5 DEFER_M / 1 CONDITIONAL，EXTERNAL_LIVE_PENDING=0。下文旧 PARTIAL/NOT TESTED 为当时记录，未追溯改写。
+
+最新 J-07 真实外部准备及实际结果记录在 [补验文档](j07-real-external.md) / [#31](https://github.com/frog-716/Career-Next/issues/31)，尚未完成，不改变本页的 PARTIAL 结论。
 
 本轮使用隔离的空工作区、临时真实文件、真实 SQLite、正常 Electron 进程与 arm64 包。职业数据均为明确测试资料。Provider 为 deterministic fake；Search 为 controlled adapter；Feishu 为无网络 shaped fixture。REAL PROVIDER / REAL SEARCH / REAL FEISHU 均 **NOT TESTED**。Developer ID、Notarization、x64 均 **READY**；本地 ad-hoc 签名校验不能替代这些发布验收。
 
@@ -90,3 +92,8 @@ Standards + architecture：当前代码审核无 unresolved finding；另外用�
 ## Post-blackbox 新 checkpoint
 
 按用户最新要求，对 OLD MAIN `5f16661624eab1800efa3d09a2500d5a3a9e53bb` 已有两个修复进行来源复核与重新回归，不重复合并源码或整棵 worktree。最新真人 Feedback 再打开草稿保持与同名版本两次人为保存说明已记录；三种证据严格分开，详情见 [post-blackbox 验收](g5-post-blackbox.md)。#20 先重开记录 findings，新的 main checkpoint push / clean 核对后再关闭。G5 总状态仍 PARTIAL，仅真实 J-07 外部待验。
+
+
+## J-07 最终外部结算
+
+2026-10-04 用户确认真实 Tavily / DeepSeek / Feishu 三个隔离 TEST DATA 分支 PASS，授权收尾。G5 产品、真人桌面及 J-01～J-09 结算为 PASS；Search 与 Provider 的材料按用户授权分别隔离，不将受控接缝表述为同份真实 Search 资料曾发送模型。J-07 计数、安全边界与最终本地回归见 [最终外部证据](j07-real-external.md) / [收尾摘要](j07-final-closeout.json)。Acceptance 最终为 38 PASS_ALREADY + 32 PASS_G5 + 28 PASS_G6 + 5 DEFER_M + 1 CONDITIONAL = 104，EXTERNAL_LIVE_PENDING=0。G6 LOCAL PASS；发布环境三项仍 READY / NOT RUN，Migration M 未开始。

@@ -3,16 +3,18 @@ import type {ImportTarget} from '../../../contracts/materials/schema';
 import { Kysely, SqliteDialect } from 'kysely';
 import type Database from 'better-sqlite3';
 import { randomUUID, createHash } from 'node:crypto';
-import { Receipt, ErrorCode } from '../../../contracts/materials/schema';
+import { Receipt, ErrorCode, FeishuOrigin } from '../../../contracts/materials/schema';
 import type { Identity, Preview, RawSummary, Confirm, SourceRef } from '../../../contracts/materials/schema';
 import { createLedger } from '../../platform/database/ledger';
 import { createSessions, type SessionAuthority } from '../../platform/runtime/sessions';
 import type { HumanSession } from '../../platform/runtime/sessions';
 export type { HumanSession } from '../../platform/runtime/sessions';
-export type ImportRow = { id: string; generation: string; connection: string; validity: number; state: string; name: string; digest: string; size: number; revision: 1 };
+export type ImportRow = { id: string; generation: string; connection: string; validity: number; state: string; name: string; digest: string; size: number; revision: 1; origin_json?:string|null };
 export function createMaterialsStore(db: Database.Database, workspaceInstance: string, backendGeneration: string, authority: SessionAuthority = createSessions(workspaceInstance, backendGeneration)) {
   const query = new Kysely<{ materials_raw: RawRow }>({dialect:new SqliteDialect({database:db})});
   const ledger = createLedger(db),targets=createImportTargets(db);
+  const originAvailable=(db.prepare('PRAGMA table_info(materials_imports)').all() as {name:string}[]).some(column=>column.name==='origin_json');
+  const forgetOrigin=originAvailable?',origin_json=NULL':'';
   const summary=(row:RawRow)=>summarize(row,targets.read(row.id));
   const matches=(input:SourceRef)=>{const current=sourceRef(input.objectId);return current.scope===input.scope&&current.scopeId===input.scopeId;};
   const sourceRef=(id:string):SourceRef=>{const target=targets.read(id);return {owner:'materials',objectId:id,revision:1,locator:'whole',scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{}};};
@@ -53,24 +55,24 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
       })();
     },
     purgeImpact(id:string){const row=db.prepare('SELECT * FROM materials_raw WHERE id=?').get(id) as RawRow|undefined;return row?{id,revision:1,name:row.name,blobIds:[row.blob_id],retentions:[{owner:'materials',objectId:id}]}:undefined;},
-    purge(id:string){const row=db.prepare('SELECT digest FROM materials_raw WHERE id=?').get(id) as {digest:string}|undefined;if(row)db.prepare("UPDATE materials_imports SET name='cleared',digest='',size=0,validity=validity+1,state='revoked' WHERE digest=?").run(row.digest);db.prepare('DELETE FROM materials_raw WHERE id=?').run(id);targets.purge(id);},
+    purge(id:string){const row=db.prepare('SELECT digest FROM materials_raw WHERE id=?').get(id) as {digest:string}|undefined;if(row)db.prepare("UPDATE materials_imports SET name='cleared',digest='',size=0,validity=validity+1,state='revoked'"+forgetOrigin+" WHERE digest=?").run(row.digest);db.prepare('DELETE FROM materials_raw WHERE id=?').run(id);targets.purge(id);},
     connect(): HumanSession {
-      db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1 WHERE state IN ('preparing','preview')").run();
+      db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1"+forgetOrigin+" WHERE state IN ('preparing','preview')").run();
       return authority.connect();
     },
-    begin(session: HumanSession, name: string,target?:ImportTarget) {
-      check(session); const id = randomUUID();
-      db.prepare('INSERT INTO materials_imports(id,generation,connection,state,name) VALUES (?,?,?,\'preparing\',?)').run(id, backendGeneration, session.connectionGeneration, name);
-      targets.begin(id,target);return id;
+    begin(session: HumanSession, name: string,target?:ImportTarget,origin?:FeishuOrigin) {
+      check(session);if(origin&&!originAvailable)throw Error('invalid_capability');const value=origin?FeishuOrigin.parse(origin):undefined,id=randomUUID();
+      return db.transaction(()=>{db.prepare('INSERT INTO materials_imports(id,generation,connection,state,name) VALUES (?,?,?,\'preparing\',?)').run(id,backendGeneration,session.connectionGeneration,name);targets.begin(id,target);if(value)db.prepare('UPDATE materials_imports SET origin_json=? WHERE id=?').run(JSON.stringify(value),id);return id;})();
     },
     valid,
     preview(session: HumanSession, input: Preview) {
-      valid(session, input.importId);
+      const row=valid(session,input.importId),origin=row.origin_json?FeishuOrigin.parse(JSON.parse(row.origin_json)):undefined;
+      if(JSON.stringify(input.origin?FeishuOrigin.parse(input.origin):null)!==JSON.stringify(origin??null))throw Error('conflict');
       db.prepare("UPDATE materials_imports SET state='preview',digest=?,size=? WHERE id=?").run(input.digest, input.size, input.importId);
       return input;
     },
     cancel(session: HumanSession, id: string) {
-      valid(session, id); db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1 WHERE id=?").run(id);
+      valid(session, id); db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1"+forgetOrigin+" WHERE id=?").run(id);
     },
     async list(session: HumanSession): Promise<RawSummary[]> {
       check(session);
@@ -114,8 +116,9 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
         ledger.verifyHold(blobId,input.commandId,backendGeneration);
         const id = randomUUID();
         db.prepare("INSERT INTO materials_raw(id,name,size,digest,blob_id,revision,scope,lifecycle,recorded_at) VALUES (?,?,?,?,?,1,?,'evidence-original',?)").run(id,row.name,row.size,row.digest,blobId,targets.read(input.importId,'import').kind,new Date().toISOString());targets.commit(input.importId,id);
+        if(row.origin_json)db.prepare('UPDATE materials_raw SET origin_json=? WHERE id=?').run(JSON.stringify(FeishuOrigin.parse(JSON.parse(row.origin_json))),id);
         ledger.retain(blobId,id,input.commandId);
-        db.prepare("UPDATE materials_imports SET state='consumed' WHERE id=?").run(input.importId);
+        db.prepare("UPDATE materials_imports SET state='consumed'"+forgetOrigin+" WHERE id=?").run(input.importId);
         return receipt(input.commandId);
       })();
     },
@@ -125,7 +128,7 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
     recover() {
       db.transaction(() => ledger.recover(backendGeneration))();
       const rows = db.prepare("SELECT id FROM materials_imports WHERE state IN ('preparing','preview')").all() as { id: string }[];
-      db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1 WHERE state IN ('preparing','preview')").run();
+      db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1"+forgetOrigin+" WHERE state IN ('preparing','preview')").run();
       return rows.map(row => row.id);
     },
   };
@@ -133,7 +136,7 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
 export type Store = ReturnType<typeof createMaterialsStore>;
 export type Call = { [K in keyof Store]: { method: K; args: Parameters<Store[K]> } }[keyof Store];
 
-type RawRow = { id: string; name: string; size: number; digest: string; blob_id: string; recorded_at: string };
+type RawRow = { id: string; name: string; size: number; digest: string; blob_id: string; recorded_at: string; origin_json?:string|null };
 function summarize(row: RawRow,target:ImportTarget): RawSummary {
- const source:SourceRef={owner:'materials',objectId:row.id,revision:1,locator:'whole',scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{}};return {id:row.id,name:row.name,size:row.size,scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{},lifecycle:'evidence-original',revision:1,source,recordedAt:row.recorded_at};
+ const source:SourceRef={owner:'materials',objectId:row.id,revision:1,locator:'whole',scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{}};return {id:row.id,name:row.name,size:row.size,scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{},...row.origin_json?{origin:FeishuOrigin.parse(JSON.parse(row.origin_json))}:{},lifecycle:'evidence-original',revision:1,source,recordedAt:row.recorded_at};
 }

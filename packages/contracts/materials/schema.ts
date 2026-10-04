@@ -6,9 +6,12 @@ export {MaterialsSourceRef as SourceRef} from '../common/source-ref.ts';
 import {MaterialsSourceRef as SourceRef} from '../common/source-ref.ts';
 export type SourceRef = z.infer<typeof SourceRef>;
 export const ImportTarget=z.discriminatedUnion('kind',[z.strictObject({kind:z.literal('personal')}),z.strictObject({kind:z.enum(['company','opportunity','project','employment','person']),id:z.uuid()})]);export type ImportTarget=z.infer<typeof ImportTarget>;
-export const Preview = z.object({ importId: z.uuid(), target:ImportTarget.optional(), revision: z.literal(1), name: z.string().max(255), size: z.number().int().max(MAX_TEXT_BYTES), digest: z.string().regex(/^[a-f0-9]{64}$/), text: z.string().max(MAX_TEXT_BYTES), saved: z.literal(false) }).strict();
+// Source revision is external; Materials SourceRef and local Raw revision remain 1.
+export const FeishuOrigin=z.strictObject({kind:z.literal('feishu'),identity:z.literal('user'),url:z.url().max(2000),wikiNodeId:z.string().regex(/^[A-Za-z0-9]{1,128}$/),documentId:z.string().regex(/^[A-Za-z0-9]{1,128}$/),revisionId:z.number().int().positive()}).refine(value=>{const url=new URL(value.url);return url.protocol==='https:'&&!url.username&&!url.password&&url.hostname.endsWith('.feishu.cn')&&url.pathname==='/wiki/'+value.wikiNodeId&&!url.search&&!url.hash;},'Selected Feishu wiki URL must match its node identity');
+export type FeishuOrigin=z.infer<typeof FeishuOrigin>;
+export const Preview = z.object({ importId: z.uuid(), target:ImportTarget.optional(), origin:FeishuOrigin.optional(), revision: z.literal(1), name: z.string().max(255), size: z.number().int().max(MAX_TEXT_BYTES), digest: z.string().regex(/^[a-f0-9]{64}$/), text: z.string().max(MAX_TEXT_BYTES), saved: z.literal(false) }).strict();
 export type Preview = z.infer<typeof Preview>;
-export const RawSummary = z.object({ id: z.uuid(), name: z.string().max(255), size: z.number().int(), scope: z.enum(['personal','company','opportunity','project','employment','person']),scopeId:z.uuid().optional(), lifecycle: z.literal('evidence-original'), revision: z.literal(1), source: SourceRef, recordedAt: z.string() }).strict();
+export const RawSummary = z.object({ id: z.uuid(), name: z.string().max(255), size: z.number().int(), scope: z.enum(['personal','company','opportunity','project','employment','person']),scopeId:z.uuid().optional(), origin:FeishuOrigin.optional(), lifecycle: z.literal('evidence-original'), revision: z.literal(1), source: SourceRef, recordedAt: z.string() }).strict();
 export type RawSummary = z.infer<typeof RawSummary>;
 export const Raw = RawSummary.extend({ text: z.string().max(MAX_TEXT_BYTES), digest: z.string() }).strict();
 export type Raw = z.infer<typeof Raw>;

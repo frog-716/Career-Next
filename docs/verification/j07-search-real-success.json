@@ -1,0 +1,220 @@
+{
+  "result": "REAL SEARCH PASS",
+  "recordedAt": "2026-10-04T00:10:27.718900+00:00",
+  "operationId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+  "provider": "Tavily",
+  "endpoint": "POST https://api.tavily.com/search",
+  "requestBody": {
+    "query": "OpenAI official website"
+  },
+  "bodyUtf8": "{\"query\":\"OpenAI official website\"}",
+  "previewDigest": "b7e69204012bdce7dd3b0e66c14434873ac4788f4c2e223137b2ed27ad8059b7",
+  "requestCount": 1,
+  "httpStatus": 200,
+  "state": "captured",
+  "stages": {
+    "credential_resolve": "PASS",
+    "request_build": "PASS",
+    "connect": "PASS",
+    "TLS": "PASS",
+    "HTTP auth": "PASS",
+    "HTTP response": "PASS",
+    "parse": "PASS"
+  },
+  "responseEvidence": {
+    "endpoint": "https://api.tavily.com/search",
+    "previewDigest": "b7e69204012bdce7dd3b0e66c14434873ac4788f4c2e223137b2ed27ad8059b7",
+    "requestCount": 1,
+    "providerRequestId": "ef30ff02-9052-48b8-b55e-a002a326dbcd"
+  },
+  "resultCount": 10,
+  "results": [
+    {
+      "title": "OpenAI - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/OpenAI",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "1740a3ba-53dd-40f1-a897-0cc0dbbcf40c",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "6ecf17b676228c5849023e791169ba7fe1cd717c01244223579c29d0cb40fc0f"
+    },
+    {
+      "title": "OpenAI | Research & Deployment",
+      "url": "https://openai.com",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "7f9bcdb3-d4be-4e4d-8cef-9d5eb93475c6",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "262c217a1174ee1742bf61d9e3a79af8da9b5fba40fe2cac3023c3d55afa2b01"
+    },
+    {
+      "title": "IT’S OFFICIAL: OpenAI is worth $157 billion",
+      "url": "https://finance.yahoo.com/news/official-openai-worth-157-billion-171936578.html?fr=sycsrp_catchall",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "66dec990-f586-4e45-9138-2f361aa9ed46",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "fb6afecaacb6e9fe7cac4a0b67e6696748e870d176da492cfde39080f8354d8c"
+    },
+    {
+      "title": "IT’S OFFICIAL: OpenAI is worth $157 billion",
+      "url": "https://finance.yahoo.com/news/official-openai-worth-157-billion-171936578.html",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "3477f5da-1d43-4cf4-bb76-1336c804774f",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "640f393543450c44945f6af2e13f0b6a946fb71113c6e3cc6c5aaa119de48aa1"
+    },
+    {
+      "title": "Overview | ChatGPT",
+      "url": "https://chatgpt.com/overview",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "5f3058d2-b3da-4a44-a367-768810f02a92",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "1f7a266f1db31fde8f6dbc78cb596e02f5994c0af0c75020d96e908b08d10796"
+    },
+    {
+      "title": "Sam Altman tells OpenAI staff that board hasn't seen 'official' Musk offer",
+      "url": "https://www.cnbc.com/2025/02/11/sam-altman-tells-openai-staff-that-board-hasnt-seen-anything-official-from-elon-.html",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "6e93e234-19b6-4c08-b3b0-fdb665491b9d",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "182b15559ba86007ac642fddb93b7392386052cdd74a945e47483fbd5840e8ee"
+    },
+    {
+      "title": "Sam Altman tells OpenAI staff that board hasn't seen 'official' Musk offer",
+      "url": "https://www.cnbc.com/amp/2025/02/11/sam-altman-tells-openai-staff-that-board-hasnt-seen-anything-official-from-elon-.html",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "3d0cf219-b197-4711-8b36-0dd766a67de6",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "182b15559ba86007ac642fddb93b7392386052cdd74a945e47483fbd5840e8ee"
+    },
+    {
+      "title": "OpenAI",
+      "url": "https://www.youtube.com/OpenAI",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "d6e37094-49e4-4c54-a223-c0c3c26976cf",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "0dc8310d89f5abc64d0ed226771b8b13f9271fe2caffcc93b3d711c800096c98"
+    },
+    {
+      "title": "Official Website Builder",
+      "url": "https://tracxn.com/d/companies/official-website-builder/__RRAmQUF2Ip2HPTQYvWAaVrzEAWOFCnK543FCghTiwyM",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "9642748b-7edc-4e5f-8b1f-49d92dd68c08",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "ef980ebfd495521e393aa87e9c8ea8280e3599f6bd0ba399af844d0312af1387"
+    },
+    {
+      "title": "ChatGPT: Chat, Work, Create & Code with AI",
+      "url": "https://chatgpt.com",
+      "source": {
+        "owner": "search",
+        "objectId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+        "revision": 1,
+        "locator": "c5a8fc68-faa6-41b0-9a6e-29a5f5d3dc85",
+        "scope": "opportunity",
+        "scopeId": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+      },
+      "bodySha256": "236bd4b270d869cc67ef794e5a1e3b29dfb5f6a917deeaded5a5fce15ebf4c3b"
+    }
+  ],
+  "researchCandidate": {
+    "persisted": true,
+    "owner": {
+      "kind": "opportunity",
+      "id": "9f2069a9-137e-4296-bc29-9ff1b34b7bca"
+    },
+    "runId": "f8e7c61f-d777-4a97-a458-b63fcc01010e",
+    "independentlyVerified": false
+  },
+  "formalResearchWritten": false,
+  "databaseCounts": {
+    "ai_search_runs": 1,
+    "research_documents": 0,
+    "research_items": 0,
+    "research_history": 0,
+    "research_references": 0,
+    "wiki_knowledge": 0,
+    "ai_tasks": 0,
+    "ai_proposals": 0
+  },
+  "privateCareerDataSent": false,
+  "keyReadByAgent": false,
+  "keyExposed": false,
+  "userEnteredSystemPassword": true,
+  "passwordReadCapturedOrEnteredByAgent": false,
+  "automaticRetry": false,
+  "redirectsFollowed": false,
+  "providerFallback": false,
+  "deepSeekCalls": 0,
+  "feishuCalls": 0,
+  "security": {
+    "git": {
+      "filesScanned": 545,
+      "keyPatternMatches": 0
+    },
+    "logs": {
+      "filesScanned": 73,
+      "keyPatternMatches": 0
+    },
+    "db_recorder_backup": {
+      "filesScanned": 14,
+      "keyPatternMatches": 0
+    },
+    "cliArgs": {
+      "keyPatternMatches": 0
+    },
+    "frozen_product-spec": {
+      "files": 12,
+      "changed": []
+    },
+    "frozen_architecture": {
+      "files": 8,
+      "changed": []
+    }
+  },
+  "J07Overall": "PARTIAL - real Provider and Feishu chains not run",
+  "next": "STOP - no second Search or Provider / Feishu action"
+}

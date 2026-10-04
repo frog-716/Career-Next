@@ -15,9 +15,11 @@ import {Result as DataResult,PurgeNotification} from '../../../packages/contract
 import {SentFileCandidate} from '../../../packages/contracts/opportunity/submission/file-selection';
 import { selectMaterial } from '../capabilities/select-material';
 import {createSecretVault} from '../capabilities/secret-vault';
+import {createTavilyCredentials} from '../capabilities/tavily-credentials';
 import {createSecretCoordinator} from '../capabilities/secret-coordinator';
 import {resolveStartupProviderBinding} from '../capabilities/provider-startup';
-import {SecretInput} from '../../../packages/contracts/ai/secret-input';
+import {TavilyRequest,TavilyResult} from '../../../packages/contracts/ai/tavily-search';
+import {SecretInput,CredentialFailure,credentialAuthorizationSafetyMs} from '../../../packages/contracts/ai/secret-input';
 import {ProviderBinding} from '../../../packages/backend/platform/providers/binding';
 import type {SecretBridge} from '../../../packages/contracts/ai/secret-input';
 import {LocalSearchRequest,LocalSearchResult} from '../../../packages/contracts/application/local-search';
@@ -30,11 +32,12 @@ protocol.registerSchemesAsPrivileged([{scheme:'career',privileges:{standard:true
 const url='career://app/index.html';
 let window: BrowserWindow, backend: UtilityProcess | undefined, port: MessagePortMain | undefined, identity: RuntimeIdentity | undefined;
 const appWindows=new Set<BrowserWindow>(),windowWorkspaces=new Map<number,string>();
-let secrets!:SecretBridge;
+let secrets!:ReturnType<typeof createSecretVault>;let tavilySecrets!:ReturnType<typeof createSecretVault>;
 let connecting: Promise<RuntimeIdentity> | undefined;
 let quitting=false, quitReady=false, quitRequested=false;
 const pending=new Map<string,{resolve(result: unknown):void; reject(error:Error):void; timer:ReturnType<typeof setTimeout>}>();
 function disconnect() {
+  void secrets?.request({operation:'cancel'}).catch(()=>{});void tavilySecrets?.request({operation:'cancel'}).catch(()=>{});
   port?.close(); port=undefined; identity=undefined;
   for(const item of pending.values()) {clearTimeout(item.timer);item.reject(new Error('disconnected'));} pending.clear();
 }
@@ -74,6 +77,12 @@ async function connect(): Promise<RuntimeIdentity> {
       const timeout=setTimeout(()=>reject(new Error('disconnected')),15000);
       activePort.on('message',event=>{
         if(port!==activePort) return;
+        if(event.data.credentialRequest){
+          const request=event.data.credentialRequest;
+          if(!identity||JSON.stringify(event.data.identity)!==JSON.stringify(identity)||typeof request.credentialId!=='string'||typeof request.generation!=='string')return;
+          const bound=identity;
+          void (request.service==='tavily'?tavilySecrets:request.service==='deepseek'||request.service===undefined?secrets:undefined)?.readCredential(request.generation).then(value=>{if(port===activePort&&identity===bound&&!quitting)activePort.postMessage({identity:bound,credentialResponse:{credentialId:request.credentialId,value}});},error=>{const failure=CredentialFailure.safeParse(error instanceof Error?error.message:undefined);if(port===activePort&&identity===bound)activePort.postMessage({identity:bound,credentialResponse:{credentialId:request.credentialId,error:failure.success?failure.data:'credential_unavailable'}});});return;
+        }
         if(event.data.ready) {try{identity=Identity.parse(event.data.ready);clearTimeout(timeout);resolve(identity);}catch{clearTimeout(timeout);reject(new Error('invalid_request'));}return;}
         const item=pending.get(event.data.requestId);if(!item) return;
         clearTimeout(item.timer);pending.delete(event.data.requestId);
@@ -112,6 +121,7 @@ async function sendBusiness(module:BusinessModule,input:unknown):Promise<unknown
  });
 }
 async function configureProvider(binding:ProviderBinding){const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');const requestId=randomUUID();await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:()=>resolve(),reject,timer});port!.postMessage({requestId,identity:bound,providerAction:'configure',binding:ProviderBinding.parse(binding)});});}
+async function invalidateTavily(){const bound=identity,activePort=port;if(!bound||!activePort||!backend?.pid||quitting)throw Error('disconnected');const requestId=randomUUID();await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:()=>resolve(),reject,timer});activePort.postMessage({requestId,identity:bound,externalSearchAction:'invalidate'});});}
 const printing=new Map<string,Promise<unknown>>();
 async function sendPrint(printAction:'html'|'complete'|'fail',commandId:string,pdf?:Uint8Array):Promise<unknown>{
  const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');
@@ -154,9 +164,15 @@ if(locked) app.whenReady().then(async()=>{
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([{role:'appMenu'},{role:'editMenu'},{label:'视图',submenu:[{role:'resetZoom'},{role:'zoomIn'},{role:'zoomOut'},{role:'togglefullscreen'}]},{label:'文件',submenu:[{label:'新建窗口',accelerator:'CmdOrCtrl+Shift+N',click:()=>{if(identity&&!quitting)void createAppWindow().loadURL(url);}},{role:'close'}]},{role:'windowMenu'}]));
   window=createAppWindow();
-  secrets=createSecretVault(path.join(app.getPath('userData'),'security'),{available:()=>safeStorage.isAsyncEncryptionAvailable(),encrypt:input=>safeStorage.encryptStringAsync(input)});
+  secrets=createSecretVault(path.join(app.getPath('userData'),'security'),{available:()=>safeStorage.isAsyncEncryptionAvailable(),encrypt:input=>safeStorage.encryptStringAsync(input),decrypt:async input=>(await safeStorage.decryptStringAsync(input)).result});
   const secretCoordinator=createSecretCoordinator(secrets,configureProvider);
   ipcMain.handle('career:secret-input',async(event,input:unknown)=>{trusted(event);const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};return secretCoordinator.request(parsed.data);});
+  // Separate device vault: configuring Search must never replace or rebind the model credential.
+  // This entry point only stores a Key; it has no network or backend dispatch capability.
+  tavilySecrets=createSecretVault(path.join(app.getPath('userData'),'security-tavily'),{available:()=>safeStorage.isAsyncEncryptionAvailable(),encrypt:input=>safeStorage.encryptStringAsync(input),decrypt:async input=>(await safeStorage.decryptStringAsync(input)).result},undefined,'tavily');
+  const tavilyCredentials=createTavilyCredentials(tavilySecrets,invalidateTavily);
+  ipcMain.handle('career:tavily-secret-input',async(event,input:unknown)=>{trusted(event);const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure',code:'invalid_request'};return tavilyCredentials.request(parsed.data);});
+  ipcMain.handle('career:tavily-search',async(event,input:unknown)=>{trusted(event);const request=TavilyRequest.parse(input),bound=identity,activePort=port;if(!bound||!activePort||!backend?.pid||quitting)throw Error('disconnected');const generation=request.operation==='receipt'?undefined:await tavilyCredentials.generationForDispatch().catch(()=>undefined);if(identity!==bound||port!==activePort)throw Error('disconnected');if(request.operation==='run'&&!generation)return TavilyResult.parse({kind:'failure',code:'credential_unavailable'});const requestId=randomUUID();return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('credential_timeout'));},request.operation==='receipt'||request.operation==='preview'?15000:credentialAuthorizationSafetyMs+125000);pending.set(requestId,{resolve:value=>{try{resolve(TavilyResult.parse(value));}catch{reject(Error('invalid_request'));}},reject,timer});activePort.postMessage({requestId,identity:bound,externalSearchAction:'tavily',request,credentialGeneration:generation});});});
   ipcMain.handle('career:local-search',async(event,input:unknown)=>{
    trusted(event);const bound=identity;if(!bound||!port||!backend?.pid||quitting)throw Error('disconnected');const request=LocalSearchRequest.parse(input),requestId=randomUUID();
    return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('disconnected'));},15000);pending.set(requestId,{resolve:value=>{try{resolve(LocalSearchResult.parse(value));}catch{reject(Error('invalid_request'));}},reject,timer});port!.postMessage({requestId,identity:bound,searchAction:'query',request});});

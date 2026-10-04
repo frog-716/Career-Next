@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-10-04T02:08:27.831414+00:00",
+  "scope": "LOCAL_NATURE_MAPPING_ONLY",
+  "specBasis": [
+    "Frozen DOMAIN DM-10",
+    "Frozen AI AI-02, AI-06"
+  ],
+  "mapping": {
+    "fact_statement": "fact_statement",
+    "hypothesis": "inference",
+    "observation": "rejected at Research TaskPolicy.validate and effective Apply content validation"
+  },
+  "researchAiAllowedNatures": [
+    "fact_statement",
+    "hypothesis"
+  ],
+  "unknownContractGap": {
+    "researchDomainSupportsUnknown": true,
+    "genericAiProposalSupportsUnknown": false,
+    "genericContractUnchanged": true,
+    "unknownsTextNotUsedAsNature": true,
+    "status": "RECORDED; no synthetic or guessed conversion"
+  },
+  "currentJ07ItemUnchanged": true,
+  "currentJ07ItemId": "e75ffb05-8a6e-4bc3-b997-f12ead5521ac",
+  "currentResearchItemCount": 1,
+  "currentNature": "inference",
+  "independentlyVerified": false,
+  "externalRequestsThisStep": 0,
+  "tests": {
+    "unit": {
+      "files": 3,
+      "passed": 10,
+      "log": "out/j07-real-external/nature-unit.log"
+    },
+    "integration": {
+      "files": 5,
+      "passed": 19,
+      "newNatureScenarios": 6,
+      "log": "out/j07-real-external/nature-integration-final.log"
+    },
+    "redEvidence": [
+      "out/j07-real-external/nature-fact-red.log",
+      "out/j07-real-external/nature-observation-red.log"
+    ],
+    "greenEvidence": [
+      "out/j07-real-external/nature-fact-green.log",
+      "out/j07-real-external/nature-observation-green.log"
+    ],
+    "initialRegression": {
+      "passed": 17,
+      "failed": 1,
+      "log": "out/j07-real-external/nature-integration.log",
+      "reason": "Test assumed unsupported AI unknown returns invalid_output, but existing Runtime exposes provider_failure; assertion corrected to reject output without guessing a new failure contract."
+    },
+    "build": "PASS",
+    "buildLog": "out/j07-real-external/nature-build.log"
+  },
+  "frozen": {
+    "docs/product-spec": {
+      "files": 12,
+      "matchingFrozenHEAD": 12
+    },
+    "docs/architecture": {
+      "files": 8,
+      "matchingFrozenHEAD": 8
+    }
+  },
+  "temporaryTestStores": "separate mkdtemp stores removed; no writes to existing J07 workspace"
+}

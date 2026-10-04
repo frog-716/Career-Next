@@ -4,27 +4,34 @@ import { dispatchMaterials } from '../transport/materials';
 import { Identity } from '../../contracts/materials/schema';
 import type { MessagePortMain } from 'electron';
 import {z} from 'zod';
+import {randomUUID} from 'node:crypto';
 import {ProviderBinding} from '../platform/providers/binding';
+import {CredentialFailure,credentialAuthorizationSafetyMs} from '../../contracts/ai/secret-input';
 import {Result as DataResult} from '../../contracts/application/schema';
 async function start() {
+let currentPort: MessagePortMain | undefined;
+const credentialReads=new Map<string,{resolve(value:string):void;reject(error:Error):void;timer:ReturnType<typeof setTimeout>}>();
+let credentialIdentity:ReturnType<typeof Identity.parse>|undefined;
+function providerKey(generation:string,service:'deepseek'|'tavily'='deepseek'):Promise<string>{const port=currentPort,bound=credentialIdentity;if(!port||!bound)throw Error('credential_unavailable');const credentialId=randomUUID();return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{credentialReads.delete(credentialId);reject(Error('credential_timeout'));},credentialAuthorizationSafetyMs+5000);credentialReads.set(credentialId,{resolve,reject,timer});port.postMessage({credentialRequest:{credentialId,generation,service},identity:bound});});}
 const recoveryBackup=process.argv[4]?z.uuid().parse(process.argv[4]):undefined;
-const runtime=await createRuntimeBackend(process.argv[2]!,undefined,process.argv[3]??process.argv[2]!,{automaticBackups:!recoveryBackup,...process.argv[5]?{providerBinding:ProviderBinding.parse(JSON.parse(process.argv[5]))}:{}});
+const runtime=await createRuntimeBackend(process.argv[2]!,undefined,process.argv[3]??process.argv[2]!,{providerKey,tavilyKey:generation=>providerKey(generation,'tavily'),automaticBackups:!recoveryBackup,...process.argv[5]?{providerBinding:ProviderBinding.parse(JSON.parse(process.argv[5]))}:{}});
 // This isolated, empty maintenance candidate is never exposed as the active business workspace.
 if(recoveryBackup){const human=await runtime.connectHuman();const candidate=DataResult.parse(await runtime.business(human,'application',{operation:'data.restore.prepare',backupId:recoveryBackup}));if(candidate.kind!=='restore_candidate'){await runtime.close();throw Error('restore_invalid');}const restored=DataResult.parse(await runtime.business(human,'application',{operation:'data.restore.activate',candidateId:candidate.copy.id,confirmed:true}));if(restored.kind!=='restored'){await runtime.close();throw Error('restore_invalid');}}
 
-let currentPort: MessagePortMain | undefined;
 let connectionQueue=Promise.resolve();
 process.parentPort!.on('message',event=>{
   connectionQueue=connectionQueue.then(async()=>{
-    currentPort?.close();
+    currentPort?.close();for(const item of credentialReads.values()){clearTimeout(item.timer);item.reject(Error('credential_unavailable'));}credentialReads.clear();
     const port: MessagePortMain=event.ports[0]!;
     const session=await runtime.connectHuman();
     const identity=Identity.parse({protocolVersion:session.protocolVersion,workspaceInstance:session.workspaceInstance,backendGeneration:session.backendGeneration,connectionGeneration:session.connectionGeneration});
-    currentPort=port;
+    currentPort=port;credentialIdentity=identity;
     port.on('message',async event=>{
       if(currentPort!==port) return;
-      const {requestId,request,identity: bound,selectedFile,module,printAction,commandId,pdf,sentFileAction,searchAction,providerAction,binding}=event.data;
+      if(event.data.credentialResponse){const {credentialId,value}=event.data.credentialResponse;const item=credentialReads.get(credentialId);if(!item)return;credentialReads.delete(credentialId);clearTimeout(item.timer);if(JSON.stringify(event.data.identity)===JSON.stringify(identity)&&typeof value==='string')item.resolve(value);else {const failure=CredentialFailure.safeParse(event.data.credentialResponse.error);item.reject(Error(failure.success?failure.data:'credential_unavailable'));}return;}
+      const {requestId,request,identity: bound,selectedFile,module,printAction,commandId,pdf,sentFileAction,searchAction,externalSearchAction,credentialGeneration,providerAction,binding}=event.data;
       if(providerAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||providerAction!=='configure')throw Error('invalid_capability');runtime.configureProvider(ProviderBinding.parse(binding));if(currentPort===port)port.postMessage({requestId,identity,result:{configured:true}});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'invalid_request'});}return;}
+      if(externalSearchAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||!['tavily','invalidate'].includes(externalSearchAction))throw Error('invalid_capability');if(externalSearchAction==='invalidate'){runtime.invalidateTavily();if(currentPort===port)port.postMessage({requestId,identity,result:{invalidated:true}});return;}const result=await runtime.externalSearch(session,request,credentialGeneration);if(currentPort===port)port.postMessage({requestId,identity,result});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'invalid_request'});}return;}
       if(searchAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||searchAction!=='query')throw Error('invalid_capability');const result=await runtime.search(session,request);if(currentPort===port)port.postMessage({requestId,identity,result});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'invalid_request'});}return;}
       if(sentFileAction){try{const parsed=Identity.parse(bound);if(JSON.stringify(parsed)!==JSON.stringify(identity)||sentFileAction!=='select'||typeof selectedFile!=='string')throw Error('invalid_capability');const result=await runtime.selectSentFile(session,selectedFile);if(currentPort===port)port.postMessage({requestId,identity,result});}catch{if(currentPort===port)port.postMessage({requestId,identity,error:'file_failed'});}return;}
       if(printAction){
@@ -50,7 +57,7 @@ process.parentPort!.on('message',event=>{
     port.start(); port.postMessage({ready:identity});
   }).catch(()=>{ process.exitCode=1; });
 });
-process.on('SIGTERM',()=>{ currentPort?.close(); void runtime.close().finally(()=>process.exit(0)); });
+process.on('SIGTERM',()=>{for(const item of credentialReads.values()){clearTimeout(item.timer);item.reject(Error('credential_cancelled'));}credentialReads.clear();currentPort?.close(); void runtime.close().finally(()=>process.exit(0)); });
 
 }
 void start().catch(() => { console.error('CAREER_BACKEND_STARTUP_FAILED'); process.exit(1); });

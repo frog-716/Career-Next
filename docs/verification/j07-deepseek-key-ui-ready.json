@@ -1,0 +1,28 @@
+{
+  "status": "AWAITING HUMAN KEY ENTRY - NO PROVIDER REQUEST",
+  "profile": "out/j07-real-external/profile",
+  "credentialSlot": "security",
+  "credentialStatus": "UNCONFIGURED - formal Secret UI and metadata agree",
+  "displayModel": "DeepSeek V4.1-Flash",
+  "actualApiModelIdentifier": "deepseek-flash",
+  "officialModelSource": "https://api-docs.deepseek.com/zh-cn/news/news260910/",
+  "officialApiSource": "https://api-docs.deepseek.com/api/create-chat-completion/",
+  "thinking": {
+    "type": "disabled"
+  },
+  "fallback": "none",
+  "endpoint": "POST https://api.deepseek.com/chat/completions",
+  "uiUseSelected": "DeepSeek V4.1-Flash · non-thinking",
+  "focusedInput": "formal Secret UI / 新凭据 / password",
+  "keyRead": false,
+  "keyDisplayed": false,
+  "providerRequestCount": 0,
+  "additionalTavilyRequests": 0,
+  "feishuCalls": 0,
+  "allowedTestData": {
+    "target": "Example Corp / Test Opportunity",
+    "material": "Example Corp is testing a fictional hiring workflow.\nRole: Test Analyst.\nHiring process: Two fictional interview rounds."
+  },
+  "searchResultsAuthorizedForProvider": false,
+  "next": "Human enters and saves Key; final full Provider preview still required before separately authorized dispatch."
+}

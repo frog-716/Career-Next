@@ -1,0 +1,37 @@
+{
+  "status": "FRESH PREVIEW ONLY - AWAITING NEW EXPLICIT USER AUTHORIZATION",
+  "payload": {
+    "recipient": {
+      "provider": "Tavily",
+      "endpoint": "https://api.tavily.com/search",
+      "method": "POST"
+    },
+    "body": {
+      "query": "OpenAI official website"
+    },
+    "limits": {
+      "maxAttempts": 1,
+      "automaticRetry": false,
+      "followRedirects": false,
+      "providerFallback": false
+    },
+    "excludedData": [
+      "Resume",
+      "Raw",
+      "Profile",
+      "Career private data"
+    ],
+    "authentication": "Device Secret Vault credential in Authorization header; value excluded from preview"
+  },
+  "payloadSha256": "b7e69204012bdce7dd3b0e66c14434873ac4788f4c2e223137b2ed27ad8059b7",
+  "bodyUtf8": "{\"query\":\"OpenAI official website\"}",
+  "credentialSlot": "Tavily",
+  "credentialRead": false,
+  "requestCountThisPreparation": 0,
+  "callsDeepSeek": false,
+  "callsFeishu": false,
+  "previousNotSentReceiptPreserved": true,
+  "searchSlotRearmed": false,
+  "authorizationInheritedFromPriorFailedAttempt": false,
+  "packagedApp": "out/j07-real-external/CareerNext-credential-wait.app"
+}

@@ -1,0 +1,102 @@
+{
+  "kind": "REAL_FEISHU_TEST_DATA",
+  "identity": "user",
+  "selectedUrl": "https://fcnxusey6bqe.feishu.cn/wiki/BEySweDliiGwbpk56zTcA88Snxc",
+  "documentId": "EVRwdPQMoo9WSbxo2xockU5qnJg",
+  "wikiNodeId": "BEySweDliiGwbpk56zTcA88Snxc",
+  "externalRevision": 25,
+  "bodyReadCount": 1,
+  "additionalBodyReadsThisStep": 0,
+  "otherDocumentsRead": 0,
+  "feishuWrites": 0,
+  "careerDataSentToFeishu": false,
+  "rawSaved": true,
+  "rawId": "f4211cdf-86a2-408b-95b6-df378ca71045",
+  "rawLocalRevision": 1,
+  "rawCountForThisDocument": 1,
+  "workspaceRawTotal": 2,
+  "contentMatch": true,
+  "bodySHA256": "e2f08857e9bef4d2277642613a5547ea9537a139d5d1fed0e9d37630b05aca7c",
+  "bodyBytes": 224,
+  "source": {
+    "owner": "materials",
+    "objectId": "f4211cdf-86a2-408b-95b6-df378ca71045",
+    "revision": 1,
+    "locator": "whole",
+    "scope": "personal"
+  },
+  "origin": {
+    "kind": "feishu",
+    "identity": "user",
+    "url": "https://fcnxusey6bqe.feishu.cn/wiki/BEySweDliiGwbpk56zTcA88Snxc",
+    "wikiNodeId": "BEySweDliiGwbpk56zTcA88Snxc",
+    "documentId": "EVRwdPQMoo9WSbxo2xockU5qnJg",
+    "revisionId": 25
+  },
+  "receipt": {
+    "status": "committed",
+    "commandId": "17902bdb-7789-4fce-b606-35402c0edc64",
+    "materialId": "f4211cdf-86a2-408b-95b6-df378ca71045",
+    "source": {
+      "owner": "materials",
+      "objectId": "f4211cdf-86a2-408b-95b6-df378ca71045",
+      "revision": 1,
+      "locator": "whole",
+      "scope": "personal"
+    }
+  },
+  "repeatReceipt": {
+    "status": "committed",
+    "commandId": "17902bdb-7789-4fce-b606-35402c0edc64",
+    "materialId": "f4211cdf-86a2-408b-95b6-df378ca71045",
+    "source": {
+      "owner": "materials",
+      "objectId": "f4211cdf-86a2-408b-95b6-df378ca71045",
+      "revision": 1,
+      "locator": "whole",
+      "scope": "personal"
+    }
+  },
+  "idempotency": "PASS",
+  "cancel": "PASS: rejected save, list unchanged, no empty Raw",
+  "externalRequestsThisStep": 0,
+  "networkAttempts": 0,
+  "provider": "not invoked",
+  "search": "not invoked",
+  "pipeline": "cached confirmed body -> Materials.selectFile trusted origin -> immutable preview digest -> Materials.confirm -> Materials.read",
+  "testWorkspace": "/Users/frog/Projects/Career-Next/out/j07-real-external/profile",
+  "savedAt": "2026-10-04T02:33:42.461Z",
+  "tests": {
+    "integration": "62/62 PASS",
+    "typecheck": "PASS",
+    "build": "PASS",
+    "package": "PASS: normal arm64",
+    "red": "feishu-origin-red.log: origin absent before fix",
+    "green": "feishu-origin-green.log",
+    "packagedMaterialsSmoke": "1/1 PASS, separate temporary TEST DATA profile"
+  },
+  "safety": {
+    "frozen": {
+      "docs/product-spec/": {
+        "files": 12,
+        "changed": 0
+      },
+      "docs/architecture/": {
+        "files": 8,
+        "changed": 0
+      }
+    },
+    "gitKeyPatterns": 0,
+    "logKeyPatterns": 0,
+    "businessKeyPatterns": 0,
+    "method": "pattern only, no credential read"
+  },
+  "desktopReadback": {
+    "normalArm64App": "CareerNext-feishu-origin.app",
+    "formalMaterialsRead": "PASS",
+    "originUserAndRevision25Visible": true,
+    "confirmedTestBodyVisible": true,
+    "workspaceRawTotal": 2,
+    "externalRequestsThisStep": 0
+  }
+}

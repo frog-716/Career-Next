@@ -16,6 +16,6 @@ export async function resolveStartupProviderBinding(directory:string,status:()=>
   const parsed=SecretResult.safeParse(await status());if(!parsed.success||parsed.data.kind!=='status')return disabled;
   const current=parsed.data.status,generation=current.generation??'fake-v1';
   const file=(name:string)=>entries.some(entry=>entry.name===name&&entry.isFile());
-  return {generation,enabled:current.enabled&&current.configured&&!!current.generation&&file('binding.json')&&file(current.generation+'.encrypted')&&!entries.some(entry=>entry.name==='pending-generation.json')};
+  return {generation,...current.provider?{provider:current.provider}:{},enabled:current.enabled&&current.configured&&!!current.generation&&file('binding.json')&&file(current.generation+'.encrypted')&&!entries.some(entry=>entry.name==='pending-generation.json')};
  }catch{return disabled;}
 }

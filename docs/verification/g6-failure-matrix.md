@@ -1,10 +1,10 @@
 # G6 故障、恢复与发布门
 
-状态：LOCAL G6 PASS；63 个本地场景全部实际执行并通过。本矩阵在实施前建立，以下逐项结算；发布环境项单独 READY / NOT RUN。基线 `befe2437a9b260237ae5f08a2d11517437a27032`。冻结正本只读，旧 Career 禁止读取；真实 Provider/Search/Feishu NOT TESTED。G5 总状态仍 PARTIAL，仅真实 J-07 待验。
+状态：LOCAL G6 PASS；63 个本地场景全部实际执行并通过。本矩阵在实施前建立，以下逐项结算；发布环境项单独 READY / NOT RUN。基线 `befe2437a9b260237ae5f08a2d11517437a27032`。冻结正本只读，旧 Career 禁止读取；真实服务在 G6 当时未测；随后 J-07 三个真实分支已 PASS，G5 总状态 PASS，详见 [J-07](j07-real-external.md)。本矩阵故障证据仍限本地。
 
 测试接缝：用户已明确授权的公开 Contract/owner capability、SQLite/file adapter、Runtime dispatcher/control、managed-copy/backup/active-pointer、真实 packaged desktop。故障只作用于隔离夹具与受控失败接缝，不填满系统盘，不添加生产测试后门。
 
-## 28 个 G5 DEFER_G6 分支
+## 28 个 G5 原 DEFER_G6 分支（最终 PASS_G6）
 
 | Acceptance | 本轮记录 | G5 待验边界 |
 | --- | --- | --- |
