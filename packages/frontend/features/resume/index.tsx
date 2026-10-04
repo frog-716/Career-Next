@@ -10,6 +10,7 @@ import StarterKit from '@tiptap/starter-kit';
 import {Plugin} from '@tiptap/pm/state';
 import {closeHistory,isHistoryTransaction} from '@tiptap/pm/history';
 import type {Request as ResumeRequest,Result as ResumeResult,Profile,CareerDocument,Version} from '../../../contracts/resume/schema';
+import {Alignment} from '../../../contracts/resume/schema';
 import {toEditor,fromEditor} from './adapter';
 import {createResumeSaveSession} from './save-session';
 import {FrozenResumeBody} from './frozen-body';
@@ -21,7 +22,7 @@ type Transport=(request:Request)=>Promise<Result>;
 type Opened=Extract<Result,{status:'document'}>;
 const stableIds=Extension.create({
  name:'careerStableIds',
- addGlobalAttributes(){return [{types:['heading','paragraph','bulletList','listItem'],attributes:{careerId:{default:null},careerKind:{default:'summary'}}}];},
+ addGlobalAttributes(){return [{types:['heading','paragraph','bulletList','listItem'],attributes:{careerId:{default:null},careerKind:{default:'summary'}}},{types:['paragraph'],attributes:{textAlign:{default:null,parseHTML:element=>Alignment.safeParse(element.style.textAlign).success?element.style.textAlign:null,renderHTML:attrs=>Alignment.safeParse(attrs.textAlign).success?{style:'text-align:'+attrs.textAlign}:{}}}},{types:['doc'],attributes:{careerIdentityNameAlignment:{default:null}}}];},
  addProseMirrorPlugins(){return [new Plugin({appendTransaction(transactions,_old,state){
   if(!transactions.some(transaction=>transaction.docChanged))return null;
   const seen=new Set<string>();const transaction=state.tr;
@@ -52,7 +53,7 @@ function ProfileFields({profile,request,onSaved,onDirty}:{profile:Profile;reques
 function replaceUndoably(editor:Editor,content:CareerDocument){
  editor.view.dispatch(closeHistory(editor.state.tr));
  const next=editor.schema.nodeFromJSON(toEditor(content));
- editor.view.dispatch(editor.state.tr.replaceWith(0,editor.state.doc.content.size,next.content));
+ editor.view.dispatch(editor.state.tr.replaceWith(0,editor.state.doc.content.size,next.content).setDocAttribute('careerIdentityNameAlignment',content.layout.identityNameAlignment??null));
  editor.view.dispatch(closeHistory(editor.state.tr));
 }
 function applyAiPatchUndoably(editor:Editor,content:CareerDocument,recordUndo=true){
@@ -60,8 +61,8 @@ function applyAiPatchUndoably(editor:Editor,content:CareerDocument,recordUndo=tr
  const changes:{start:number;end:number;nodes:typeof old[]}[]=[];let previousOld=-1,previousNew=-1;
  const gap=(oldEnd:number,newEnd:number)=>{const from=previousOld+1,to=oldEnd,start=before[from]?.pos??old.content.size,end=before[to]?.pos??old.content.size,nodes=after.slice(previousNew+1,newEnd);if(start!==end||nodes.length)changes.push({start,end,nodes});};
  for(let index=0;index<after.length;index++){const id=after[index].attrs.careerId,match=before.findIndex((item,at)=>at>previousOld&&id&&item.node.attrs.careerId===id);if(match<0)continue;gap(match,index);if(!before[match].node.eq(after[index]))changes.push({start:before[match].pos,end:before[match].pos+before[match].node.nodeSize,nodes:[after[index]]});previousOld=match;previousNew=index;}
- gap(before.length,after.length);if(!changes.length)return;
- if(recordUndo)editor.view.dispatch(closeHistory(editor.state.tr));let transaction=editor.state.tr.setMeta('careerProposalApply',true).setMeta('addToHistory',recordUndo);for(const change of changes.sort((a,b)=>b.start-a.start||b.end-a.end))transaction=transaction.replaceWith(change.start,change.end,change.nodes);editor.view.dispatch(transaction);if(recordUndo)editor.view.dispatch(closeHistory(editor.state.tr));
+ gap(before.length,after.length);const identityChanged=old.attrs.careerIdentityNameAlignment!==next.attrs.careerIdentityNameAlignment;if(!changes.length&&!identityChanged)return;
+ if(recordUndo)editor.view.dispatch(closeHistory(editor.state.tr));let transaction=editor.state.tr.setMeta('careerProposalApply',true).setMeta('addToHistory',recordUndo);if(identityChanged)transaction=transaction.setDocAttribute('careerIdentityNameAlignment',next.attrs.careerIdentityNameAlignment);for(const change of changes.sort((a,b)=>b.start-a.start||b.end-a.end))transaction=transaction.replaceWith(change.start,change.end,change.nodes);editor.view.dispatch(transaction);if(recordUndo)editor.view.dispatch(closeHistory(editor.state.tr));
 }
 function ResumeEditor({opened,request,onReturn,active,purgeNotice}:{purgeNotice?:PurgeNotice;opened:Opened;request:Transport;onReturn?:()=>void;active:boolean}){
  const [,redraw]=useState(0);const transport=useRef(request);transport.current=request;
@@ -81,6 +82,13 @@ function ResumeEditor({opened,request,onReturn,active,purgeNotice}:{purgeNotice?
   catch(cause){const message=cause instanceof Error?cause.message:'当前格式不受支持，未保存';formatErrorRef.current=message;setFormatError(message);}
  }
  const editor=useEditor({injectCSS:false,extensions:[StarterKit.configure({heading:{levels:[2]},code:false,codeBlock:false,blockquote:false,hardBreak:false,horizontalRule:false,orderedList:false,underline:false,link:{openOnClick:false}}),stableIds,Extension.create({name:'careerProposalProtection',addProseMirrorPlugins(){return [new Plugin({filterTransaction(transaction,state){if(aiApplyingRef.current&&isHistoryTransaction(transaction))return false;if(!transaction.docChanged||transaction.getMeta('careerProposalApply')||!aiProtection.current.length)return true;const selected=(doc:typeof state.doc)=>{const values:unknown[]=[];doc.descendants(node=>{if(aiProtection.current.includes(node.attrs.careerId))values.push(node.toJSON());});return JSON.stringify(values);};return selected(transaction.doc)===selected(state.doc);}})];}})],content:toEditor(opened.document.content),editorProps:{attributes:{'aria-label':'简历正文','role':'textbox','aria-multiline':'true'},handleDOMEvents:{compositionstart:()=>{session.composition(true);return false;},compositionend:()=>{setTimeout(()=>{session.composition(false);if(editor)updateFromEditor(editor);},0);return false;}}},onUpdate:({editor:updated})=>updateFromEditor(updated)});
+ function setAlignment(value:import('../../../contracts/resume/schema').Alignment,identity=false){
+  if(!editor||state.status==='composition'||aiApplyingRef.current||restoreCommand)return;
+  editor.commands.focus();editor.view.dispatch(closeHistory(editor.state.tr));let transaction=editor.state.tr;
+  if(identity)transaction=transaction.setDocAttribute('careerIdentityNameAlignment',value);
+  else editor.state.doc.nodesBetween(editor.state.selection.from,editor.state.selection.to,(node,pos)=>{if(node.type.name==='paragraph')transaction.setNodeMarkup(pos,undefined,{...node.attrs,textAlign:value});});
+  if(transaction.docChanged)editor.view.dispatch(transaction);editor.view.dispatch(closeHistory(editor.state.tr));
+ }
  const queryClient=useQueryClient();
  const [profilePurge,setProfilePurge]=useState(0);
  const profileQuery=useQuery({queryKey:['resume',opened.document.opportunityId,'profile'],queryFn:async()=>{const result=await transport.current({operation:'profile.read'});if(result.status!=='profile')throw new Error('基础资料读取失败');return result.profile;},initialData:opened.profile,refetchInterval:5000,retry:false});
@@ -147,12 +155,16 @@ function ResumeEditor({opened,request,onReturn,active,purgeNotice}:{purgeNotice?
   {restoreCommand&&!restoreBusy&&<aside><p>恢复结果待核对，当前正文仍保留。为避免覆盖，核对前暂停正文编辑。</p><button onClick={async()=>{try{await finishRestore(await request({operation:'resume.receipt',commandId:restoreCommand.commandId}),true);}catch{setError('恢复结果仍无法核对');}}}>核对原恢复命令</button><button onClick={async()=>{setRestoreBusy(true);try{await finishRestore(await request(restoreCommand));}catch{setError('恢复结果待核对');}finally{setRestoreBusy(false);}}}>明确继续原恢复命令</button></aside>}
   {versionCommand?.operation==='resume.export'&&!namingBusy&&<aside><p>未命名导出结果待核对，当前输入保留。</p><button onClick={async()=>{try{await finishVersion(await request({operation:'resume.receipt',commandId:versionCommand.commandId}));}catch{setError('仍无法核对导出结果');}}}>核对导出结果</button><button onClick={async()=>{try{await finishVersion(await request(versionCommand));}catch{setError('导出结果待核对');}}}>继续原导出</button></aside>}
   {formatError&&<p role="alert">{formatError}</p>}{error&&<p role="alert">{error}</p>}{historyReadStatus==='failed'&&<aside><p role="alert">版本历史读取失败，缓存可能不完整；已保存的版本保持不变。</p><button onClick={()=>void refreshHistory()}>重新读取版本历史</button></aside>}{historyReadStatus==='loading'&&<p role="status">正在读取版本历史…</p>}{overflow&&<p>正文超过一页 A4；导出将自动分页，请检查 PDF 页数。</p>}
+  <div className="resume-toolbar" aria-label="对齐设置">
+   {(['left','center','right'] as const).map((alignment,index)=><React.Fragment key={alignment}><button disabled={!editor||state.status==='composition'||!!restoreCommand||aiApplying} onClick={()=>setAlignment(alignment)}>正文{['左对齐','居中','右对齐'][index]}</button><button disabled={!editor||state.status==='composition'||!!restoreCommand||aiApplying} onClick={()=>setAlignment(alignment,true)}>姓名{['左对齐','居中','右对齐'][index]}</button></React.Fragment>)}
+   <span className="resume-note">列表按每项正文对齐，项目符号缩进保持不变。</span>
+  </div>
   <article className={`resume-paper resume-font-${state.content.layout.fontSize}`}>
-   <ProfileFields key={profilePurge} profile={profile} request={request} onDirty={setProfileDirty} onSaved={current=>{setProfile(current);session.profileRevision(current.revision);queryClient.setQueryData(['resume',opened.document.opportunityId,'profile'],current);}}/>
+   <div data-testid="resume-name-layout" data-name-alignment={state.content.layout.identityNameAlignment??'left'}><ProfileFields key={profilePurge} profile={profile} request={request} onDirty={setProfileDirty} onSaved={current=>{setProfile(current);session.profileRevision(current.revision);queryClient.setQueryData(['resume',opened.document.opportunityId,'profile'],current);}}/></div>
    <EditorContent editor={editor}/>
   </article>
   {copyOpen&&<aside className="resume-panel" aria-label="复制普通版本"><h2>其他机会的普通版本</h2><p>只复制正文与布局；不复制身份、历史或导出文件。</p>{copyItems.length===0&&<p>暂无其他机会的普通命名版本。</p>}{copyItems.map(item=><button key={item.versionId} onClick={()=>void copyVersion(item.versionId)}>{item.companyName} · {item.role} · {item.name}</button>)}<button onClick={()=>{setCopyOpen(false);editor?.commands.focus();}}>取消复制，继续当前稿</button></aside>}
-  {history&&<aside className="resume-panel"><h2>命名版本历史</h2>{historyReadStatus==='loaded'&&versions.length===0&&<p>尚未创建命名版本。</p>}{versions.map(version=><button key={version.id} onClick={()=>setViewed(version)}>{version.name||'未命名导出'}</button>)}<button onClick={()=>{setHistory(false);setViewed(undefined);editor?.commands.focus();}}>关闭历史</button>{viewed&&<div><h3>{viewed.name||'未命名导出'}（冻结材料）</h3><p>{viewed.snapshot.profile.name} · {viewed.snapshot.profile.contact}</p><FrozenResumeBody content={viewed.snapshot.content}/><p>对应 PDF 已保留，{viewed.pdf.size} 字节；源正文不会被当前编辑改写。</p><button onClick={()=>void restore(viewed)}>恢复此版本正文</button><button onClick={()=>{setViewed(undefined);editor?.commands.focus();}}>取消查看 / 恢复</button></div>}</aside>}
+  {history&&<aside className="resume-panel"><h2>命名版本历史</h2>{historyReadStatus==='loaded'&&versions.length===0&&<p>尚未创建命名版本。</p>}{versions.map(version=><button key={version.id} onClick={()=>setViewed(version)}>{version.name||'未命名导出'}</button>)}<button onClick={()=>{setHistory(false);setViewed(undefined);editor?.commands.focus();}}>关闭历史</button>{viewed&&<div><h3>{viewed.name||'未命名导出'}（冻结材料）</h3><p data-testid="frozen-resume-name" style={{textAlign:viewed.snapshot.content.layout.identityNameAlignment??'left'}}>{viewed.snapshot.profile.name}</p><p>{viewed.snapshot.profile.contact}</p><FrozenResumeBody content={viewed.snapshot.content}/><p>对应 PDF 已保留，{viewed.pdf.size} 字节；源正文不会被当前编辑改写。</p><button onClick={()=>void restore(viewed)}>恢复此版本正文</button><button onClick={()=>{setViewed(undefined);editor?.commands.focus();}}>取消查看 / 恢复</button></div>}</aside>}
   {naming&&<div className="resume-panel" role="dialog" aria-modal="true" aria-label="命名简历版本" onKeyDown={event=>{if(event.key==='Tab'){const elements=Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled)'));const first=elements[0];const last=elements.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}if(event.key==='Escape'&&!namingBusy){setNaming(false);editor?.commands.focus();}}}><h2>命名版本</h2><label>版本名称<input disabled={namingBusy||!!versionCommand} autoFocus maxLength={120} value={versionName} onChange={event=>setVersionName(event.target.value)}/></label><button disabled={namingBusy||!!versionCommand} onClick={()=>void nameVersion()}>保存版本及 PDF</button>{versionCommand&&!namingBusy&&<><button onClick={async()=>{try{await finishVersion(await request({operation:'resume.receipt',commandId:versionCommand.commandId}));}catch{setError('仍无法核对版本结果');}}}>核对版本结果</button><button onClick={async()=>{setNamingBusy(true);try{await finishVersion(await request(versionCommand));}catch{setError('版本结果待核对');}finally{setNamingBusy(false);}}}>继续原冻结版本生成</button></>}<button disabled={namingBusy} onClick={()=>{setNaming(false);editor?.commands.focus();}}>关闭，保留当前稿</button></div>}
  </section>;
 }

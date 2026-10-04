@@ -20,8 +20,8 @@ export function FrozenResumeBody({content}:{content:CareerDocument}){
   {content.sections.map(section=><section key={section.id}>
    <h4>{section.title}</h4>
    {section.blocks.map(block=>block.type==='paragraph'
-    ?<p key={block.id}><FrozenSpans spans={block.spans}/></p>
-    :<ul key={block.id}>{block.items.map(item=><li key={item.id}><FrozenSpans spans={item.spans}/></li>)}</ul>)}
+    ?<p key={block.id} style={{textAlign:block.alignment??'left'}}><FrozenSpans spans={block.spans}/></p>
+    :<ul key={block.id}>{block.items.map(item=><li key={item.id} style={{textAlign:item.alignment??'left'}}><FrozenSpans spans={item.spans}/></li>)}</ul>)}
   </section>)}
  </div>;
 }

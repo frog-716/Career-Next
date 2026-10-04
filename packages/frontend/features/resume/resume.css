@@ -7,3 +7,7 @@
 .resume-font-14 { font-size: 14pt; }
 
 .resume-frozen-body{line-height:1.5;overflow-wrap:anywhere}.resume-frozen-body p,.resume-frozen-body li{white-space:pre-wrap}.resume-frozen-body ul{padding-left:24px}
+
+[data-name-alignment="center"] .resume-identity input[aria-label="基础资料姓名"] { text-align:center; }
+[data-name-alignment="right"] .resume-identity input[aria-label="基础资料姓名"] { text-align:right; }
+[data-name-alignment="left"] .resume-identity input[aria-label="基础资料姓名"] { text-align:left; }
