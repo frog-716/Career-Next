@@ -1,6 +1,6 @@
 # Career-Next
 
-G0–G5 已 PASS，[J-07 真实外部链](docs/verification/j07-real-external.md) 使用隔离 TEST DATA 验收完成。G6 本地故障/恢复 PASS；Developer ID、Notarization、x64 仍 READY / NOT RUN。[Migration M0 只读盘点](docs/migration/M0-INVENTORY.md)已完成，尚未执行迁移或导入。
+G0–G5 已 PASS，[J-07 真实外部链](docs/verification/j07-real-external.md) 使用隔离 TEST DATA 验收完成。G6 本地故障/恢复 PASS；Developer ID、Notarization、x64 仍 READY / NOT RUN。[Migration M0.5 人工分类](docs/migration/M0.5-SUMMARY.md)已完成，仅14条 REAL 作为后续候选；M1 未开始，尚未执行迁移或导入。
 
 Career 是保存在个人电脑上的长期职业工作台，帮助用户推进求职、记录真实工作，并积累可找回、可复用的职业资料。
 

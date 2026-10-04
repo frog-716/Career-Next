@@ -1,6 +1,6 @@
 # Career-Next 项目地图
 
-当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 仅完成 M0 只读盘点，尚未执行迁移。
+当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1 未开始，尚未执行迁移。
 
 ## 目标与当前阶段
 
@@ -113,5 +113,6 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 
 ## Migration M0：只读盘点已完成
 
-- [M0 盘点](docs/migration/M0-INVENTORY.md) / [结构化清单](docs/migration/M0-INVENTORY.json)：主库84个业务记录，TEST=40、UNKNOWN=44、确认 REAL=0（不代表没有真实资料）；两套旧运行实例单独记录。
-- 仅检查本地资料、引用、PDF 与备份，未迁移、导入、修正或合并；停在 M0，后续操作需要独立明确授权。
+- [M0 盘点](docs/migration/M0-INVENTORY.md) / [结构化清单](docs/migration/M0-INVENTORY.json)：保留分类前历史证据；两套旧运行实例单独记录。
+- [M0.5 最终分类基线](docs/migration/M0.5-SUMMARY.md)：Primary REAL=14、TEST=65、UNKNOWN=5，共84条；backup-only TEST=30。19组均已分类；仅14条 REAL 可作为后续候选，TEST 禁止迁移，UNKNOWN 默认不迁移且不自动升级。
+- 未迁移、导入、修正或合并；停在 M0.5，M1 未开始，后续操作需要独立明确授权。本地人工审阅文件保持 Git ignored。
