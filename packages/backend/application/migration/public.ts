@@ -19,14 +19,17 @@ import {createLegacyHistory} from '../../ai-runtime/legacy-history/public';
 import {validateBusinessCandidate,validateCandidateRelations} from '../../bootstrap/candidate-validation';
 import {validateMigrationCandidate} from './candidate-validation';
 import {Profile} from '../../../contracts/profile/schema';
+import {readLiteSource} from './lite-source';
 import {readSyntheticSource,digest} from './source';
 import {Classification,Mapping,Manifest,Receipt,AdapterVersion,type LegacyRecord} from './schema';
-export type MigrationInput={sourcePath:string;sourceDigest:string;classification:unknown;mapping:unknown;dataRoot:string};
+export type MigrationInput={sourcePath:string;sourceDigest:string;classification:unknown;mapping:unknown;dataRoot:string;liteSelection?:unknown};
 const Prepared=z.strictObject({root:z.string(),dataRoot:z.string(),planDigest:z.string(),manifest:Manifest});
 export type Prepared=z.infer<typeof Prepared>;
 function inputs(input:MigrationInput){const classification=Classification.parse(input.classification),mapping=Mapping.parse(input.mapping);
  if(classification.records.some(r=>r.classification!=='REAL')||new Set(classification.records.map(r=>r.identity)).size!==classification.records.length)throw Error('classification_rejected');
- const snapshot=readSyntheticSource(input.sourcePath,input.sourceDigest),identities=classification.records.map(r=>r.identity).sort();
+ if(!!input.liteSelection!==(mapping.version==='M-Lite-current-v1'))throw Error('mapping_source_mismatch');
+ const snapshot=input.liteSelection?readLiteSource(input.sourcePath,input.sourceDigest,input.liteSelection):readSyntheticSource(input.sourcePath,input.sourceDigest),identities=classification.records.map(r=>r.identity).sort();
+ if(input.liteSelection&&(identities.length!==8||JSON.stringify([...snapshot.records.map(r=>r.identity)].sort())!==JSON.stringify(identities)))throw Error('classification_rejected');
  const records=identities.map(id=>{const record=snapshot.records.find(r=>r.identity===id);if(!record)throw Error('source_identity_missing');if(record.kind==='profile'&&record.origin!=='primary')throw Error('primary_required');return record;});
  return {snapshot,records,classificationDigest:digest(JSON.stringify(classification)),mappingDigest:digest(JSON.stringify(mapping)),identities};
 }
@@ -39,7 +42,7 @@ export async function prepareMigration(input:MigrationInput):Promise<Prepared>{
  const checked=inputs(input),dataRoot=realpathSync(input.dataRoot),root=safeManagedPath(dataRoot,'migration-staging/'+randomUUID());
  const copies=createManagedCopies(dataRoot),copy=copies.register({relativePath:path.relative(dataRoot,root),kind:'staging',state:'candidate'});
  try{mkdirSync(root,{recursive:true,mode:0o700});const workspace=await openWorkspace(root,materialsMigration,releases);try{
-  const manifest=Manifest.parse({sourceDigest:checked.snapshot.digest,sourceSchemaDigest:checked.snapshot.schemaDigest,sourceVersion:checked.snapshot.version,classificationDigest:checked.classificationDigest,mappingDigest:checked.mappingDigest,adapterVersion:AdapterVersion,recordIdentities:checked.identities,workspaceInstance:workspace.workspaceInstance});
+  const manifest=Manifest.parse({sourceDigest:checked.snapshot.digest,sourceSchemaDigest:checked.snapshot.schemaDigest,sourceVersion:checked.snapshot.version,classificationDigest:checked.classificationDigest,mappingDigest:checked.mappingDigest,adapterVersion:input.liteSelection?'m-lite-primary-v1':AdapterVersion,recordIdentities:checked.identities,workspaceInstance:workspace.workspaceInstance});
   const plan=Prepared.parse({root,dataRoot,manifest,planDigest:digest(JSON.stringify(manifest))});
   durableJson(path.join(root,'m1b-staging.json'),{kind:'m1b-staging',workspaceInstance:workspace.workspaceInstance});
   durableJson(path.join(root,'legacy-history-staging.json'),{kind:'legacy-history-staging',workspaceInstance:workspace.workspaceInstance});

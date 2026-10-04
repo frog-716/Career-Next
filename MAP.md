@@ -1,12 +1,12 @@
 # Career-Next 项目地图
 
-当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，尚未执行真实迁移，M2 未开始。
+当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。
 
 ## 目标与当前阶段
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；G4 历史范围只用 deterministic fake；G5 产品、真人桌面与 J-01～J-09 已 PASS，见 [G5 最终证据](docs/verification/g5-complete-journeys.md)。G6 本地故障与恢复已 PASS，见 [G6 矩阵](docs/verification/g6-failure-matrix.md)。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 本轮仅按 M0 明确授权只读盘点，未导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；G4 历史范围只用 deterministic fake；G5 产品、真人桌面与 J-01～J-09 已 PASS，见 [G5 最终证据](docs/verification/g5-complete-journeys.md)。G6 本地故障与恢复已 PASS，见 [G6 矩阵](docs/verification/g6-failure-matrix.md)。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 已按用户 M-Lite 明确授权只读提取当前8个对象，在隔离验证后启用新资料工作区；旧库与备份保留。
 
 ## 冻结输入与阅读入口
 
@@ -89,7 +89,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `backend/ai-runtime/{product,search}/` 复用同一 Runtime/权限/预算/回执，接入业务 owner 的 `ai-policy.ts`；`bootstrap/product-composition.ts` 只组合公开能力。Resume 单条、Research 同 owner 原子组、Greeting/面试/Offer 可编辑草稿由用户处理后立即写对应 owner；不自动推进现实状态。
 - `frontend/support/ai/{product-launcher,product-task}.tsx` 是明确目标、Context/外发分离、最终预览与人工处理入口；Resume editor 只把本条实际修改加入独立撤销历史，无关本地/远端输入保留。
 - `materials/targets.ts` 与 `platform/imports/` 接明确对象的本地文件/受控 Feishu-shaped 导入；G5 本地 SearchRun 使用受控 fixture；J-07 另有固定 Tavily 一次真实查询形成 candidate。普通恢复隔离旧窗口写回，精确 purge 通知各窗口受影响编辑缓存。
-- 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程回归使用受控资料与 fake adapter；真实三个分支后来由 J-07 单独授权并验收。M 仅完成只读盘点，正式迁移执行未开始；G6 见下方入口。
+- 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程回归使用受控资料与 fake adapter；真实三个分支后来由 J-07 单独授权并验收。M 历史盘点与轻量当前资料迁入见下方入口；G6 见下方入口。
 - [G5 连续旅程与真人门](docs/verification/g5-complete-journeys.md) 和 `tests/desktop/g5*.electron.test.ts` 是本轮证据入口；[真人最终证据](docs/verification/g5-manual-desktop-final.md) 已 PASS；两次缺陷原现场及复测保留，104 最终分类见矩阵。G5 总状态 PASS，J-07 真实三个分支已验收；开发 Issues 按对应授权收尾。后续体验改进仅记录在 [UX backlog](docs/backlog/g5-ux-polish.md)，后续 G6 见下方当前入口。
 
 - [G5 post-blackbox 收口](docs/verification/g5-post-blackbox.md)：历史 G5 checkpoint 当时为 PARTIAL；最新 J-07 外部收尾后 G5 PASS。
@@ -116,7 +116,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - [Resume 对齐能力](docs/verification/resume-alignment.md)（[#32](https://github.com/frog-716/Career-Next/issues/32)）：PASS；Career 文稿/编辑/版本/PDF与 AI Undo 保留对齐，真人 IME及packaged桌面验收通过。仅隔离 TEST DATA，不执行 Migration M。
 - [M0 盘点](docs/migration/M0-INVENTORY.md) / [结构化清单](docs/migration/M0-INVENTORY.json)：保留分类前历史证据；两套旧运行实例单独记录。
 - [M0.5 最终分类基线](docs/migration/M0.5-SUMMARY.md)：Primary REAL=14、TEST=65、UNKNOWN=5，共84条；backup-only TEST=30。19组均已分类；仅14条 REAL 可作为后续候选，TEST 禁止迁移，UNKNOWN 默认不迁移且不自动升级。
-- 真实资料未迁移、导入、修正或合并；M0.5 已固化，M1-B #33 仅完成 fixture adapter，M2 需要独立明确授权。本地人工审阅文件保持 Git ignored。
+- M0.5 已固化，M1-B #33 完成 fixture adapter；后续用户明确改用 M-Lite，只迁8个当前对象，其余历史/TEST/UNKNOWN不迁。本地人工审阅文件保持 Git ignored。
 
 ## Legacy Proposal 只读历史能力
 
@@ -126,4 +126,10 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 ## Migration M1-B：仅 fixture adapter
 
 - [#33](https://github.com/frog-716/Career-Next/issues/33) / [验证与限制](docs/verification/m1b-fixture-migration.md)：`backend/application/migration/` 显式只读 synthetic source、分类/哈希固定计划、受管理隔离 staging 与幂等回执；各 owner 的 `staging.ts` 经 backend public 能力保存快照，不走普通事件创建，不接公开 RPC。
-- schema 9 只追加最小迁移来源回执，保留1–8与完整恢复校验。#34 原私有 archive writer 不重做。真实14条资料未读，未迁移；不激活 staging，M2 未开始。
+- schema 9 只追加最小迁移来源回执，保留1–8与完整恢复校验。#34 原私有 archive writer 不重做。此历史 M1-B 仅演练，未读真实14条正文、未启用；后续 M-Lite 的独立用户授权与当前启用见下方。
+
+## Migration M-Lite：当前资料迁移
+
+- [#35](https://github.com/frog-716/Career-Next/issues/35)：用户明确授权取代重型 M2/M3，仅 Primary 当前 Profile1 / Company2 / Opportunity3 / Resume2；TEST/UNKNOWN、Secondary、backup-only、所有 Proposal/历史与旧凭据均排除。
+- `backend/application/migration/lite-source.ts` 按批准身份哈希只读 current；`lite-activation.ts` 在写锁内核对候选指纹、无 WAL、回执和范围。`scripts/m-lite.ts` 是显式离线操作入口，经 owner staging 写入；从不由应用启动自动执行。
+- 激活前建立完整 rollback，原工作区保留；当前迁移验收与启用状态见 [脱敏摘要](docs/migration/M-LITE-SUMMARY.md)。
