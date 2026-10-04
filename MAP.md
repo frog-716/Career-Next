@@ -1,12 +1,12 @@
 # Career-Next 项目地图
 
-当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M = NOT STARTED。
+当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 仅完成 M0 只读盘点，尚未执行迁移。
 
 ## 目标与当前阶段
 
 Career 是本地优先的长期职业工作台，覆盖求职、真实工作记录和职业积累。四个一级入口是 Wiki、机会、项目、任职。
 
-本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；G4 历史范围只用 deterministic fake；G5 产品、真人桌面与 J-01～J-09 已 PASS，见 [G5 最终证据](docs/verification/g5-complete-journeys.md)。G6 本地故障与恢复已 PASS，见 [G6 矩阵](docs/verification/g6-failure-matrix.md)。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 仅属历史证据，未读取或导入。
+本仓库是从零全量重写的唯一开发仓库。G0、G1、G2 第一批已 PASS，G2 Resume Editor 的真实 macOS 中文 IME 于 2026-10-03 由用户人工验收通过。G3 Research / Interview / Offer 人工子模块已 PASS，证据见 [G3 验收](docs/verification/g3-manual-submodules.md)；接口、并行边界和验收接缝见 [G3 集成约定](docs/agents/g3-integration.md)。G4 跨域接缝已 PASS，见 [G4 验收证据](docs/verification/g4-cross-domain.md) 和 [G4 集成约定](docs/agents/g4-integration.md)；G4 历史范围只用 deterministic fake；G5 产品、真人桌面与 J-01～J-09 已 PASS，见 [G5 最终证据](docs/verification/g5-complete-journeys.md)。G6 本地故障与恢复已 PASS，见 [G6 矩阵](docs/verification/g6-failure-matrix.md)。Developer ID signing、公证、x64 保持 READY，尚未实际验收。旧 Career 本轮仅按 M0 明确授权只读盘点，未导入。
 
 ## 冻结输入与阅读入口
 
@@ -89,7 +89,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `backend/ai-runtime/{product,search}/` 复用同一 Runtime/权限/预算/回执，接入业务 owner 的 `ai-policy.ts`；`bootstrap/product-composition.ts` 只组合公开能力。Resume 单条、Research 同 owner 原子组、Greeting/面试/Offer 可编辑草稿由用户处理后立即写对应 owner；不自动推进现实状态。
 - `frontend/support/ai/{product-launcher,product-task}.tsx` 是明确目标、Context/外发分离、最终预览与人工处理入口；Resume editor 只把本条实际修改加入独立撤销历史，无关本地/远端输入保留。
 - `materials/targets.ts` 与 `platform/imports/` 接明确对象的本地文件/受控 Feishu-shaped 导入；G5 本地 SearchRun 使用受控 fixture；J-07 另有固定 Tavily 一次真实查询形成 candidate。普通恢复隔离旧窗口写回，精确 purge 通知各窗口受影响编辑缓存。
-- 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程回归使用受控资料与 fake adapter；真实三个分支后来由 J-07 单独授权并验收。M 正式迁移未开始；G6 见下方入口。
+- 迁移版本 5 追加本轮 owner 片段，既有 G1–G4 发布 SQL 保持不变。普通旅程回归使用受控资料与 fake adapter；真实三个分支后来由 J-07 单独授权并验收。M 仅完成只读盘点，正式迁移执行未开始；G6 见下方入口。
 - [G5 连续旅程与真人门](docs/verification/g5-complete-journeys.md) 和 `tests/desktop/g5*.electron.test.ts` 是本轮证据入口；[真人最终证据](docs/verification/g5-manual-desktop-final.md) 已 PASS；两次缺陷原现场及复测保留，104 最终分类见矩阵。G5 总状态 PASS，J-07 真实三个分支已验收；开发 Issues 按对应授权收尾。后续体验改进仅记录在 [UX backlog](docs/backlog/g5-ux-polish.md)，后续 G6 见下方当前入口。
 
 - [G5 post-blackbox 收口](docs/verification/g5-post-blackbox.md)：历史 G5 checkpoint 当时为 PARTIAL；最新 J-07 外部收尾后 G5 PASS。
@@ -99,7 +99,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - 本地 G6 故障/恢复门已 PASS：63 个矩阵场景，117 unit / 382 integration / 23 正常包案例，以及用户真实系统睡眠 + Computer Use 唤醒验收；见 [最终证据](docs/verification/g6-final.md)。发布条件仍 READY / NOT RUN，不代表完整发布验收。
 - [G6 umbrella #26](https://github.com/frog-716/Career-Next/issues/26) 与 F1–F4 #27–30；[故障矩阵](docs/verification/g6-failure-matrix.md) 映射原 28 个 DEFER_G6（现 PASS_G6）和全部 RV 项，记录真实执行与缺口。
 - [G6 并行边界](docs/agents/g6-integration.md)：四个隔离 worktree，root 串行负责根依赖、迁移排序、打包及最终集成。
-- J-07 真实 Provider/Search/Feishu 三分支已 PASS；Developer ID/Notarization/x64 仍 READY / NOT RUN。旧 Career/Migration M 不授权。
+- J-07 真实 Provider/Search/Feishu 三分支已 PASS；Developer ID/Notarization/x64 仍 READY / NOT RUN。G6 历史范围不含旧 Career；后续 M0 只读授权见下方。
 
 - G6 新增 `platform/search/` 为有界、可重建的人类本地搜索投影；`bootstrap/local-search-composition.ts` 仅组合公开 owner，v6 追加内容无关 dirty 通知。备份排除投影正文，清除后重建。
 - Main 的专用 write-only Secret 桥位于 `capabilities/secret-vault.ts`，系统加密存储与业务备份分离；J-07 已验证正式凭据联动；超过60秒交互等待保持响应，读取仅在受信链内，Renderer不可回读已存Key。
@@ -110,3 +110,8 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - 正式固定 Tavily / DeepSeek adapter：`backend/platform/providers/{tavily,deepseek}.ts`；Main 私有凭据桥与可取消授权等待在 `apps/desktop/capabilities/`。最终外发预览与人工 Proposal Apply 不合并。
 - 飞书真实验收使用 user 只读 CLI 读取指定文档，再经已确认缓存走正式 Materials；`materials/origin.ts` / schema7 保留真实文档身份与外部 revision，未增加 App 内置 live Feishu adapter。
 - [最终外部收尾](docs/verification/j07-final-closeout.json) 记录164 unit / 401 integration / 12 packaged通过、三个真实分支的唯一请求计数、安全审计及证据限制。回归不复用已消费真实发送授权。
+
+## Migration M0：只读盘点已完成
+
+- [M0 盘点](docs/migration/M0-INVENTORY.md) / [结构化清单](docs/migration/M0-INVENTORY.json)：主库84个业务记录，TEST=40、UNKNOWN=44、确认 REAL=0（不代表没有真实资料）；两套旧运行实例单独记录。
+- 仅检查本地资料、引用、PDF 与备份，未迁移、导入、修正或合并；停在 M0，后续操作需要独立明确授权。
