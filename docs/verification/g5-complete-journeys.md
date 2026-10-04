@@ -2,7 +2,7 @@
 
 最终状态（2026-10-04）：**G5 PASS**，J-01～J-09 产品、真人桌面及 J-07 真实三个服务分支均已通过。证据见 [J-07](j07-real-external.md)。G6 LOCAL PASS；104 最终结算为 38 PASS_ALREADY / 32 PASS_G5 / 28 PASS_G6 / 5 DEFER_M / 1 CONDITIONAL，EXTERNAL_LIVE_PENDING=0。下文旧 PARTIAL/NOT TESTED 为当时记录，未追溯改写。
 
-最新 J-07 真实外部准备及实际结果记录在 [补验文档](j07-real-external.md) / [#31](https://github.com/frog-716/Career-Next/issues/31)，尚未完成，不改变本页的 PARTIAL 结论。
+最新 J-07 真实外部结果见 [补验文档](j07-real-external.md) / [#31](https://github.com/frog-716/Career-Next/issues/31)，三个分支均 PASS；下面普通旅程的测试接缝和执行记录属于原 G5 本地阶段。
 
 本轮使用隔离的空工作区、临时真实文件、真实 SQLite、正常 Electron 进程与 arm64 包。职业数据均为明确测试资料。Provider 为 deterministic fake；Search 为 controlled adapter；Feishu 为无网络 shaped fixture。REAL PROVIDER / REAL SEARCH / REAL FEISHU 均 **NOT TESTED**。Developer ID、Notarization、x64 均 **READY**；本地 ad-hoc 签名校验不能替代这些发布验收。
 
@@ -18,7 +18,7 @@
 | J-04 | Resume 当前稿连续保存 → 命名/PDF A → 当前 B → 真正 Submission 选择冻结 A → 后续真实文件发送；独立版本内容复制；retained/file_missing/content_unknown/not_used 四种事实与 Greeting 三种状态分开 | `tests/desktop/g2.electron.test.ts`、`g4.electron.test.ts`、`g5.electron.test.ts`；`tests/integration/g4-s-submission.test.ts`、`g4-s-communication.test.ts`、`g5-resume-copy.test.ts`、`g5-frozen-resume-lineage.test.ts`。最后一项的 PDF 二进制为边界夹具，真实 Chromium PDF 由 desktop 另证 |
 | J-05 | 日期未知真实轮次 → 排期、Preparation 草稿 → 同一轮 2 次 Simulation/文字稿/Review → 主动选本人片段并确认含义、受限 Wiki → 真实 Transcript/Review → Transcript 更正仅标复核 → 人工当前 Final Review → Research 组采用 | `tests/desktop/g5-sagas.electron.test.ts`；`tests/integration/interview.test.ts`、`g5-product-policies.test.ts`、`g5-submission-preparation.test.ts`。无 Submission 明示缺项；有 Submission 读取当时冻结材料，不能以当前 Resume 冒充 |
 | J-06 | 无投递/面试直接 Offer 原件/30k → fake 分析草稿 → 真实谈薪 Communication → 35k 正式替代/人工接受 → 32k 正式替代回 active → 35k 接受依据仍保留 → 报到沟通 → 招聘方撤回 → 另一真实入职独立手工 Employment | `tests/desktop/g5-sagas.electron.test.ts`、`g3.electron.test.ts`；`tests/integration/offer.test.ts`、`g5-product-policies.test.ts`。AI 或接受不自动建任职/投递/面试 |
-| J-07 | 精确查询预览/独立确认 → controlled SearchRun 的本轮结果 → 同 owner Research 原子组；明确提升后同 ID 唯一 Company 正文、机会只读引用、Wiki 只读；本地真实文件/Feishu shaped candidate → body → preview → Raw → 另行 AI 授权 | `tests/desktop/g5.electron.test.ts`、`g3.electron.test.ts`；`tests/integration/g5-controlled-search.test.ts`、`g5-object-import.test.ts`、`g5-product-policies.test.ts`、`research.test.ts`。本地链通过；真实外部来源部分 EXTERNAL_LIVE_PENDING，不能写完整真实外部旅程 PASS |
+| J-07 | 精确查询预览/独立确认 → controlled SearchRun 的本轮结果 → 同 owner Research 原子组；明确提升后同 ID 唯一 Company 正文、机会只读引用、Wiki 只读；本地真实文件/Feishu shaped candidate → body → preview → Raw → 另行 AI 授权 | `tests/desktop/g5.electron.test.ts`、`g3.electron.test.ts`；`tests/integration/g5-controlled-search.test.ts`、`g5-object-import.test.ts`、`g5-product-policies.test.ts`、`research.test.ts`。本地链通过；随后 J-07 真实三个分支 PASS，见 [真实证据](j07-real-external.md)。真实 Search 与 Provider 使用分别授权材料，不声称同份真实搜索结果已发送模型 |
 | J-08 | 真实未保存 Communication → Feedback 独立弹层/可选图片 → 保存返回原焦点及草稿；查看/补充/导出/归档/purge；保存未知仍查询同一 receipt、仅一条创建 | `tests/desktop/g5.electron.test.ts`；`tests/g5-feedback-ui.test.ts`；`tests/integration/g5-feedback.test.ts`。未知回执是测试传输丢失夹具，并非正常包测试后门 |
 | J-09 | 实际资料绝对位置、周期备份开关、完整手动恢复点、隔离候选校验/明确影响/Restore、唯一 active pointer、重启回读；完整/缺文件/多余文件/恢复缺失区别 | `tests/desktop/g4.electron.test.ts`、`g5.electron.test.ts`、`g5-windows.electron.test.ts`；`tests/integration/g4-data-backup.test.ts`、`g4-data-lifecycle.test.ts`。不完整副本真实文件集成检查；全切点故障收口 G6。普通 Restore 不等于正式迁移；MG-01/02/03/06/07 迁移部分 DEFER_M |
 
