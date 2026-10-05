@@ -14,6 +14,14 @@ it('a direct Resume route belongs to Opportunity without adding a top-level entr
  expect(html).toContain('当前简历正文');expect(html).toContain('draft Wiki');
  expect(html).toContain('hidden=""');
 });
+it('keeps named compact navigation and auxiliary actions while moving pin/reorder controls out of the sidebar',()=>{
+ const html=renderToStaticMarkup(createElement(MemoryRouter,{initialEntries:['/project']},createElement(CareerShell,{pages:{wiki:'W',opportunity:'O',project:'P',employment:'E'},auxiliary:createElement('button',null,'帮助')})));
+ const nav=html.slice(html.indexOf('<nav'),html.indexOf('</nav>'));
+ expect(nav).toContain('帮助');expect(nav).toContain('辅助入口');
+ expect(nav).not.toContain('置顶');expect(nav).not.toContain('上移');
+ expect(['Wiki','机会','项目','任职'].every(label=>nav.includes(label))).toBe(true);
+ expect(nav).toContain('aria-current="page"');
+});
 it('an unsupported object link is visible instead of silently becoming the homepage',()=>{
  const html=renderToStaticMarkup(createElement(MemoryRouter,{initialEntries:['/wiki/missing-object']},createElement(CareerShell,{pages:{wiki:'Wiki业务',employment:'E',project:'P',opportunity:'O'}})));
  expect(html).toContain('链接暂不可访问');
