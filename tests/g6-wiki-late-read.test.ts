@@ -27,9 +27,9 @@ it('Wiki late reopen cannot erase input typed while the actual owner read is in 
   browser=await chromium.launch({channel:'chrome',headless:true});const page=await browser.newPage();page.setDefaultTimeout(6000);
   await page.goto(`http://127.0.0.1:${address.port}`);
   await page.getByRole('button',{name:'G6 saved knowledge',exact:true}).click();
-  await expect.poll(()=>page.getByLabel('知识正文',{exact:true}).inputValue()).toBe('Saved body');
+  await page.getByRole('button',{name:'编辑',exact:true}).click();await expect.poll(()=>page.getByLabel('知识正文',{exact:true}).inputValue()).toBe('Saved body');await page.getByRole('button',{name:'返回知识列表（保留输入）'}).click();
   block=true;await page.getByRole('button',{name:'G6 saved knowledge',exact:true}).click();
-  await expect.poll(()=>waiting).toBe(true);
+  await expect.poll(()=>waiting).toBe(true);await page.getByRole('button',{name:'继续编辑知识草稿'}).click();
   await page.getByLabel('知识正文',{exact:true}).press('End');
   await page.getByLabel('知识正文',{exact:true}).pressSequentially(' human input during read');
   release!();

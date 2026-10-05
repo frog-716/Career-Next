@@ -43,7 +43,7 @@ async function fixture(failingHistoryReads=0){
   return resume.handle(request);
  });
  await page.route('https://career-resume-session.test/**',route=>route.fulfill({contentType:'text/html',body:'<div id="root"></div>'}));
- async function start(){await page.goto('https://career-resume-session.test/#'+opportunityId);await page.addScriptTag({content:script});await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();}
+ async function start(){await page.goto('https://career-resume-session.test/#'+opportunityId);await page.addScriptTag({content:script});await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();await page.getByText('更多工具',{exact:true}).click();}
  async function assertLayoutSaved(fontSize:number){await expect.poll(()=>saveCommands.length).toBeGreaterThan(0);await page.getByTestId('resume-save-state').filter({hasText:'已保存'}).waitFor();const command=saveCommands.at(-1)!;expect(resume.handle({operation:'resume.receipt',commandId:command.commandId})).toMatchObject({status:'document',document:{content:{layout:{fontSize}}}});expect(resume.handle({operation:'resume.read',resumeId})).toMatchObject({status:'document',document:{content:{layout:{fontSize}}}});}
  return {root,resume,opened,page,start,saveCommands,versionCommands,assertLayoutSaved,close:async()=>{await page.close();db.close();rmSync(root,{recursive:true,force:true});}};
 }

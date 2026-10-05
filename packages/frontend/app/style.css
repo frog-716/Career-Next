@@ -11,3 +11,17 @@ button { font: inherit; padding: 8px 14px; cursor: pointer; }
 button:disabled { cursor: default; }
 .actions { display: flex; gap: 12px; flex-wrap: wrap; }
 #status { font-weight: 600; }
+
+/* Quiet reading surfaces: local hierarchy, no new brand or motion system. */
+[hidden]{display:none!important}
+.readable-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;max-width:72ch;margin:20px 0}
+.readable-list{padding:0;list-style:none;display:grid;gap:10px}
+.readable-list>li{padding:16px;border:1px solid #e0e4e9;border-radius:8px}
+.readable-list>li>button{border:0;background:transparent;text-align:left;font-weight:600;padding:0;max-width:100%;overflow-wrap:anywhere}
+.readable-list p{margin:8px 0 0;color:#536173;font-size:14px}
+.page-actions,.section-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.primary-action{background:#255ac0;color:#fff;border:1px solid #255ac0;border-radius:8px}
+.section-tabs button[aria-current=page]{font-weight:600;border-bottom:3px solid #255ac0}
+.settings-groups{display:grid;gap:12px;margin:20px 0}.settings-groups button{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;background:#fff;border:1px solid #d3d8df;border-radius:8px;padding:18px}.settings-groups span{font-size:14px;color:#536173}
+section>details{margin:16px 0}summary{cursor:pointer;line-height:1.6}section>h1{margin-top:0;font-size:26px}section>h1+p{color:#536173;line-height:1.6}
+@media(max-width:640px){section{padding:16px;margin:16px 0}label{display:flex;width:100%;box-sizing:border-box;max-width:100%;margin:8px 0}button{max-width:100%;overflow-wrap:anywhere}fieldset{margin:0;padding:12px}.settings-groups button{padding:14px}}

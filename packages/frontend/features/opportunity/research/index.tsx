@@ -1,13 +1,13 @@
 import {wasPurged,type PurgeNotice} from '../../../design-system/purge-notice';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {Request,Result,type Item,type Owner,type Source,type Resolution} from '../../../../contracts/opportunity/research/schema';
 import type {BusinessTime} from '../../../../contracts/common/business-time';
 import type {SourceRef} from '../../../../contracts/common/source-ref';
-export interface ResearchPageProps{purgeNotice?:PurgeNotice;opportunityId:string;companyId:string;workspaceInstance:string;request:(input:Request)=>Promise<Result>;onChanged?:()=>void;availableSources?:{ref:SourceRef;name:string}[];}
+export interface ResearchPageProps{changeEpoch?:number;renderAssistant?:(owner:Owner)=>ReactNode;purgeNotice?:PurgeNotice;opportunityId:string;companyId:string;workspaceInstance:string;request:(input:Request)=>Promise<Result>;onChanged?:()=>void;availableSources?:{ref:SourceRef;name:string}[];}
 type Draft={title:string;body:string;nature:Item['nature'];sources:Source[];leads:Item['leads'];userConfirmed:boolean;independentlyVerified:boolean;reason:string;reevaluated:boolean;timeKind:BusinessTime['kind'];date:string;instant:string;timezone:string;};
 const empty=():Draft=>({title:'',body:'',nature:'fact_statement',sources:[],leads:[],userConfirmed:false,independentlyVerified:false,reason:'',reevaluated:false,timeKind:'unknown',date:'',instant:'',timezone:''});
 type Session={editing:boolean;diagnostic?:string;owner:Owner;items:Resolution[];references:{itemId:string;originRevision:number;owner:Owner;originOwner:Owner}[];docRevision:number;selected?:Item;draft:Draft;dirty:boolean;status:string;pending?:Request;busy:boolean;server?:Item;companyComparison?:Resolution[];history?:string[];loaded:boolean;readEpoch:number;lifecycleAction?:'withdraw'|'restore';};
-export function ResearchPage({purgeNotice,opportunityId,companyId,workspaceInstance,request,onChanged,availableSources=[]}:ResearchPageProps){
+export function ResearchPage({changeEpoch,renderAssistant,purgeNotice,opportunityId,companyId,workspaceInstance,request,onChanged,availableSources=[]}:ResearchPageProps){
  const [scope,setScope]=useState<'opportunity'|'company'>('opportunity');const sessions=useRef(new Map<string,Session>());const [,refresh]=useState(0);const render=()=>refresh(v=>v+1);
  const owner:Owner={kind:scope,id:scope==='company'?companyId:opportunityId};const key=workspaceInstance+':'+owner.kind+':'+owner.id;
  if(!sessions.current.has(key))sessions.current.set(key,{editing:false,owner,items:[],references:[],docRevision:0,draft:empty(),dirty:false,status:'正在读取',busy:false,loaded:false,readEpoch:0});
@@ -16,7 +16,7 @@ export function ResearchPage({purgeNotice,opportunityId,companyId,workspaceInsta
  const protects=[...sessions.current.values()].some(v=>v.dirty||v.pending||v.busy||v.lifecycleAction);
  useEffect(()=>{if(!protects)return;const protect=(e:BeforeUnloadEvent)=>{e.preventDefault();e.returnValue='';};window.addEventListener('beforeunload',protect);return()=>window.removeEventListener('beforeunload',protect);},[protects]);
  async function load(session:Session,afterSave=false){const epoch=++session.readEpoch;try{const r=Result.parse(await request({operation:'read',owner:session.owner}));if(epoch!==session.readEpoch)return;if(r.kind!=='document')throw Error();session.items=r.items;session.references=r.references;session.docRevision=r.revision;session.loaded=true;if(!afterSave)session.status='已读取';}catch{if(epoch!==session.readEpoch)return;session.status=afterSave?'已保存，暂时未刷新；可重新读取':'读取失败，保留当前输入';}render();}
- useEffect(()=>{if(!s.loaded)void load(s);},[key]);
+ useEffect(()=>{if(!s.loaded||changeEpoch!==undefined)void load(s);},[key,changeEpoch]);
  function adopt(item?:Item){s.editing=false;s.selected=item;s.draft=item?{title:item.title,body:item.body,nature:item.nature,sources:item.sources,leads:item.leads,userConfirmed:item.userConfirmed,independentlyVerified:item.independentlyVerified,reason:'',reevaluated:false,timeKind:'unknown',date:'',instant:'',timezone:''}:empty();s.dirty=false;s.server=undefined;s.companyComparison=undefined;s.history=undefined;s.lifecycleAction=undefined;render();}
  useEffect(()=>{if(!purgeNotice)return;for(const value of sessions.current.values()){value.items=value.items.filter(item=>!wasPurged(purgeNotice,'research',item.item.id));if(wasPurged(purgeNotice,'research',value.selected?.id)){value.selected=undefined;value.draft=empty();value.pending=undefined;value.dirty=false;value.server=undefined;value.companyComparison=undefined;value.readEpoch++;}value.draft.sources=value.draft.sources.map(source=>wasPurged(purgeNotice,source.ref.owner,source.ref.objectId)?{...source,excerpt:'',assessment:'needs_review'}:source);value.history=undefined;void load(value);}render();},[purgeNotice?.sequence]);
  function switchItem(item?:Item){if(s.pending||s.busy)return;if((s.dirty||s.lifecycleAction)&&!window.confirm('放弃尚未保存的研究输入？'))return;adopt(item);}
@@ -52,6 +52,6 @@ export function ResearchPage({purgeNotice,opportunityId,companyId,workspaceInsta
  {s.companyComparison&&<aside aria-label="公司提升冲突比较"><p>目标公司共享研究与本机会私有研究的比较；不会自动合并。</p><p>本机会正文：{s.selected?.body}</p>{s.companyComparison.map(v=><p key={v.item.id}>公司正文 · {v.item.title}：{v.item.body}</p>)}<button disabled={disabled} onClick={()=>void promote()}>重新比较并确认提升</button><button onClick={()=>{s.companyComparison=undefined;s.status='已取消提升，机会条目保留';render();}}>取消提升保留机会条目</button></aside>}
  {s.server&&<aside aria-label="研究冲突比较"><p>当前正式值：{s.server.body}；本地草稿：{d.body}</p><button onClick={()=>{s.selected=s.server;s.server=undefined;s.status='已采用新基线，草稿仍保留；请明确重新保存';render();}}>采用新基线并保留草稿</button><button onClick={()=>adopt(s.server)}>放弃草稿采用正式值</button></aside>}
  {s.pending&&!s.busy&&<><button onClick={async()=>{try{await result(s,Result.parse(await request({operation:'receipt',commandId:'commandId'in s.pending!?s.pending!.commandId:''})),s.pending!);}catch{s.status='回执仍不可读；不重复创建';render();}}}>检查是否已保存</button>{s.status.includes('确认尚未保存')&&<button onClick={()=>void run(s.pending)}>继续这次保存</button>}</>}
- {s.diagnostic&&<details><summary>查看技术详情</summary><p>{s.diagnostic}</p></details>}{s.history&&<ol aria-label="研究历史">{s.history.map((v,i)=><li key={i}>{v}</li>)}</ol>}
+ {renderAssistant?.(s.owner)}{s.diagnostic&&<details><summary>查看技术详情</summary><p>{s.diagnostic}</p></details>}{s.history&&<ol aria-label="研究历史">{s.history.map((v,i)=><li key={i}>{v}</li>)}</ol>}
  </section>;
 }

@@ -47,7 +47,7 @@ async function page(existing=false):Promise<Page>{
 }
 it('delayed project creation locks all draft fields until the saved result is known',async()=>{
  const p=await page();try{
-  await p.getByRole('button',{name:'新增项目',exact:true}).click();
+  await p.getByRole('button',{name:'新建项目',exact:true}).click();
   const form=p.getByRole('button',{name:'创建项目',exact:true}).locator('..');await form.getByLabel('项目名称',{exact:true}).fill('New project');await form.getByRole('button',{name:'创建项目',exact:true}).click();
   await p.getByText('保存中',{exact:true}).waitFor();expect(await form.getByLabel('项目名称',{exact:true}).isDisabled()).toBe(true);expect(await form.getByLabel('描述',{exact:true}).isDisabled()).toBe(true);
   await p.evaluate(()=>{(window as unknown as {releaseSave():void}).releaseSave();});await p.getByRole('heading',{name:'New project'}).waitFor();
@@ -55,7 +55,7 @@ it('delayed project creation locks all draft fields until the saved result is kn
 });
 it('state, association and collaboration actions cannot silently save or clear unrelated content drafts',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();
+  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();await p.getByRole('button',{name:'编辑项目',exact:true}).click();await p.getByRole('button',{name:'更多：状态、任职与参与关系'}).click();
   const name=p.getByLabel('项目名称',{exact:true}).filter({visible:true});await name.fill('Unsaved project name');await p.getByLabel('变化说明',{exact:true}).fill('Real event');
   await p.getByRole('button',{name:'记录状态变化或纠错'}).click();
   await p.getByText('请先保存项目内容，再执行状态、关联或协作动作；当前输入仍保留。',{exact:true}).waitFor();
@@ -65,7 +65,7 @@ it('state, association and collaboration actions cannot silently save or clear u
 });
 it('employment relation epoch refreshes live projection while preserving project content drafts',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();
+  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();await p.getByRole('button',{name:'编辑项目',exact:true}).click();await p.getByRole('button',{name:'更多：状态、任职与参与关系'}).click();
   const name=p.getByLabel('项目名称',{exact:true}).filter({visible:true});const description=p.getByLabel('描述',{exact:true}).filter({visible:true});await name.fill('Unsaved project name');await description.fill('Unsaved description');
   await p.getByRole('button',{name:'Refresh employment relation'}).click();
   await p.getByText(/当前归属：Changed company · Engineer/).waitFor();expect(await name.inputValue()).toBe('Unsaved project name');expect(await description.inputValue()).toBe('Unsaved description');
@@ -73,7 +73,7 @@ it('employment relation epoch refreshes live projection while preserving project
 });
 it('delayed lifecycle result locks project fields instead of accepting input that is not in its command',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();await p.getByLabel('变化说明',{exact:true}).fill('Completed for real');await p.getByLabel('项目状态',{exact:true}).selectOption('completed');await p.getByRole('button',{name:'记录状态变化或纠错'}).click();
+  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();await p.getByRole('button',{name:'编辑项目',exact:true}).click();await p.getByRole('button',{name:'更多：状态、任职与参与关系'}).click();await p.getByLabel('变化说明',{exact:true}).fill('Completed for real');await p.getByLabel('项目状态',{exact:true}).selectOption('completed');await p.getByRole('button',{name:'记录状态变化或纠错'}).click();
   await p.getByText('保存中',{exact:true}).waitFor();expect(await p.getByLabel('项目名称',{exact:true}).filter({visible:true}).isDisabled()).toBe(true);expect(await p.getByLabel('描述',{exact:true}).filter({visible:true}).isDisabled()).toBe(true);
   await p.evaluate(()=>{(window as unknown as {releaseSave():void}).releaseSave();});await p.getByRole('button',{name:'真实重新推进同一项目'}).waitFor();
  }finally{await p.close();}
@@ -81,7 +81,7 @@ it('delayed lifecycle result locks project fields instead of accepting input tha
 
 it('unsaved collaboration role cannot lose its protection through a lifecycle or association save',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();
+  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();await p.getByRole('button',{name:'编辑项目',exact:true}).click();await p.getByRole('button',{name:'更多：状态、任职与参与关系'}).click();
   await p.getByLabel('维护参与关系',{exact:true}).selectOption({label:'Confirmed person · Original project role · 当前 · 第1条'});
   const role=p.getByLabel('参与关系的项目职责',{exact:true});await role.fill('Unsaved collaboration role');
   await p.getByLabel('变化说明',{exact:true}).fill('Unrelated lifecycle');await p.getByLabel('项目状态',{exact:true}).selectOption('completed');
@@ -95,7 +95,7 @@ it('unsaved collaboration role cannot lose its protection through a lifecycle or
 
 it('switching participation requires explicit consent to discard an unsaved role and cancellation keeps its protection',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();
+  await p.getByRole('button',{name:'Existing project · 进行中 · Original company'}).click();await p.getByRole('button',{name:'编辑项目',exact:true}).click();await p.getByRole('button',{name:'更多：状态、任职与参与关系'}).click();
   const selection=p.getByLabel('维护参与关系',{exact:true});const role=p.getByLabel('参与关系的项目职责',{exact:true});
   await selection.selectOption('00000000-0000-4000-8000-000000000005');await role.fill('Unsaved collaboration role');
   let consent=false;const prompts:string[]=[];p.on('dialog',async dialog=>{prompts.push(dialog.message());if(consent)await dialog.accept();else await dialog.dismiss();});

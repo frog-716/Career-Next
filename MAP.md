@@ -1,6 +1,6 @@
 # Career-Next 项目地图
 
-当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。
+当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪视觉/UI/Motion精修尚未开始。
 
 ## 目标与当前阶段
 
@@ -134,13 +134,15 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `backend/application/migration/lite-source.ts` 按批准身份哈希只读 current；`lite-activation.ts` 在写锁内核对候选指纹、无 WAL、回执和范围。`scripts/m-lite.ts` 是显式离线操作入口，经 owner staging 写入；从不由应用启动自动执行。
 - 激活前建立完整 rollback，原工作区保留；当前迁移验收与启用状态见 [脱敏摘要](docs/migration/M-LITE-SUMMARY.md)。
 
-## ⑩ 前端 UX baseline：已审批，⑩-A / ⑩-B PASS
+## ⑩ 前端 UX baseline：⑩-A / ⑩-B / ⑩-C 已实施
 
 - [UX审计与IA方案](docs/ux/UX-BASELINE.md) / [普通用户指南](docs/ux/USER-GUIDE.md)：当前正式打包版只读审计；首页欢迎区、机会六分区、4步教程、页面提示与帮助、用户文案及技术详情折叠。
-- baseline已 APPROVED FOR IMPLEMENTATION。⑩-A接入窄栏常显名称、默认模块欢迎区、设备界面引导与独立辅助面板；四入口、置顶即首页、Resume归属机会与正式owner保持。⑩-B已接入机会列表与详情六分区，不进入⑪ Gemini。旧体验问题已纳入 [UX backlog](docs/backlog/g5-ux-polish.md)。
+- baseline已 IMPLEMENTED。⑩-A接入窄栏常显名称、默认模块欢迎区、设备界面引导与独立辅助面板；四入口、置顶即首页、Resume归属机会与正式owner保持。⑩-B已接入机会列表与详情六分区，不进入⑪ Gemini。旧体验问题已纳入 [UX backlog](docs/backlog/g5-ux-polish.md)。
 
 - ⑩-A [#36](https://github.com/frog-716/Career-Next/issues/36)：`frontend/support/experience/` 提供本机界面偏好、欢迎区、4步教程与Markdown帮助；`shell/`仅装配视图，`app/g4-support.tsx`组合独立设置/帮助面板与原反馈能力。导航置顶/排序仍由原preferences owner持久化；教程与业务资料/授权分离。
 
-- ⑩-A验收见 [Shell/Home/教程/帮助](docs/verification/frontend-a.md)：unit 173、integration 447、packaged 5 PASS；隔离TEST DATA Computer Use完成，真实迁入资料未改。⑩-B已完成；不进入⑩-C。
+- ⑩-A验收见 [Shell/Home/教程/帮助](docs/verification/frontend-a.md)：unit 173、integration 447、packaged 5 PASS；隔离TEST DATA Computer Use完成，真实迁入资料未改。⑩-B已完成；⑩-C收尾见下。
 
 - ⑩-B [#37](https://github.com/frog-716/Career-Next/issues/37)：`features/opportunity/`提供列表、创建、概览及六分区头部；`shell/routes.ts`解析对象/分区链接，`app/`仅经公开Contract装配各owner。Resume维持原独立route和编辑会话。访问过的子模块草稿保留，清除通知卸载匹配缓存，迟到读取不能覆盖新对象/分区。验证见 [机会列表与六分区](docs/verification/frontend-b.md)。
+
+- ⑩-C [#38](https://github.com/frog-716/Career-Next/issues/38)：Wiki/项目/任职阅读与编辑分层；`app/related-projects.tsx`经公开Project Contract装配任职/人物项目关系；`support/profile/`为设置内基础资料编辑；`support/ai/business-entry.tsx`按真实连接能力提供业务任务入口。Research的两种owner会话分别保留，Apply后只读刷新，不覆盖未保存草稿。设置五分组、普通语言与技术详情分层，开发诊断仅显式隔离模式显示。验收见 [⑩-C 全 baseline](docs/verification/frontend-c.md)。不进入⑪。

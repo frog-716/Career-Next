@@ -56,7 +56,7 @@ async function page(existing=false):Promise<Page>{
 }
 it('pending employment creation locks draft fields until its delayed response completes',async()=>{
  const p=await page();try{
-  await p.getByRole('button',{name:'新增任职',exact:true}).click();
+  await p.getByRole('button',{name:'新建任职',exact:true}).click();
   const form=p.getByRole('button',{name:'创建任职',exact:true}).locator('..');
   await form.getByLabel('公司',{exact:true}).fill('New company');await form.getByLabel('岗位',{exact:true}).fill('Engineer');
   await form.getByLabel('我确认已经真实开始这段任职').check();
@@ -70,24 +70,24 @@ it('pending employment creation locks draft fields until its delayed response co
 });
 it('pending person creation locks its own draft and never resets the employment draft',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Test company · Engineer · 当前'}).click();
+  await p.getByRole('button',{name:'Test company · Engineer · 当前'}).click();await p.getByRole('button',{name:'编辑任职',exact:true}).click();
   const goal=p.getByLabel('当前目标',{exact:true}).filter({visible:true});await goal.fill('Unsaved goal');
-  const form=p.getByRole('heading',{name:'新增人物（同名不会合并）'}).locator('..');
+  await p.getByRole('navigation',{name:'任职分区'}).getByRole('button',{name:'人物',exact:true}).click();await p.getByRole('button',{name:'记录人物',exact:true}).click();const form=p.getByRole('heading',{name:'新增人物（同名不会合并）'}).locator('..');
   await form.getByLabel('姓名',{exact:true}).fill('Person');await form.getByLabel('任职角色',{exact:true}).fill('Reviewer');await form.getByRole('button',{name:'保存人物',exact:true}).click();
   await p.getByText('保存中',{exact:true}).waitFor();
   expect(await form.getByLabel('姓名',{exact:true}).isDisabled()).toBe(true);
   expect(await form.getByLabel('任职角色',{exact:true}).isDisabled()).toBe(true);
   await p.evaluate(()=>{(window as unknown as {releaseSave():void}).releaseSave();});
-  await p.getByRole('heading',{name:'维护人物'}).waitFor();
+  await p.getByRole('button',{name:'Person · Reviewer',exact:true}).waitFor();await p.getByRole('navigation',{name:'任职分区'}).getByRole('button',{name:'概览',exact:true}).click();
   expect(await goal.inputValue()).toBe('Unsaved goal');
  }finally{await p.close();}
 });
 it('lifecycle action refuses to clear an unsaved role or goal',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Test company · Engineer · 当前'}).click();
+  await p.getByRole('button',{name:'Test company · Engineer · 当前'}).click();await p.getByRole('button',{name:'编辑任职',exact:true}).click();
   const goal=p.getByLabel('当前目标',{exact:true}).filter({visible:true});await goal.fill('Unsaved goal');
   await p.getByLabel('变化说明',{exact:true}).filter({visible:true}).fill('Real ending');
-  await p.getByRole('button',{name:'确认任职已真实结束'}).click();
+  if(!await p.getByRole('button',{name:'确认任职已真实结束'}).isVisible())await p.getByText('结束 / 恢复任职',{exact:true}).click();await p.getByRole('button',{name:'确认任职已真实结束'}).click();
   await p.getByText('请先保存任职内容，再执行结束或恢复；当前输入仍保留。',{exact:true}).waitFor();
   expect(await goal.inputValue()).toBe('Unsaved goal');
   expect(await p.evaluate(()=>(window as unknown as {endCommands:number}).endCommands)).toBe(0);
@@ -96,7 +96,7 @@ it('lifecycle action refuses to clear an unsaved role or goal',async()=>{
 
 it('ordinary current-employment save cannot discard a drafted actual end date',async()=>{
  const p=await page(true);try{
-  await p.getByRole('button',{name:'Test company · Engineer · 当前'}).click();
+  await p.getByRole('button',{name:'Test company · Engineer · 当前'}).click();await p.getByRole('button',{name:'编辑任职',exact:true}).click();
   await p.getByLabel('实际结束类型',{exact:true}).selectOption('date');
   const endDate=p.getByLabel('实际结束',{exact:true});await endDate.fill('2024-03-04');
   await p.getByLabel('变化说明',{exact:true}).filter({visible:true}).fill('Actually ended');
@@ -104,7 +104,7 @@ it('ordinary current-employment save cannot discard a drafted actual end date',a
   await p.getByText('请使用“确认任职已真实结束”提交实际结束日期；当前输入仍保留。',{exact:true}).waitFor();
   expect(await endDate.inputValue()).toBe('2024-03-04');
   expect(await p.evaluate(()=>(window as unknown as {editCommands:number}).editCommands)).toBe(0);
-  await p.getByRole('button',{name:'确认任职已真实结束'}).click();
+  if(!await p.getByRole('button',{name:'确认任职已真实结束'}).isVisible())await p.getByText('结束 / 恢复任职',{exact:true}).click();await p.getByRole('button',{name:'确认任职已真实结束'}).click();
   expect(await p.evaluate(()=>(window as unknown as {lastEnd:{actualEnd:unknown}}).lastEnd.actualEnd)).toEqual({kind:'date',date:'2024-03-04'});
  }finally{await p.close();}
 });

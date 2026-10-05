@@ -46,3 +46,13 @@ it('keeping local text at a newer conflict baseline submits it before claiming s
  session.useComparisonRevision();expect(await session.flush()).toBe(true);expect(calls).toHaveLength(1);
  expect(calls[0]).toMatchObject({operation:'resume.save',expectedRevision:2,content});session.dispose();
 });
+
+it('unknown Resume save cannot continue until receipt checking confirms it was not recorded, and retains command identity',async()=>{
+ const calls:Request[]=[];let sends=0;
+ const session=createResumeSaveSession({resumeId:randomUUID(),revision:1,profileRevision:0,content},async input=>{calls.push(input);if(input.operation==='resume.receipt')return {status:'not-found'};sends++;throw Error('controlled lost response');});
+ session.change(content);await session.flush();expect(sends).toBe(1);
+ await session.continueOriginal();expect(sends).toBe(1);
+ await session.verify();expect(session.state().mayContinue).toBe(true);
+ await session.continueOriginal();expect(sends).toBe(2);expect(calls[0]).toEqual(calls[2]);expect(session.state().mayContinue).toBe(false);
+ session.dispose();
+});

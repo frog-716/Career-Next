@@ -10,9 +10,9 @@
 
 原始困惑见 [Computer Use](../verification/g5-computer-use-manual.md)，最终真人证据见 [人工结算](../verification/g5-manual-desktop-final.md)。后续实施需独立授权，不进入 G6。
 
-## ⑩ UX baseline：已审批，按切片实施
+## ⑩ UX baseline：IMPLEMENTED（A/B/C）
 
-2026-10-05 正式迁入后的 packaged arm64 只读审计，方案见 [UX-BASELINE](../ux/UX-BASELINE.md)，普通用户教程见 [USER-GUIDE](../ux/USER-GUIDE.md)。**APPROVED FOR IMPLEMENTATION**；⑩-A独立授权Shell/Home/教程/帮助/全局文案；⑩-B机会列表/详情/六分区已完成，其余页面IA待后续切片，不进入Gemini视觉精修。
+2026-10-05 正式迁入后的 packaged arm64 只读审计，方案见 [UX-BASELINE](../ux/UX-BASELINE.md)，普通用户教程见 [USER-GUIDE](../ux/USER-GUIDE.md)。以下为审批时的切片记录；当前A/B/C均已完成，验收见下方⑩-C。**APPROVED FOR IMPLEMENTATION**；⑩-A独立授权Shell/Home/教程/帮助/全局文案；⑩-B机会列表/详情/六分区已完成，其余页面IA待后续切片，不进入Gemini视觉精修。
 
 | backlog | baseline落点 | 后续验收 |
 | --- | --- | --- |
@@ -31,3 +31,10 @@
 ⑩-A已完成，验收见 [frontend-a](../verification/frontend-a.md)。窄栏名称、辅助面板、欢迎区/教程/指南及全局语言已落地；其他业务页信息过载及AI详细页面仍待后续切片，不提前标为完成。
 
 ⑩-B由[#37](https://github.com/frog-716/Career-Next/issues/37)记录：机会列表与详情分离、六个分区、阅读优先、公司维护/纠错降为“更多”、对象链接与草稿连续性。验收见 [frontend-b](../verification/frontend-b.md)。仅这部分完成，不提前关闭其他页面和AI详细页面的backlog；Gemini仍未开始。
+
+
+## ⑩-C 功能与 UX baseline 收口
+
+[#38](https://github.com/frog-716/Career-Next/issues/38)完成Wiki/项目/任职的阅读优先、任务型AI建议和完整外发预览、结果未知恢复、设置五分类。旧ID/JSON/工程状态与纯图标导航问题已按baseline分层解决；原按钮墙、全局验收控件与无继续草稿入口已修正。已实施项见 [⑩-C](../verification/frontend-c.md)。
+
+后续保留独立视觉阶段：最终配色、字体细节、面板质感和Motion；尚未进入Gemini。真实Provider目前仅Research整理，不能以视觉完整性为由显示其他尚不支持的任务。真实Search/Provider/Feishu仍需逐次预览授权，本轮不调用外部服务。

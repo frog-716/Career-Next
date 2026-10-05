@@ -18,9 +18,9 @@ export function useProjectCommands(request:ProjectRequest,onSaved:(result:Result
   return ()=>window.removeEventListener('beforeunload',protect);
  },[dirty,mutation.isPending,state]);
  const status=<div role="status">
-  {mutation.isPending?'保存中':!state?'未保存':state.status==='unknown'?'结果待核对，输入已保留':state.status==='not_recorded'?'原命令尚未记录，确认后可继续原保存':state.result.kind==='failure'?messages[state.result.code]:dirty?'已有保存结果，当前输入未保存':'已保存'}
-  {state&&(state.status==='unknown'||state.status==='not_recorded')&&<button type="button" disabled={mutation.isPending} onClick={()=>mutation.mutate({command:state.command,check:true})}>核对原保存结果</button>}
-  {state?.status==='not_recorded'&&<button type="button" disabled={mutation.isPending} onClick={()=>mutation.mutate({command:state.command})}>继续原保存</button>}
+  {mutation.isPending?'保存中':!state?'未保存':state.status==='unknown'?'暂时无法确认是否保存。你的输入还在，请先检查保存结果。':state.status==='not_recorded'?'已经确认这次保存尚未完成，可以继续保存。':state.result.kind==='failure'?messages[state.result.code]:dirty?'已有保存结果，当前输入未保存':'已保存'}
+  {state&&(state.status==='unknown'||state.status==='not_recorded')&&<button type="button" disabled={mutation.isPending} onClick={()=>mutation.mutate({command:state.command,check:true})}>检查是否已保存</button>}
+  {state?.status==='not_recorded'&&<button type="button" disabled={mutation.isPending} onClick={()=>mutation.mutate({command:state.command})}>继续保存</button>}
   {state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&<details><summary>服务器当前内容</summary><p>{state.result.current.name} · {state.result.current.description} · {state.result.current.stateNote}</p></details>}
  </div>;
  return {
