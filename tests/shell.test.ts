@@ -27,3 +27,11 @@ it('an unsupported object link is visible instead of silently becoming the homep
  expect(html).toContain('链接暂不可访问');
  expect(resolveRoute('/')).toEqual({module:'wiki',view:'module'});
 });
+it('six-section links retain the Opportunity owner and reject unsupported sections',()=>{
+ const id='73f3667b-b4d9-4bca-a14b-ac4623ebf7d9';
+ for(const section of ['overview','research','communication','interview','offer'])expect(resolveRoute('/opportunity/'+id+'/'+section)).toEqual({module:'opportunity',view:'opportunity-detail',opportunityId:id,section});
+ expect(resolveRoute('/opportunity/'+id+'/invalid')).toEqual({view:'not-found'});
+ expect(resolveRoute('/opportunity/not-an-id/research')).toEqual({view:'not-found'});
+ const html=renderToStaticMarkup(createElement(MemoryRouter,{initialEntries:['/opportunity/'+id+'/research']},createElement(CareerShell,{pages:{wiki:'W',opportunity:'Target opportunity research',project:'P',employment:'E'}})));
+ expect(html).toContain('Target opportunity research');expect(html).toContain('aria-current="page"');
+});

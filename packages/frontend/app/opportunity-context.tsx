@@ -1,0 +1,15 @@
+import {wasPurged,type PurgeNotice} from '../design-system/purge-notice';
+import {useEffect,useState} from 'react';
+import {Result,type OpportunityView,type Request} from '../../contracts/opportunity/schema';
+import {Result as ResumeResult} from '../../contracts/resume/schema';
+import {OpportunityHeader,type OpportunitySection} from '../features/opportunity/detail-header';
+export function ResumeOpportunityContext({id,request,onSection,onList,purgeNotice,active=true}:{active?:boolean;purgeNotice?:PurgeNotice;id:string;request(input:Request):Promise<unknown>;onSection(section:OpportunitySection):void;onList():void}){
+ const [value,setValue]=useState<OpportunityView>();useEffect(()=>{let alive=true;setValue(undefined);if(!active||wasPurged(purgeNotice,'opportunity',id))return;void request({operation:'read',id}).then(raw=>{const result=Result.parse(raw);if(alive&&result.kind==='opportunity')setValue(wasPurged(purgeNotice,'company',result.opportunity.companyId)?{...result.opportunity,companyName:'已清除的公司'}:result.opportunity);}).catch(()=>{});return()=>{alive=false;};},[id,request,purgeNotice?.sequence,active]);
+ return value?<OpportunityHeader opportunity={value} section="resume" onSection={onSection} onList={onList}/>:<p>简历属于当前机会；机会状态暂不可读，正文输入仍保留。</p>;
+}
+export function OpportunityOverview({opportunity,active,onSection}:{opportunity:OpportunityView;active:boolean;onSection(section:OpportunitySection):void}){
+ const [resume,setResume]=useState('正在读取简历状态…'),[records,setRecords]=useState<{label:string;section:OpportunitySection}[]>([]);
+ useEffect(()=>{if(!active)return;let alive=true;void (async()=>{try{const result=ResumeResult.parse(await window.career.request('resume',{operation:'resume.lookup',opportunityId:opportunity.id}));if(alive)setResume(result.status==='document'?'已有当前简历；打开后可继续编辑。':result.status==='not-found'?'尚未建立当前简历；点“修改简历”开始。':'简历状态暂时无法确认，请打开后检查。');}catch{if(alive)setResume('简历状态暂时无法读取；不会当作尚无简历。');}
+ try{const result=Result.parse(await window.career.request('opportunity',{operation:'history',id:opportunity.id}));if(alive&&result.kind==='history')setRecords(result.items.slice(-3).reverse().map(item=>({label:({created:'建立机会',jd_updated:'岗位介绍更新',stage_reached:'记录实际进展',offer_accepted:'记录接受Offer',identity_edited:'公司或岗位更新'} as Record<string,string>)[item.type]??'机会记录已更新',section:item.stageOwner==='interview'?'interview':item.stageOwner==='submission'?'communication':item.stageOwner==='offer'?'offer':'overview'})));}catch{/* Existing read-only entry points remain usable. */}})();return()=>{alive=false;};},[opportunity.id,opportunity.revision,active]);
+ return <div className="opportunity-summary"><p>当前简历：{resume}</p><h3>重要记录入口</h3>{records.length>0&&<ul>{records.map((item,index)=><li key={index}><button onClick={()=>onSection(item.section)}>{item.label}</button></li>)}</ul>}<button onClick={()=>onSection('communication')}>沟通与投递记录</button><button onClick={()=>onSection('interview')}>面试记录</button><button onClick={()=>onSection('offer')}>Offer 条件</button></div>;
+}

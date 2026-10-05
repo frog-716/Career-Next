@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import {_electron} from 'playwright';
+import {_electron,type Locator} from 'playwright';
 import {mkdtemp,readFile,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -21,20 +21,23 @@ it('packaged editor freezes alignment in real PDF and history, retaining it thro
   });
   const editor=()=>page.getByRole('textbox',{name:'简历正文',exact:true});await editor().waitFor();
   const alignment=()=>editor().locator('p').first().evaluate(el=>getComputedStyle(el).textAlign);
+  // Click the actual glyphs: whitespace at the left of an aligned paragraph can hit a neighbouring caret.
+  const clickText=async(target:Locator)=>{await target.scrollIntoViewIfNeeded();const point=await target.evaluate(el=>{const range=document.createRange();range.selectNodeContents(el);const r=range.getBoundingClientRect();return {x:r.x+Math.min(5,r.width/2),y:r.y+r.height/2};});await page.mouse.click(point.x,point.y);};
   await editor().locator('p').first().click();await page.getByRole('button',{name:'正文居中',exact:true}).click();expect(await alignment()).toBe('center');
   await page.getByRole('button',{name:'撤销',exact:true}).click();expect(await alignment()).toBe('start');
   await page.getByRole('button',{name:'重做',exact:true}).click();expect(await alignment()).toBe('center');
   await page.getByRole('button',{name:'姓名居中',exact:true}).click();expect(await page.getByLabel('基础资料姓名',{exact:true}).evaluate(el=>getComputedStyle(el).textAlign)).toBe('center');
   await page.getByRole('button',{name:'撤销',exact:true}).click();expect(await page.getByLabel('基础资料姓名',{exact:true}).evaluate(el=>getComputedStyle(el).textAlign)).toBe('left');
   await page.getByRole('button',{name:'重做',exact:true}).click();
-  await editor().locator('p').filter({hasText:'RIGHT TEST'}).click({position:{x:10,y:8}});await page.getByRole('button',{name:'正文右对齐',exact:true}).click();
-  expect(await editor().locator('p').filter({hasText:'RIGHT TEST'}).evaluate(el=>getComputedStyle(el).textAlign)).toBe('right');await editor().locator('li p').click({position:{x:10,y:8}});await page.getByRole('button',{name:'正文居中',exact:true}).click();
+  await clickText(editor().locator('p').filter({hasText:'RIGHT TEST'}));await page.getByRole('button',{name:'正文右对齐',exact:true}).click();
+  expect(await editor().locator('p').filter({hasText:'RIGHT TEST'}).evaluate(el=>getComputedStyle(el).textAlign)).toBe('right');await clickText(editor().locator('li p'));await page.getByRole('button',{name:'正文居中',exact:true}).click();
+  expect(await editor().locator('li p').evaluate(el=>getComputedStyle(el).textAlign)).toBe('center');expect(await editor().locator('p').filter({hasText:'RIGHT TEST'}).evaluate(el=>getComputedStyle(el).textAlign)).toBe('right');
   // Synthetic composition covers save gating only; real macOS IME is a separate human acceptance.
   await editor().dispatchEvent('compositionstart',{data:'zhongwen'});expect(await page.getByTestId('resume-save-state').textContent()).toBe('正在中文输入，暂不保存');await editor().dispatchEvent('compositionend',{data:'中文'});
   await expect.poll(()=>page.getByTestId('resume-save-state').textContent()).toBe('已保存');
   await page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await page.getByLabel('版本名称').fill('CENTER frozen TEST');await page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor({timeout:45000});
   const version=await page.evaluate(async id=>{const result:any=await window.career.request('resume',{operation:'resume.versions',resumeId:id});return result.versions[0];},fixture.resumeId);
-  expect(version.snapshot.content.layout.identityNameAlignment).toBe('center');expect(version.snapshot.content.sections[0].blocks[0].alignment).toBe('center');
+  expect(version.snapshot.content.layout.identityNameAlignment).toBe('center');expect(version.snapshot.content.sections[0].blocks[0].alignment).toBe('center');expect(version.snapshot.content.sections[0].blocks[2].alignment).toBe('right');expect(version.snapshot.content.sections[0].blocks[3].items[0].alignment).toBe('center');
   const bytes=await readFile(path.join(root,'profile/workspaces/local/blobs',version.pdf.blobId));const {getDocument}=await import('pdfjs-dist/legacy/build/pdf.mjs');const loading=getDocument({data:new Uint8Array(bytes),useSystemFonts:true});const pdf=await loading.promise;const pdfPage=await pdf.getPage(1);const width=pdfPage.getViewport({scale:1}).width;
   const lines=new Map<number,{text:string;left:number;right:number}>();for(const item of (await pdfPage.getTextContent()).items)if('str'in item){const y=Math.round(item.transform[5]),line=lines.get(y)??{text:'',left:Infinity,right:-Infinity};line.text+=item.str;line.left=Math.min(line.left,item.transform[4]);line.right=Math.max(line.right,item.transform[4]+item.width);lines.set(y,line);}
   const find=(text:string)=>{const line=[...lines.values()].find(line=>line.text.includes(text));if(!line)throw Error('PDF text missing: '+text);return line;};

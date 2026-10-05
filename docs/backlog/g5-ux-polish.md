@@ -12,7 +12,7 @@
 
 ## ⑩ UX baseline：已审批，按切片实施
 
-2026-10-05 正式迁入后的 packaged arm64 只读审计，方案见 [UX-BASELINE](../ux/UX-BASELINE.md)，普通用户教程见 [USER-GUIDE](../ux/USER-GUIDE.md)。**APPROVED FOR IMPLEMENTATION**；⑩-A独立授权Shell/Home/教程/帮助/全局文案；其余页面IA待⑩-B及后续切片，不进入Gemini视觉精修。
+2026-10-05 正式迁入后的 packaged arm64 只读审计，方案见 [UX-BASELINE](../ux/UX-BASELINE.md)，普通用户教程见 [USER-GUIDE](../ux/USER-GUIDE.md)。**APPROVED FOR IMPLEMENTATION**；⑩-A独立授权Shell/Home/教程/帮助/全局文案；⑩-B机会列表/详情/六分区已完成，其余页面IA待后续切片，不进入Gemini视觉精修。
 
 | backlog | baseline落点 | 后续验收 |
 | --- | --- | --- |
@@ -26,6 +26,8 @@
 
 上述项为⑩功能可发现性与UX baseline，不推迟到⑪再解决。色彩精修、复杂Motion和品牌视觉继续留给后续独立授权的Gemini阶段。
 
-⑩-A实施与验收由[#36](https://github.com/frog-716/Career-Next/issues/36)记录：收起侧栏常显名称、导航偏好迁入设置、欢迎区/4步教程/指南接入、全局技术详情分层。机会列表/六分区、业务页大规模文案及AI任务详情重整仍为后续工作，不因这一切片提前关闭全部backlog。
+⑩-A实施与验收由[#36](https://github.com/frog-716/Career-Next/issues/36)记录：收起侧栏常显名称、导航偏好迁入设置、欢迎区/4步教程/指南接入、全局技术详情分层。⑩-B机会列表/六分区已完成，其他业务页大规模文案及AI任务详情重整仍为后续工作，不因这一切片提前关闭全部backlog。
 
-⑩-A已完成，验收见 [frontend-a](../verification/frontend-a.md)。窄栏名称、辅助面板、欢迎区/教程/指南及全局语言已落地；业务页信息过载、机会六分区及AI详细页面仍待后续切片，不提前标为完成。
+⑩-A已完成，验收见 [frontend-a](../verification/frontend-a.md)。窄栏名称、辅助面板、欢迎区/教程/指南及全局语言已落地；其他业务页信息过载及AI详细页面仍待后续切片，不提前标为完成。
+
+⑩-B由[#37](https://github.com/frog-716/Career-Next/issues/37)记录：机会列表与详情分离、六个分区、阅读优先、公司维护/纠错降为“更多”、对象链接与草稿连续性。验收见 [frontend-b](../verification/frontend-b.md)。仅这部分完成，不提前关闭其他页面和AI详细页面的backlog；Gemini仍未开始。
