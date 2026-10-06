@@ -14,3 +14,5 @@ for(const manifest of [materialsManifest,...businessManifests]) {
  for(const [name,schema] of Object.entries(manifest.schemas))await writeFile(`dist/contracts/${manifest.module}/${name}.json`,JSON.stringify(z.toJSONSchema(schema),null,2)+'\n');
  await writeFile(`dist/contracts/${manifest.module}/operations.json`,JSON.stringify({module:manifest.module,operations:manifest.operations},null,2)+'\n');
 }
+
+await import('./e1-build.mjs');

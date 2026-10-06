@@ -19,7 +19,7 @@
     "build": "node scripts/g1-build.mjs",
     "test": "vitest run tests --exclude 'tests/integration/**' --exclude 'tests/desktop/**' --exclude 'tests/g0.*.test.ts'",
     "native:rebuild": "electron-rebuild --force --only better-sqlite3",
-    "dev": "electron .",
+    "dev": "node scripts/career.mjs",
     "smoke:dev": "vitest run tests/desktop/materials.electron.test.ts",
     "package": "electron-forge package --platform=darwin --arch=arm64",
     "smoke:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/materials.electron.test.ts",
@@ -41,7 +41,12 @@
     "start": "node scripts/career.mjs",
     "stop": "node scripts/career.mjs stop",
     "dev:desktop": "electron . --career-desktop-ui",
-    "test:browser": "vitest run tests/desktop/browser-first.test.ts"
+    "test:browser": "vitest run tests/desktop/browser-first.test.ts",
+    "dev:electron": "electron .",
+    "package:e1": "node scripts/package-e1.mjs",
+    "test:e1": "vitest run tests/integration/e1*.test.ts tests/desktop/e1*.test.ts",
+    "start:electron": "node scripts/career-electron.mjs",
+    "stop:electron": "node scripts/career-electron.mjs stop"
   },
   "devDependencies": {
     "@electron-forge/cli": "8.0.1",

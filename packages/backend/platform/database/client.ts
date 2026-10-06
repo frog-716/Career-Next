@@ -1,8 +1,8 @@
 import {Worker} from 'node:worker_threads';
 import {randomUUID} from 'node:crypto';
 import path from 'node:path';
-export async function startWriter<Store extends {[K in keyof Store]:(...args:never[])=>unknown}>(root:string,generation:string,artifact=path.join(__dirname,'writer.cjs'),options?:{dataRoot?:string;control?:(action:string,args:unknown[])=>Promise<unknown>}){
- const worker=new Worker(path.resolve(artifact),{workerData:{root,generation,dataRoot:options?.dataRoot}});
+export async function startWriter<Store extends {[K in keyof Store]:(...args:never[])=>unknown}>(root:string,generation:string,artifact=path.join(__dirname,'writer.cjs'),options?:{dataRoot?:string;printMetadata?:{fontVersion:string;engineVersion:string};control?:(action:string,args:unknown[])=>Promise<unknown>}){
+ const worker=new Worker(path.resolve(artifact),{workerData:{root,generation,dataRoot:options?.dataRoot,printMetadata:options?.printMetadata}});
  const pending=new Map<string,{resolve(result:unknown):void;reject(error:Error):void}>();let dead=false;
  let readyResolve!:()=>void,readyReject!:(error:Error)=>void;
  const ready=new Promise<void>((resolve,reject)=>{readyResolve=resolve;readyReject=reject;});

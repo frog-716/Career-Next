@@ -1,6 +1,6 @@
 # Career-Next 项目地图
 
-当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
+当前状态：E1 替代宿主代码与自动回归已完成，真人睡眠唤醒 / Chrome 冷启动待验收，默认 Node / Chrome，Electron 暂留回退；G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
 
 ## 目标与当前阶段
 
@@ -20,7 +20,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 
 | 位置 | 未来职责 |
 | --- | --- |
-| `apps/desktop/` | 本地系统宿主、Chrome loopback 接入、后端监督、钥匙串/文件/PDF与打包 |
+| `apps/desktop/` | macOS launcher、Node 宿主、Chrome 接入、窄 Keychain helper、文件/PDF与打包 |
 | `packages/contracts/` | 前后端查询与命令合同；领域合同由对应模块维护 |
 | `packages/frontend/` | Shell、设计系统、业务视图和编辑会话 |
 | `packages/backend/` | 业务 owner、跨域用例、AI Runtime、平台能力 |
@@ -31,10 +31,10 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 ## G1 正式入口
 
 - `frontend/features/materials/`：选择、预览、明确确认、取消、回执核对和正式回读；合同正本在 `contracts/materials/`。构建按模块生成 JSON Schema 和操作清单到 `dist/contracts/materials/`。
-- `apps/desktop/main/`、`preload/`、`capabilities/`：安全窗口、原生文件选择、窄能力桥与 backend 监督；不拥有业务正本。
-- `backend/bootstrap/`：utilityProcess 和唯一 SQLite 写 worker 的装配；`domains/materials/`：个人独立 Raw 的身份、SourceRef、证据原件生命周期与业务裁决。
+- `apps/desktop/node/`、`browser/`、`capabilities/`：正式 Node 装配与窄平台能力；Main/preload 仅保留临时 Electron 回退，不拥有业务正本。
+- `backend/bootstrap/`：独立 Node backend 和唯一 SQLite 写 worker 的装配；utility.ts 仅用于 Electron 回退；`domains/materials/`：个人独立 Raw 的身份、SourceRef、证据原件生命周期与业务裁决。
 - `backend/platform/database/`：真实写锁、最小迁移、receipt / hold / retention；`platform/files/`：有界文本 staging 与不可覆盖的 UUID blob，不裁决业务语义。
-- 工作区身份持久化，backend 和 MessagePort 每次启动/重连换代；可信 human 由接入端建立。正式提交在同一短事务内完成 Materials、retention 与 receipt；文件发布在事务外，GC 由同一 writer 排序。
+- 工作区身份持久化，backend 与浏览器会话每次启动/重连换代（历史 MessagePort 属于回退）；可信 human 由接入端建立。正式提交在同一短事务内完成 Materials、retention 与 receipt；文件发布在事务外，GC 由同一 writer 排序。
 - 开发与验收命令见 README；`tests/integration/` 使用真实 SQLite 和文件，`tests/desktop/` 验证真实开发态和 arm64 包。测试资料与构建产物不进入 Git。
 
 ## G0 运行入口
@@ -62,7 +62,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - `contracts/<owner>/manifest.ts` 和 `frontend/features/<owner>/routes.ts` 是各模块合同与路由片段；`npm run generate` 机械产生合同总册、后端路由注册与前端路由总册，生成目录不提交。
 - `backend/domains/{wiki,employment,project,opportunity,profile,resume}/public.ts` 是业务公开能力；`bootstrap/` 注入跨域公开关系并维护单一 SQLite writer 和迁移批次。
 - `frontend/app/` 装配 `shell/` 的四入口和对应真实页面；保持编辑会话，任职成功写入后机械刷新项目的公开关系投影。
-- Resume 使用 Career 自有文档合同；Tiptap 仅作输入适配。当前稿、Profile 当前身份、命名版本各守自己的语义。后端冻结快照，Desktop 受限打印窗口生成 PDF，平台以 hold / retention 保住实际文件，再由 Resume 完成版本回执。
+- Resume 使用 Career 自有文档合同；Tiptap 仅作输入适配。当前稿、Profile 当前身份、命名版本各守自己的语义。后端冻结快照，固定 headless Chromium 平台适配器生成 PDF，平台以 hold / retention 保住实际文件，再由 Resume 完成版本回执。
 - [G2 Issue #3](https://github.com/frog-716/Career-Next/issues/3) 及六个业务 Issue 是任务和验收正本；运行和真人中文 IME 的 PASS 证据见 [G2 第一批验收](docs/verification/g2-first-batch.md)；接口与并行边界见 [G2 集成约定](docs/agents/g2-integration.md)，统一术语见 [GLOSSARY](GLOSSARY.md)。根依赖、迁移批次和运行装配由 integration owner 串行维护。
 
 ## G3 入口
@@ -74,7 +74,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 
 ## G4 入口
 
-- `contracts/opportunity/{submission,communication}/` 与对应 backend / frontend 子模块：首次投递唯一、后续发送独立，记录实际发送材料；Resume 只提供已冻结候选，文件选择由 Desktop 窄能力提供。
+- `contracts/opportunity/{submission,communication}/` 与对应 backend / frontend 子模块：首次投递唯一、后续发送独立，记录实际发送材料；Resume 只提供已冻结候选，文件选择由浏览器受控上传提供，历史 Desktop 适配保留回退。
 - `backend/ai-runtime/` 管 Wiki 整理任务、逐次授权、实际来源、ExternalOperation、Proposal 与回执；`backend/platform/providers/` 提供本地 fake。人工采纳在唯一 writer 同事务经 Wiki public 生效。无真实外发，不恢复旧执行权。
 - `backend/application/data-lifecycle/` 组合 owner 的公开维护能力；`platform/backup/` 管一致恢复点、受管理副本和唯一 active pointer，`platform/persistence/` 拒绝已清除对象的迟到生产者。
 - `backend/bootstrap/{ai-composition,lifecycle-composition,candidate-validation}.ts` 是真实跨 owner 接缝与候选恢复校验入口；迁移发布版本为 4，已发布 G1–G3 SQL 不变。
@@ -102,8 +102,8 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - J-07 真实 Provider/Search/Feishu 三分支已 PASS；Developer ID/Notarization/x64 仍 READY / NOT RUN。G6 历史范围不含旧 Career；后续 M0 只读授权见下方。
 
 - G6 新增 `platform/search/` 为有界、可重建的人类本地搜索投影；`bootstrap/local-search-composition.ts` 仅组合公开 owner，v6 追加内容无关 dirty 通知。备份排除投影正文，清除后重建。
-- Main 的专用 write-only Secret 桥位于 `capabilities/secret-vault.ts`，系统加密存储与业务备份分离；J-07 已验证正式凭据联动；超过60秒交互等待保持响应，读取仅在受信链内，Renderer不可回读已存Key。
-- Main 打开业务 writer 前由固定只读 `workspace-check` 核对资料身份；无效指针关闭业务/外发，用户明确选择完整备份后才经隔离候选验证激活。
+- 历史 Main 与新 Node 共用的专用 write-only Secret 协调位于 `capabilities/secret-vault.ts`，系统加密存储与业务备份分离；J-07 已验证正式凭据联动；超过60秒交互等待保持响应，读取仅在受信链内，Renderer不可回读已存Key。
+- Node 打开业务 writer 前复用只读 active identity 核对（历史 Main 使用 `workspace-check`）；无效指针关闭业务/外发，用户明确选择完整备份后才经隔离候选验证激活。
 
 ## J-07 接缝与最终证据
 
@@ -152,9 +152,11 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - [A6实施](docs/ux/A6-IMPLEMENTATION.md) / [验收](docs/verification/frontend-a6.md) / [#39](https://github.com/frog-716/Career-Next/issues/39)：`design-system/brand/` 透明 SVG 与有限动效，`shell/` 四名称导航，`support/experience/avatar-menu.tsx` 辅助菜单，`features/opportunity/` 四列管线、详情六分区与新建小面板；Resume套用原件纸面/工具栏，三个其他模块使用原件资料行。人工审批尚未通过，当前补齐版本等待复审。`docs/ux/CHANGELOG.md` 是产品内更新日志源。
 - 不再使用独立 Home 或品牌跳转首页；已有默认启动模块仍由 preferences owner 管理。未连接飞书不显示姓名，不将 Profile 或 CLI token 当连接身份。现有合同无提醒字段，显示“未设”，不新增业务能力。
 
-## Browser-first 正式运行入口
+## E1 Node / Chrome 正式运行入口
 
-- 用户明确改为 Chrome 默认 UI，见 [运行入口决策/最小差异审查](docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md) 与 [验证](docs/verification/browser-first.md)。Frozen 原文保持；业务 owner / SQLite schema / A6 不换。
-- `npm start` / `scripts/career.mjs` 启动本地系统宿主并自动打开 Chrome；`npm run stop` 验证 profile 的宿主身份并正常退出。默认不建业务 BrowserWindow；显式桌面兼容模式仅供回归。
-- `apps/desktop/browser/server.ts` 只绑定 127.0.0.1，固定 Contract 路由 + Origin/Host/CSRF/每标签会话校验；`frontend/app/browser-bridge.ts` 在页面内存持有请求能力，复用既有前端桥接口。
-- 文件选择、safeStorage 与不可见 PDF 打印留在可信 Main；单一 active pointer 与 writer、正式外发授权、备份/恢复边界不变。切换资料库拒绝旧标签写入，后台重启不自动重发命令。四入口，无 Home。
+- 用户批准 Electron Retirement，见 [E1 Amendment](docs/adr/005-ELECTRON-RETIREMENT-E1.md)；它覆盖 V2 的宿主选择，冻结正文与历史验证不修改。业务 owner、Contract、SQLite schema、React/A6 不变。
+- `Career.app` / `npm start` → macOS launcher → 独立 Node backend → 127.0.0.1 → Chrome。`apps/desktop/node/` 负责装配/启动；`native/launcher.swift` 仅持有启动锁并启动固定 runtime。重复启动核对宿主身份，复用后台；`npm run stop` 等待后台及唯一 writer 退出。
+- `apps/desktop/browser/server.ts` 保留 Host/Origin/CSRF/每标签会话与工作区绑定。`frontend/app/browser-bridge.ts` 请求能力只在内存；文件字节通过固定受控上传入口，PDF 下载只能读取正式 ResumeVersion，不能传系统路径/通用 blob ID。
+- `capabilities/native-keychain.ts` / `native/keychain.swift` 提供固定 Career slot 的私有加解密。新 native-v1 库与旧 Electron 密文分离；本轮仅 TEST Secret，真实交接仍须 [单独授权](docs/operations/E1-CREDENTIAL-TRANSITION.md)。恢复关闭外部服务绑定，不恢复旧授权。
+- `capabilities/headless-pdf.ts` 使用固定 Chromium 153.0.8010.12、固定参数与字体指纹；原冻结 PDF 不重新生成。无效 active pointer 进入独立只读恢复页面，用户明确选备份、验证、确认后才切换。
+- `npm run package:e1` 生成 `out/Career-E1-arm64/Career.app`，不携带 Electron。旧 Electron/Forge 与 Main/preload/IPC/utilityProcess 留作明确回退：`npm run start:electron` / `npm run stop:electron`，或显式兼容窗口 `npm run dev:desktop`；二者不能同时持有同一工作区 writer。E1 不删除回退，发布签名/公证/x64 仍未验收。

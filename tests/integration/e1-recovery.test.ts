@@ -1,0 +1,10 @@
+import {it,expect} from 'vitest';import {mkdtemp,rm,writeFile} from 'node:fs/promises';import path from 'node:path';import {tmpdir} from 'node:os';import {randomUUID} from 'node:crypto';
+import {createNodeHost} from '../../apps/desktop/node/host';import {createRecoveryHost} from '../../apps/desktop/node/recovery';
+const context={bind(){},replaceBinding(){},notify(){}};
+it('invalid active pointer exposes only explicit verified recovery, then reopens the selected workspace',async()=>{
+ const profile=await mkdtemp(path.join(tmpdir(),'career-E1-TEST-recovery-'));const options={profile,artifacts:path.resolve('dist/application'),webRoot:path.resolve('dist/materials-renderer'),port:0,automaticBackups:false};let host=await createNodeHost(options);let recovery:Awaited<ReturnType<typeof createRecoveryHost>>|undefined;
+ try{const company:any=await host.handlers['business/opportunity']({operation:'company.create',commandId:randomUUID(),name:'TEST recovered company'},context);const backup:any=await host.handlers['business/application']({operation:'data.backup'},context);expect(backup.kind).toBe('backup');await host.close();await writeFile(path.join(profile,'active-workspace-pointer.json'),'invalid TEST pointer');
+  await expect(createNodeHost(options)).rejects.toThrow('active_pointer_invalid');recovery=await createRecoveryHost({...options,reopen:async()=>{}});expect('business/opportunity' in recovery.handlers).toBe(false);const candidates:any=await recovery.handlers['recovery/list']();expect(candidates.items.map((x:any)=>x.id)).toContain(backup.copy.id);
+  const prepared:any=await recovery.handlers['recovery/prepare']({backupId:backup.copy.id});expect(prepared.kind).toBe('restore_candidate');expect(await recovery.handlers['recovery/activate']({candidateId:prepared.copy.id,confirmed:true})).toMatchObject({kind:'restored'});await recovery.close();host=await createNodeHost(options);const list:any=await host.handlers['business/opportunity']({operation:'company.list'},context);expect(list.items[0].id).toBe(company.company.id);
+ }finally{await recovery?.close();await host.close();await rm(profile,{recursive:true,force:true});}
+},60000);

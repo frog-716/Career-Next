@@ -1,0 +1,51 @@
+import {it,expect} from 'vitest';
+import {chromium} from 'playwright';
+import {execFile} from 'node:child_process';import {promisify} from 'node:util';const run=promisify(execFile);
+import {mkdir,mkdtemp,readFile,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+it('Career.app uses Node-only backend, file transfer, frozen PDF and restore through the production Chrome UI',async()=>{
+ const evidence=path.resolve('out/implementation/e1/CHROME-TEST-DATA');await mkdir(evidence,{recursive:true});const profile=await mkdtemp(path.join(evidence,'profile-'));
+ const executablePath=path.resolve('out/Career-E1-arm64/Career.app/Contents/MacOS/Career');const launchArgs=[`--user-data-dir=${profile}`,'--no-browser-open'];await run(executablePath,launchArgs);
+ const browser=await chromium.launch({channel:'chrome',headless:true});const context=await browser.newContext({viewport:{width:1280,height:850}});let page=await context.newPage();page.on('dialog',dialog=>void dialog.accept());const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ async function address(){let value:any;await expect.poll(async()=>{try{value=JSON.parse(await readFile(path.join(profile,'browser-host.json'),'utf8'));return (await fetch(`http://127.0.0.1:${value.port}/host-status`)).ok;}catch{return false;}},{timeout:30000}).toBe(true);return `http://127.0.0.1:${value.port}`;}
+ try{
+  const url=await address();await page.goto(url);await page.getByRole('navigation',{name:'一级导航'}).waitFor();expect(JSON.parse(await readFile(path.join(profile,'browser-host.json'),'utf8')).host).toBe('node-v1');
+  await page.getByRole('region',{name:'新手教程'}).getByRole('button',{name:'跳过'}).click();
+  const fixture=await page.evaluate(async()=>{const call=(module:any,input:any)=>window.career.request(module,input) as Promise<any>;
+   const c=await call('opportunity',{operation:'company.create',commandId:crypto.randomUUID(),name:'Browser TEST Company'}),o=await call('opportunity',{operation:'create',commandId:crypto.randomUUID(),companyId:c.company.id,role:'Browser TEST Analyst'});
+   await call('profile',{operation:'profile.save',commandId:crypto.randomUUID(),expectedRevision:0,name:'TEST Candidate',contact:'',links:[]});
+   await call('wiki',{operation:'create',commandId:crypto.randomUUID(),title:'Browser TEST Wiki',body:'Synthetic TEST DATA only',scope:'personal',nature:'observation',sources:[]});
+   const e=await call('employment',{operation:'create',commandId:crypto.randomUUID(),company:'Browser TEST Workplace',role:'TEST Analyst',goal:'Synthetic',started:true,start:{kind:'unknown'},plannedEnd:{kind:'unknown'}});
+   await call('project',{operation:'create',commandId:crypto.randomUUID(),name:'Browser TEST Project',description:'Synthetic TEST DATA only',tags:[],employmentId:e.employment.id,occurredAt:{kind:'unknown'}});
+   return {opportunityId:o.opportunity.id};
+  });
+  const navBefore=page.getByRole('navigation',{name:'一级导航'});await navBefore.getByRole('link',{name:'Wiki',exact:true}).click();
+  await page.getByLabel('Wiki 更多',{exact:true}).click();await page.getByRole('button',{name:'导入原始材料',exact:true}).click();
+  const uploadPath=path.join(evidence,'TEST-import.md');await writeFile(uploadPath,'E1 TEST Raw 中文 only');
+  const chooser=page.waitForEvent('filechooser');await page.getByRole('button',{name:'选择本地文本材料',exact:true}).click();await (await chooser).setFiles(uploadPath);
+  await page.getByText('E1 TEST Raw 中文 only',{exact:true}).waitFor();await page.getByRole('button',{name:'取消导入',exact:true}).click();
+  expect(await page.evaluate(()=>window.careerMaterials.request({operation:'list'}))).toMatchObject({kind:'list',items:[]});
+  await page.getByRole('button',{name:'返回知识列表（保留输入）',exact:true}).click();
+  await page.reload();const nav=page.getByRole('navigation',{name:'一级导航'});await nav.waitFor();expect(await nav.getByRole('link').allTextContents()).toEqual(['Wiki','机会','项目','任职']);
+  for(const label of ['Wiki','项目','任职']){await nav.getByRole('link',{name:label,exact:true}).click();await page.locator('.aura-module:visible .recent-row').first().waitFor();}
+  await nav.getByRole('link',{name:'机会',exact:true}).click();const core=page.getByRole('region',{name:'机会',exact:true});await core.getByRole('button',{name:'Browser TEST Company · Browser TEST Analyst',exact:true}).click();await page.getByRole('navigation',{name:'机会分区'}).getByRole('button',{name:'简历',exact:true}).click();const editor=page.getByRole('textbox',{name:'简历正文',exact:true});await editor.waitFor();await editor.locator('p').first().fill('Browser TEST resume 蒸牛蛙 abc123');await page.getByRole('button',{name:'正文居中',exact:true}).click();await expect.poll(()=>page.getByTestId('resume-save-state').textContent()).toBe('已保存');
+  async function auxiliary(label:string){await page.getByRole('button',{name:'连接与辅助菜单'}).click();await page.getByRole('menuitem',{name:label,exact:true}).click();}
+  for(const label of ['设置','帮助','更新日志']){await auxiliary(label);const panel=page.getByRole('dialog',{name:label,exact:true});await panel.waitFor();await panel.getByRole('button',{name:'返回原任务'}).click();expect(await editor.textContent()).toContain('蒸牛蛙');}
+  await auxiliary('反馈');await page.getByLabel('反馈内容').fill('Browser TEST unsaved feedback');await page.getByRole('button',{name:'返回原任务（保留反馈草稿）'}).click();await auxiliary('反馈');expect(await page.getByLabel('反馈内容').inputValue()).toBe('Browser TEST unsaved feedback');await page.getByLabel('反馈内容').fill('');await page.getByRole('button',{name:'返回原任务（保留反馈草稿）'}).click();
+  await page.getByLabel('简历更多',{exact:true}).click();await page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await page.getByLabel('版本名称').fill('Browser TEST frozen');await page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor({timeout:45000});
+  const frozen=await page.evaluate(async id=>{const d:any=await window.career.request('resume',{operation:'resume.lookup',opportunityId:id});const versions:any=await window.career.request('resume',{operation:'resume.versions',resumeId:d.document.id});return versions.versions[0];},fixture.opportunityId);
+  const pdf=await readFile(path.join(profile,'workspaces/local/blobs',frozen.pdf.blobId));expect(pdf.subarray(0,4).toString()).toBe('%PDF');expect(createHash('sha256').update(pdf).digest('hex')).toBe(frozen.pdf.digest);
+  await page.reload();await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();expect(await page.getByRole('textbox',{name:'简历正文',exact:true}).textContent()).toContain('蒸牛蛙');
+  const second=await context.newPage();await second.goto(page.url());await second.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();expect(await second.getByRole('textbox',{name:'简历正文',exact:true}).textContent()).toContain('Browser TEST resume');
+  const resumeUrl=page.url();await page.close();page=await context.newPage();page.on('dialog',dialog=>void dialog.accept());await page.goto(resumeUrl);await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();
+  // Mock/fixture only: no credential checks or real service requests are dispatched.
+  expect(await page.evaluate(()=>window.careerTavilySearch.request({operation:'receipt'}))).toMatchObject({kind:'state',requestCount:0});expect(await page.evaluate(()=>window.careerSecrets.request({operation:'read'} as never))).toEqual({kind:'failure',code:'invalid_request'});
+  await auxiliary('设置');const settingsPanel=page.getByRole('dialog',{name:'设置',exact:true});await settingsPanel.getByRole('button',{name:'备份与恢复',exact:true}).click();const settings=page.getByRole('region',{name:'资料维护设置'});await settings.getByRole('button',{name:'立即建立备份'}).click();await expect.poll(()=>settings.getByRole('status').textContent(),{timeout:30000}).toContain('完整恢复点已建立');await settings.getByRole('button',{name:'检查并准备恢复'}).first().click();await page.getByRole('dialog',{name:'确认恢复'}).getByRole('button',{name:'确认切换资料'}).click();await expect.poll(()=>second.getByText('资料库已切换，请重新载入。旧页面不会向新资料库保存。',{exact:true}).isVisible(),{timeout:15000}).toBe(true);
+  await second.close();await page.reload();await page.getByRole('navigation',{name:'一级导航'}).waitFor();await page.evaluate(id=>{location.hash='#/opportunity/'+id+'/resume';},fixture.opportunityId);await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();
+  await run(executablePath,['stop',`--user-data-dir=${profile}`]);await expect.poll(()=>page.getByText(/本地后台暂时断开/).isVisible(),{timeout:10000}).toBe(true);await run(executablePath,launchArgs);expect(await address()).toBe(url);await page.getByRole('button',{name:'重新连接',exact:true}).click();await expect.poll(()=>page.getByText(/本地后台暂时断开/).isVisible()).toBe(false);expect(await page.getByRole('textbox',{name:'简历正文',exact:true}).textContent()).toContain('蒸牛蛙');await page.reload();await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();
+  await page.setViewportSize({width:600,height:850});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:path.join(evidence,'browser-600.png')});expect(errors).toEqual([]);
+  await auxiliary('设置');await page.getByRole('button',{name:'退出本地后台',exact:true}).click();await page.getByRole('dialog',{name:'设置',exact:true}).getByRole('button',{name:'返回原任务'}).click();await expect.poll(()=>page.getByText(/本地后台暂时断开/).isVisible(),{timeout:10000}).toBe(true);await run(executablePath,launchArgs);await page.getByRole('button',{name:'重新连接',exact:true}).click();await expect.poll(()=>page.getByText(/本地后台暂时断开/).isVisible()).toBe(false);
+  await writeFile(path.join(evidence,'RESULT.json'),JSON.stringify({profile,url,...fixture,nodeOnlyHost:true,owners:true,refresh:true,twoTabs:true,closeReopen:true,restart:true,backupRestore:true,actualPdf:true,width600:true,externalRequests:0,realDataChanged:false},null,2));
+ }catch(error){await writeFile(path.join(evidence,'FAILURE.txt'),String(error)+'\nCURRENT PAGE:\n'+await page.locator('body').innerText());await page.screenshot({path:path.join(evidence,'FAILURE.png')});throw error;}finally{await browser.close();await run(executablePath,['stop',`--user-data-dir=${profile}`]);}
+},210000);

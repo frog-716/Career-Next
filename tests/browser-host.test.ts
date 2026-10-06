@@ -59,3 +59,16 @@ test('a slow request cannot write into a restored workspace, and closing a tab r
  await new Promise(resolve=>setTimeout(resolve,40));await post('restore');delayed!.end('}');expect(await response).toBe(409);expect(writes).toBe(0);
  await post('close-tab');expect((await post('write')).status).toBe(403);
 });
+
+test('binary uploads and downloads retain session, origin and workspace admission',async()=>{
+ close=undefined;
+ const directory=await mkdtemp(path.join(tmpdir(),'career-E1-TEST-http-'));await writeFile(path.join(directory,'index.html'),'TEST');let current='w1',calls=0;
+ const host=await createBrowserHost({root:directory,port:0,identity:()=>({workspaceInstance:current}),handlers:{ready:async(_,context)=>{context.bind(current);return {}; }},uploads:{'files/materials':{maximumBytes:8,handle:async input=>{calls++;return {size:input.bytes.length};}}},downloads:{'files/resume-pdf':async()=>({bytes:Buffer.from('%PDF-TEST'),name:'TEST.pdf',type:'application/pdf'})}});
+ try{const post=(endpoint:string,body:BodyInit,headers:Record<string,string>={})=>fetch(host.url+'/api/'+endpoint,{method:'POST',headers:{Origin:host.url,'Content-Type':'application/json',...headers},body});const bootstrap=await post('bootstrap','{}'),cookie=bootstrap.headers.get('set-cookie')!.split(';')[0],capability=(await bootstrap.json()).capability,auth={Cookie:cookie,'X-Career-Capability':capability};await post('ready','{}',auth);
+  expect((await post('files/materials',Buffer.from('TEST'),{...auth,'Content-Type':'application/octet-stream','X-Career-Upload-Metadata':encodeURIComponent(JSON.stringify({name:'TEST.txt'}))})).status).toBe(200);
+  expect((await post('files/materials',Buffer.from('TEST'),{...auth,Origin:'https://example.com','Content-Type':'application/octet-stream'})).status).toBe(403);
+  expect((await post('files/materials',Buffer.alloc(9),{...auth,'Content-Type':'application/octet-stream','X-Career-Upload-Metadata':encodeURIComponent(JSON.stringify({name:'TEST.txt'}))})).status).toBe(400);
+  const pdf=await post('files/resume-pdf','{}',auth);expect(await pdf.text()).toBe('%PDF-TEST');expect(pdf.headers.get('content-disposition')).toContain('attachment');
+  current='w2';expect((await post('files/materials',Buffer.from('TEST'),{...auth,'Content-Type':'application/octet-stream'})).status).toBe(409);expect(calls).toBe(1);
+ }finally{await host.close();await rm(directory,{recursive:true,force:true});}
+});
