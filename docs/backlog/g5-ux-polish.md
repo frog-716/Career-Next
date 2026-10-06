@@ -38,3 +38,5 @@
 [#38](https://github.com/frog-716/Career-Next/issues/38)完成Wiki/项目/任职的阅读优先、任务型AI建议和完整外发预览、结果未知恢复、设置五分类。旧ID/JSON/工程状态与纯图标导航问题已按baseline分层解决；原按钮墙、全局验收控件与无继续草稿入口已修正。已实施项见 [⑩-C](../verification/frontend-c.md)。
 
 后续保留独立视觉阶段：最终配色、字体细节、面板质感和Motion；尚未进入Gemini。真实Provider目前仅Research整理，不能以视觉完整性为由显示其他尚不支持的任务。真实Search/Provider/Feishu仍需逐次预览授权，本轮不调用外部服务。
+
+A6 / 方案3已由用户批准，见 [原件复用实施](../ux/A6-IMPLEMENTATION.md)。首次自行改写样式的实现被用户拒绝，最终改为原CSS/SVG/布局直接复用；品牌、侧栏、头像菜单、机会管线与设置已接正式组件，仍待用户复审。其他未选稿业务页不借此定稿。

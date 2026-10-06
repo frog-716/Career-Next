@@ -1,6 +1,6 @@
 # Career-Next 项目地图
 
-当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪视觉/UI/Motion精修尚未开始。
+当前状态：G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
 
 ## 目标与当前阶段
 
@@ -146,3 +146,8 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 - ⑩-B [#37](https://github.com/frog-716/Career-Next/issues/37)：`features/opportunity/`提供列表、创建、概览及六分区头部；`shell/routes.ts`解析对象/分区链接，`app/`仅经公开Contract装配各owner。Resume维持原独立route和编辑会话。访问过的子模块草稿保留，清除通知卸载匹配缓存，迟到读取不能覆盖新对象/分区。验证见 [机会列表与六分区](docs/verification/frontend-b.md)。
 
 - ⑩-C [#38](https://github.com/frog-716/Career-Next/issues/38)：Wiki/项目/任职阅读与编辑分层；`app/related-projects.tsx`经公开Project Contract装配任职/人物项目关系；`support/profile/`为设置内基础资料编辑；`support/ai/business-entry.tsx`按真实连接能力提供业务任务入口。Research的两种owner会话分别保留，Apply后只读刷新，不覆盖未保存草稿。设置五分组、普通语言与技术详情分层，开发诊断仅显式隔离模式显示。验收见 [⑩-C 全 baseline](docs/verification/frontend-c.md)。不进入⑪。
+
+## ⑪ A6 / 方案 3 实施入口
+
+- [A6实施](docs/ux/A6-IMPLEMENTATION.md) / [验收](docs/verification/frontend-a6.md) / [#39](https://github.com/frog-716/Career-Next/issues/39)：`design-system/brand/` 透明 SVG 与有限动效，`shell/` 四名称导航，`support/experience/avatar-menu.tsx` 辅助菜单，`features/opportunity/` 四列管线。`docs/ux/CHANGELOG.md` 是产品内更新日志源。
+- 不再使用独立 Home 或品牌跳转首页；已有默认启动模块仍由 preferences owner 管理。未连接飞书不显示姓名，不将 Profile 或 CLI token 当连接身份。现有合同无提醒字段，显示“未设”，不新增业务能力。

@@ -4,7 +4,7 @@ import {useHomepagePreferences} from '../shell/preferences';
 import type {PurgeNotice} from '../design-system/purge-notice';
 import {flushSync} from 'react-dom';
 import {sourceCatalogue,readSourceVersion,scopeCatalogue} from './source-catalogue';
-import {useIntroduction,Welcome} from '../support/experience';
+import {useIntroduction,Onboarding} from '../support/experience';
 import {G4Support} from './g4-support';
 import {createRoot} from 'react-dom/client';
 import {useCallback,useEffect,useRef,useState} from 'react';
@@ -27,6 +27,8 @@ import {Result as ResumeResult,type Request as ResumeRequest} from '../../contra
 import {Result as ProfileResult,type Request as ProfileRequest} from '../../contracts/profile/schema';
 import {Identity} from '../../contracts/materials/schema';
 import './style.css';
+import '../design-system/aura-approved.css';
+import './aura-adapter.css';
 const wikiRequest=async(input:WikiRequest)=>WikiResult.parse(await window.career.request('wiki',input));
 
 const opportunityRequest=async(input:OpportunityRequest)=>OpportunityResult.parse(await window.career.request('opportunity',input));
@@ -48,7 +50,7 @@ function Workspace(){
  const employmentRequest=useCallback(async(input:EmploymentRequest)=>{const result=EmploymentResult.parse(await window.career.request('employment',input));if(!['list','read','history','person.history'].includes(input.operation)&&(result.kind==='employment'||result.kind==='person'))setEpoch(value=>value+1);return result;},[]);
  useEffect(()=>{void window.career.ready().then(value=>setWorkspace(Identity.parse(value).workspaceInstance)).catch(()=>setError('工作区连接失败，请重新连接。'));},[]);
  if(!workspace)return <main><p>{error||'正在打开工作区…'}</p>{error&&<button onClick={async()=>{try{setWorkspace(Identity.parse(await window.career.reconnect()).workspaceInstance);setError('');}catch{setError('连接暂不可用，请重试。');}}}>重新连接工作区</button>}</main>;
- return <QueryClientProvider client={client}><CareerShell contextHelp={<>{homepage.status&&<p role="status">{homepage.status}</p>}<button className="career-context-help" onMouseDown={event=>event.preventDefault()} onClick={()=>setHelpOpen(true)}>这个页面怎么用</button></>} auxiliary={<G4Support onOpenOpportunity={id=>navigate(opportunityPath(id,'overview'))} preferences={homepage} helpOpen={helpOpen} onHelp={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} onFinishTutorial={introduction.finish} purgeNotice={purgeNotice} onPurge={purge} key={workspace} workspaceInstance={workspace} onRestore={async()=>{const identity=Identity.parse(await window.career.ready());flushSync(()=>setWorkspace(undefined));client.clear();lastResume.current=undefined;setWorkspace(identity.workspaceInstance);setEpoch(e=>e+1);navigate('/wiki');}} onApplied={()=>setEpoch(e=>e+1)}/>} welcome={route.view==='module'&&route.module===(homepage.pinned??'wiki')?<Welcome introduction={introduction} onTutorial={()=>setHelpOpen(true)}/>:undefined} key={workspace} pinned={homepage.pinned} order={homepage.order} pages={{
+ return <QueryClientProvider client={client}><CareerShell contextHelp={<>{introduction.automatic&&<Onboarding onFinish={introduction.finish}/>} {homepage.status&&<p role="status">{homepage.status}</p>}</>} auxiliary={<G4Support onOpenOpportunity={id=>navigate(opportunityPath(id,'overview'))} preferences={homepage} helpOpen={helpOpen} onHelp={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} onFinishTutorial={introduction.finish} purgeNotice={purgeNotice} onPurge={purge} key={workspace} workspaceInstance={workspace} onRestore={async()=>{const identity=Identity.parse(await window.career.ready());flushSync(()=>setWorkspace(undefined));client.clear();lastResume.current=undefined;setWorkspace(identity.workspaceInstance);setEpoch(e=>e+1);navigate('/wiki');}} onApplied={()=>setEpoch(e=>e+1)}/>} key={workspace} pinned={homepage.pinned} order={homepage.order} pages={{
   wiki:<><WikiPage focusScope={wikiFocus} changeEpoch={epoch} purgeNotice={purgeNotice} request={wikiRequest} scopeCatalogue={scopeCatalogue} sourceCatalogue={sourceCatalogue} readSourceVersion={readSourceVersion} materials={window.careerMaterials} workspaceInstance={workspace} importContent={onUse=><RawImport diagnostics={window.career.developmentDiagnostics===true} purgeNotice={purgeNotice} onUse={onUse}/>} researchContent={<WikiResearchReferences purgeNotice={purgeNotice} opportunityRequest={opportunityRequest} researchRequest={researchRequest} onOpenOwner={id=>navigate(opportunityPath(id,'research'))}/>}/></>,
   employment:<EmploymentPage onOpenWiki={openWiki} renderProjects={(employmentId,personId)=><RelatedProjects employmentId={employmentId} personId={personId} epoch={epoch} request={projectRequest} onOpen={openProject} onManage={()=>navigate('/project')}/>} purgeNotice={purgeNotice} request={employmentRequest}/>,
   project:<ProjectPage focusProject={projectFocus} onOpenWiki={id=>openWiki('project',id)} purgeNotice={purgeNotice} request={projectRequest} employmentRequest={employmentRequest} relationEpoch={epoch}/>,

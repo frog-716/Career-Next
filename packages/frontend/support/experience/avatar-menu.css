@@ -1,0 +1,5 @@
+/* Interaction structure only; visual styling is the approved A6 account/menu code. */
+.career-connection{position:relative;display:flex;flex-direction:column;align-items:center}
+.career-connection-name{font-size:9px;max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.career-avatar-menu[hidden]{display:none!important}
+.career-settings-version{display:flex;align-items:center;justify-content:space-between;gap:12px}

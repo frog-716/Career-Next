@@ -1,0 +1,9 @@
+{
+  "approved": "A6 C / direction 3",
+  "prototype_sha256": "a10d9db4455294357e4f7496e5adef2bedef635bc70d5ad265a34825c00b17d9",
+  "style_source": "out/design/gemini-review/A6-motion/prototype.html",
+  "css_method": "entire approved <style> copied verbatim",
+  "icons_method": "exact symbol paths",
+  "brand": "same approved transparent vector and motion; 0.75x",
+  "product_rules_changed": false
+}
