@@ -1,6 +1,6 @@
 # Career-Next 项目地图
 
-当前状态：E1 替代宿主代码与自动回归已完成，真人睡眠唤醒 / Chrome 冷启动待验收，默认 Node / Chrome，Electron 暂留回退；G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
+当前状态：[E1 替代宿主 PASS](docs/verification/E1-ELECTRON-REPLACEMENT.md)，真人睡眠唤醒与两次 Chrome 冷启动均通过，默认 Node / Chrome，Electron 暂留回退；E2 尚未开始，真实凭据交接仍须单独授权。G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
 
 ## 目标与当前阶段
 

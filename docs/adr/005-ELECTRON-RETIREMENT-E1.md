@@ -1,6 +1,6 @@
 # Electron Retirement E1 — approved host amendment
 
-Status: APPROVED FOR IMPLEMENTATION by the user, 2026-10-06.
+Status: VERIFIED — E1 PASS, 2026-10-06. Implementation was approved by the user on the same date; automated replacement acceptance and both final real-environment gates have passed. Evidence: [E1 verification](../verification/E1-ELECTRON-REPLACEMENT.md).
 
 This explicitly amends the host choices in Frozen V2 ARCHITECTURE §2/§3 and DATA §1/§9, and supersedes ADR 004's temporary Electron platform host. Frozen documents and Product Spec remain unchanged. This is a deployment/platform change, not a new product architecture.
 
@@ -13,3 +13,5 @@ Keychain uses a dedicated signed native helper with fixed Career slots, private 
 PDF uses the exact frozen Career renderer and pinned headless Chromium, fixed print settings and a verified font fingerprint. Historical PDFs are read as stored, never regenerated as historical evidence. File import uses a browser-selected byte stream, private bounded staging and the same owner Preview/confirm/cancel; no browser-supplied system paths. Export uses authenticated owner-bound downloads. No native directory picker is added.
 
 All HTTP listening remains 127.0.0.1 with Host/Origin/CSRF, HttpOnly session and per-tab capability/workspace binding. Native helpers and process-control capabilities are not general localhost RPC.
+
+E1 is complete and ready for the separately instructed E2 stage. Electron/Forge and the rollback adapters remain present. Real credentials have not been accessed or migrated; any later credential transition still requires separate authorization. Developer ID, Notarization and x64 remain READY / NOT RUN.
