@@ -8,3 +8,21 @@ section.screen.opportunity-owner{border:0;background:transparent;border-radius:0
 .career-aux-panel{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;padding:0;border:0;background:transparent;overflow:visible;box-shadow:none}.career-aux-panel::backdrop{background:transparent}.career-aux-panel .overlay{z-index:1}.career-aux-panel .sheet-header button{border:0;background:transparent;font-size:12px;color:var(--muted)}.career-aux-panel .settings-layout{padding:0}.career-aux-panel .settings-groups.settings-nav{margin:0;gap:5px}.settings-groups.settings-nav button{padding:9px 11px;border:0;background:transparent;border-radius:6px;font-size:12px}.settings-nav strong{font-weight:inherit}.settings-page{min-width:0}.settings-page>div>section{border:0;padding:0;background:transparent;margin:0}.settings-page fieldset{border:0;margin:0;padding:0;display:grid;gap:18px}.career-settings-version{width:100%;font-size:11px;color:var(--muted)}.career-settings-version button{border:0;background:transparent;font-size:12px;color:var(--accent)}
 /* Prototype selectors refer to selected tabs; native Settings uses current navigation. */
 .settings-nav button[aria-current=page]{background:var(--soft);color:var(--ink);font-weight:600}
+
+/* Remove baseline container chrome around the approved screens; owner controls remain mounted. */
+section.screen,section.opportunity-section,section.aura-owner-section,section.aura-module-detail{border:0;border-radius:0;background:transparent;box-shadow:none}
+section.screen{margin:auto}section.opportunity-section,section.aura-owner-section,section.aura-module-detail{padding:0;margin:0}
+.opportunity-header{padding:0;margin:0;border:0}.opportunity-header h1{margin:0}.opportunity-header .tabs-scroll{margin-bottom:28px}
+.aura-rows{list-style:none;padding:0;margin:0}.aura-rows>li{margin:0;padding:0}.aura-rows>.record-row{padding:17px 0}.aura-module-detail{margin-top:24px!important}
+.aura-owner-section>p{font-size:13px;color:var(--muted);margin:8px 0 16px}.aura-owner-section>h2{margin-bottom:8px}.aura-owner-section article{border-radius:0}.aura-owner-section>details{margin:14px 0}
+.career-aux-panel .sheet-body section{margin:0;border:0;padding:0;background:transparent;border-radius:0}.career-aux-panel .form fieldset{border:0;padding:0}.career-aux-panel .form label{margin:0}.career-aux-panel .settings-version{padding:0;border:0;background:transparent}
+.career-aux-panel .career-settings-version{display:flex;justify-content:space-between;align-items:center}.nav-setting-row>span{display:flex;align-items:center;gap:8px}.nav-setting-row>span svg{width:16px;height:16px}
+.career-aux-panel .settings-page section{margin-bottom:24px}.career-aux-panel .settings-page h3{margin-bottom:6px}.career-aux-panel .settings-page p{font-size:13px;color:var(--muted)}
+.resume-tools .icon-button[aria-pressed=true]{background:var(--soft)}
+
+/* Resume proposal review must not freeze unrelated live blocks. Same sheet, nonmodal hit area. */
+.career-nonmodal-panel,.career-nonmodal-panel .overlay,.career-nonmodal-panel .scrim{pointer-events:none}.career-nonmodal-panel .sheet{pointer-events:auto}
+
+.module-more{position:relative}.module-more>summary{list-style:none}.module-more>summary::-webkit-details-marker{display:none}.module-more-menu{position:absolute;right:0;top:38px;min-width:250px;z-index:30}.module-more-menu .field,.module-more-menu .check-line{margin:0;padding:8px 12px}
+.aura-module .page-actions:empty{display:none}.aura-module .search{margin:0 0 20px;max-width:330px}.aura-module .field:has(input[type=checkbox]),.aura-owner-section .field:has(input[type=checkbox]){display:flex;flex-direction:row;align-items:center;gap:7px}.field input[type=checkbox]{width:auto}
+.aura-module .field,.aura-owner-section .field{margin:8px 0}.aura-module fieldset,.aura-owner-section fieldset{border:1px solid var(--line);border-radius:6px}.aura-module .primary-action{background:var(--accent)}

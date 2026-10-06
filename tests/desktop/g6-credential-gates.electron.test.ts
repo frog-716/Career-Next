@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 const executable=process.env.CAREER_PACKAGED_EXECUTABLE;
-async function launch(profile:string){if(!executable)throw Error('normal packaged executable required');const app=await _electron.launch({executablePath:executable,args:[`--user-data-dir=${profile}`],timeout:30000});const page=await app.firstWindow();await page.getByRole('navigation',{name:'一级导航'}).waitFor();return {app,page};}
+async function launch(profile:string){if(!executable)throw Error('normal packaged executable required');const app=await _electron.launch({executablePath:executable,args:['--career-desktop-ui',`--user-data-dir=${profile}`],timeout:30000});const page=await app.firstWindow();await page.getByRole('navigation',{name:'一级导航'}).waitFor();return {app,page};}
 async function prepare(page:Page){return page.evaluate(async()=>{const result=await window.career.request('opportunity',{operation:'company.create',commandId:crypto.randomUUID(),name:'Virtual credential gate fixture'}) as any;return window.career.request('ai',{operation:'product.prepare',commandId:crypto.randomUUID(),input:{target:{kind:'research-organize',owner:{kind:'company',id:result.company.id}},sources:[],egressSourceIds:[],wikiIds:[],egressWikiIds:[],objects:[]},budget:{requests:2,inputBytes:524288,outputBytes:196608}});});}
 async function finish(app:ElectronApplication|undefined,root:string){if(app){await app.evaluate(({dialog})=>{dialog.showMessageBoxSync=(()=>1) as typeof dialog.showMessageBoxSync;}).catch(()=>{});await app.close().catch(()=>{});}await rm(root,{recursive:true,force:true});}
 it('normal Main startup honors a persisted first-save pending marker even without binding.json',async()=>{

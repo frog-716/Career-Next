@@ -12,7 +12,7 @@ it('normal desktop runs all six manual owner journeys, real PDF, protected quit,
  const root=await mkdtemp(path.join(tmpdir(),'career-g2-desktop-'));
  const fixture=path.join(root,'Evidence.txt');await writeFile(fixture,'Actual independent Raw source.');
  const packaged=process.env.CAREER_PACKAGED==='1';
- const options={executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?[`--user-data-dir=${root}/profile`]:['.',`--user-data-dir=${root}/profile`],timeout:30000};
+ const options={executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?['--career-desktop-ui',`--user-data-dir=${root}/profile`]:['.','--career-desktop-ui',`--user-data-dir=${root}/profile`],timeout:30000};
  let application=await _electron.launch(options);
  try{
   let page=await application.firstWindow();page.on('dialog',()=>{});page.setDefaultTimeout(10000);const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));

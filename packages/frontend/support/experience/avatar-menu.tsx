@@ -20,7 +20,7 @@ export function AvatarMenu({children,onConnection,connection}:{children:ReactNod
    if(e.key==='Tab'){latched.current=false;setOpen(false);return;}
    if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const items=[...menu.current!.querySelectorAll<HTMLElement>('[role=menuitem]')];const i=items.indexOf(document.activeElement as HTMLElement);items[e.key==='Home'?0:e.key==='End'?items.length-1:(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();
   }}>
-   <button className="menu-connection" role="menuitem" onClick={onConnection}><span className="menu-avatar">{avatar}</span><span className="menu-connection-copy"><strong>{connection?connection.name:'连接资料'}</strong><small>{connection?'飞书连接身份':'飞书是扩展资料来源'}</small></span></button>
+   <button className="menu-connection" role="menuitem" onClick={onConnection}><span className="menu-avatar">{avatar}</span><span className="menu-connection-copy"><strong>{connection?connection.name:'飞书资料来源'}</strong><small>{connection?'飞书连接身份':'飞书是扩展资料来源'}</small></span><NavigationIcon name="arrow"/></button>
    <div className="account-menu-divider"/>{children}
   </div>
  </div>;

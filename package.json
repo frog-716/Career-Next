@@ -37,7 +37,11 @@
     "smoke:g3": "vitest run tests/desktop/g3.electron.test.ts",
     "smoke:g3:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g3.electron.test.ts",
     "smoke:g4": "vitest run tests/desktop/g4.electron.test.ts",
-    "smoke:g4:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g4.electron.test.ts"
+    "smoke:g4:packaged": "CAREER_PACKAGED=1 vitest run tests/desktop/g4.electron.test.ts",
+    "start": "node scripts/career.mjs",
+    "stop": "node scripts/career.mjs stop",
+    "dev:desktop": "electron . --career-desktop-ui",
+    "test:browser": "vitest run tests/desktop/browser-first.test.ts"
   },
   "devDependencies": {
     "@electron-forge/cli": "8.0.1",

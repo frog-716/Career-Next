@@ -1,5 +1,17 @@
 // Exact vector paths from the approved A6 prototype; never user-provided markup.
 const paths={
+  "back":"<path d=\"M19 12H5m5-5-5 5 5 5\"/>",
+  "spark":"<path d=\"m12 3 2 6 6 3-6 2-2 7-2-7-7-2 7-3 2-6ZM20 2v4m-2-2h4\"/>",
+  "close":"<path d=\"m6 6 12 12M6 18 18 6\"/>",
+  "paper":"<path d=\"M6 3h9l4 4v14H6Z\"/><path d=\"M14 3v5h5M9 12h7M9 16h5\"/>",
+  "check":"<path d=\"m5 12 4 4 10-10\"/>",
+  "clock":"<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7v5l3 2\"/>",
+  "warning":"<path d=\"m12 3 10 18H2Z\"/><path d=\"M12 8v5M12 17h.01\"/>",
+  "source":"<path d=\"m6 16 5-5M11 11l7-5M8 5l10 1-1 10\"/><path d=\"M5 10 3 19l9-2\"/>",
+  "research":"<circle cx=\"10\" cy=\"10\" r=\"6\"/><path d=\"m14.5 14.5 6 6M7.5 10h5M10 7.5v5\"/>",
+  "interview":"<rect x=\"4\" y=\"5\" width=\"16\" height=\"15\" rx=\"2\"/><path d=\"M8 3v4M16 3v4M4 10h16M8 14h3\"/>",
+  "offer":"<path d=\"M5 3h10l4 4v14H5Z\"/><path d=\"M14 3v5h5m-11 5 2 2 4-4M8 18h7\"/>",
+
   "sort":"<path d=\"m8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4\"/>",
   "changelog":"<path class=\"icon-wash\" d=\"M7 5h11v15H7Z\"/><path d=\"M6 4h12a1 1 0 0 1 1 1v16H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM7 4v17M10 8h5M10 12h5M10 16h3\"/>",
   "wiki": "<path class=\"icon-wash\" d=\"M6 4h13v13H6Z\"/><path d=\"M5 19a2.4 2.4 0 0 1 2.4-2.4H19V4H7.4A2.4 2.4 0 0 0 5 6.4V19a2 2 0 0 0 2 2h12\"/><path d=\"M9 8h6M9 11.5h4\"/>",

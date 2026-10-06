@@ -10,7 +10,7 @@ async function record(name:string,value:unknown){await mkdir(evidenceDirectory,{
 async function fixture(){
  if(!executable)throw Error('normal packaged arm64 executable required');
  const root=await mkdtemp(path.join(tmpdir(),'career-g6-two-windows-'));
- const app=await _electron.launch({executablePath:executable,args:[`--user-data-dir=${root}/profile`],timeout:30000});
+ const app=await _electron.launch({executablePath:executable,args:['--career-desktop-ui',`--user-data-dir=${root}/profile`],timeout:30000});
  try{expect(await app.evaluate(()=>process.arch)).toBe('arm64');const a=await app.firstWindow();a.setDefaultTimeout(15000);await a.getByRole('navigation',{name:'一级导航'}).waitFor();
  await a.getByRole('navigation').getByRole('link',{name:'机会',exact:true}).click();const opportunity=a.getByRole('region',{name:'机会',exact:true});
  await opportunity.getByLabel('公司名称',{exact:true}).click();await a.keyboard.type('G6 fictional two windows');await opportunity.getByRole('button',{name:'建立新公司'}).click();await opportunity.getByRole('button',{name:'保存公司改名'}).waitFor();await opportunity.getByLabel('明确选择公司').selectOption({index:1});await opportunity.getByLabel('岗位名称').click();await a.keyboard.type('Resume concurrency');await opportunity.getByRole('button',{name:'创建机会',exact:true}).click();await opportunity.getByRole('button',{name:'编辑本机会简历'}).click();

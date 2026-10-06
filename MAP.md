@@ -20,7 +20,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 
 | 位置 | 未来职责 |
 | --- | --- |
-| `apps/desktop/` | 桌面窗口、后端生命周期监督、受限能力桥与打包 |
+| `apps/desktop/` | 本地系统宿主、Chrome loopback 接入、后端监督、钥匙串/文件/PDF与打包 |
 | `packages/contracts/` | 前后端查询与命令合同；领域合同由对应模块维护 |
 | `packages/frontend/` | Shell、设计系统、业务视图和编辑会话 |
 | `packages/backend/` | 业务 owner、跨域用例、AI Runtime、平台能力 |
@@ -137,7 +137,7 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 ## ⑩ 前端 UX baseline：⑩-A / ⑩-B / ⑩-C 已实施
 
 - [UX审计与IA方案](docs/ux/UX-BASELINE.md) / [普通用户指南](docs/ux/USER-GUIDE.md)：当前正式打包版只读审计；首页欢迎区、机会六分区、4步教程、页面提示与帮助、用户文案及技术详情折叠。
-- baseline已 IMPLEMENTED。⑩-A接入窄栏常显名称、默认模块欢迎区、设备界面引导与独立辅助面板；四入口、置顶即首页、Resume归属机会与正式owner保持。⑩-B已接入机会列表与详情六分区，不进入⑪ Gemini。旧体验问题已纳入 [UX backlog](docs/backlog/g5-ux-polish.md)。
+- baseline已 IMPLEMENTED。⑩-A历史版本接入窄栏名称与引导；A6已删除 Home/欢迎导航，启动入口只是现有四模块之一，Resume归属机会与正式owner保持。⑩-B已接入机会列表与详情六分区，不进入⑪ Gemini。旧体验问题已纳入 [UX backlog](docs/backlog/g5-ux-polish.md)。
 
 - ⑩-A [#36](https://github.com/frog-716/Career-Next/issues/36)：`frontend/support/experience/` 提供本机界面偏好、欢迎区、4步教程与Markdown帮助；`shell/`仅装配视图，`app/g4-support.tsx`组合独立设置/帮助面板与原反馈能力。导航置顶/排序仍由原preferences owner持久化；教程与业务资料/授权分离。
 
@@ -149,5 +149,12 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 
 ## ⑪ A6 / 方案 3 实施入口
 
-- [A6实施](docs/ux/A6-IMPLEMENTATION.md) / [验收](docs/verification/frontend-a6.md) / [#39](https://github.com/frog-716/Career-Next/issues/39)：`design-system/brand/` 透明 SVG 与有限动效，`shell/` 四名称导航，`support/experience/avatar-menu.tsx` 辅助菜单，`features/opportunity/` 四列管线。`docs/ux/CHANGELOG.md` 是产品内更新日志源。
+- [A6实施](docs/ux/A6-IMPLEMENTATION.md) / [验收](docs/verification/frontend-a6.md) / [#39](https://github.com/frog-716/Career-Next/issues/39)：`design-system/brand/` 透明 SVG 与有限动效，`shell/` 四名称导航，`support/experience/avatar-menu.tsx` 辅助菜单，`features/opportunity/` 四列管线、详情六分区与新建小面板；Resume套用原件纸面/工具栏，三个其他模块使用原件资料行。人工审批尚未通过，当前补齐版本等待复审。`docs/ux/CHANGELOG.md` 是产品内更新日志源。
 - 不再使用独立 Home 或品牌跳转首页；已有默认启动模块仍由 preferences owner 管理。未连接飞书不显示姓名，不将 Profile 或 CLI token 当连接身份。现有合同无提醒字段，显示“未设”，不新增业务能力。
+
+## Browser-first 正式运行入口
+
+- 用户明确改为 Chrome 默认 UI，见 [运行入口决策/最小差异审查](docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md) 与 [验证](docs/verification/browser-first.md)。Frozen 原文保持；业务 owner / SQLite schema / A6 不换。
+- `npm start` / `scripts/career.mjs` 启动本地系统宿主并自动打开 Chrome；`npm run stop` 验证 profile 的宿主身份并正常退出。默认不建业务 BrowserWindow；显式桌面兼容模式仅供回归。
+- `apps/desktop/browser/server.ts` 只绑定 127.0.0.1，固定 Contract 路由 + Origin/Host/CSRF/每标签会话校验；`frontend/app/browser-bridge.ts` 在页面内存持有请求能力，复用既有前端桥接口。
+- 文件选择、safeStorage 与不可见 PDF 打印留在可信 Main；单一 active pointer 与 writer、正式外发授权、备份/恢复边界不变。切换资料库拒绝旧标签写入，后台重启不自动重发命令。四入口，无 Home。

@@ -1,10 +1,10 @@
 # Career-Next
 
-G0–G5 已 PASS，[J-07 真实外部链](docs/verification/j07-real-external.md) 使用隔离 TEST DATA 验收完成。G6 本地故障/恢复 PASS；Developer ID、Notarization、x64 仍 READY / NOT RUN。[Migration M0.5 人工分类](docs/migration/M0.5-SUMMARY.md)已完成，仅14条 REAL 作为后续候选；M1 未开始，尚未执行迁移或导入。
+当前默认入口是 Chrome 本地 Web UI，Electron 只承担后台与必要系统能力。G0–G5 PASS、G6 LOCAL PASS；M-Lite 当前资料已迁入并启用。Developer ID、Notarization、x64 仍 READY / NOT RUN。运行边界见 [Browser-first 决策](docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md)。
 
 Career 是保存在个人电脑上的长期职业工作台，帮助用户推进求职、记录真实工作，并积累可找回、可复用的职业资料。
 
-G0、G1、G2 第一批和 G3 已 PASS。G4 增加真实首次投递与再次沟通、跨域来源复核、Wiki 整理提案，以及备份、恢复和永久清除；验收见 [G4 证据](docs/verification/g4-cross-domain.md)。四个一级入口固定为 Wiki、机会、项目、任职。简历当前稿自动保存，命名版本和未命名导出冻结当时内容、身份及真实 PDF；真实中文 IME 已由用户人工验收。AI 发送需要最终预览授权，正式内容由人工采纳后通过业务 owner 写入。真实 Tavily 与 DeepSeek 已完成受控验收；Feishu 通过 user 身份只读 CLI 读取指定文档，确认缓存后由 Materials 保存，未增加内置 live Feishu adapter。完整发布与正式迁移尚未完成。
+G0、G1、G2 第一批和 G3 已 PASS。G4 增加真实首次投递与再次沟通、跨域来源复核、Wiki 整理提案，以及备份、恢复和永久清除；验收见 [G4 证据](docs/verification/g4-cross-domain.md)。四个一级入口固定为 Wiki、机会、项目、任职。简历当前稿自动保存，命名版本和未命名导出冻结当时内容、身份及真实 PDF；真实中文 IME 已由用户人工验收。AI 发送需要最终预览授权，正式内容由人工采纳后通过业务 owner 写入。真实 Tavily 与 DeepSeek 已完成受控验收；Feishu 通过 user 身份只读 CLI 读取指定文档，确认缓存后由 Materials 保存，未增加内置 live Feishu adapter。本机当前资料工作区可用；正式分发仍待签名、公证和 x64 实测。
 
 - [冻结产品规格 Frozen R3](docs/product-spec/rebuild-spec/README.md)
 - [冻结架构 V2](docs/architecture/ARCHITECTURE.md)
@@ -35,7 +35,9 @@ npm run smoke:g3:packaged
 npm run smoke:g4:packaged
 ```
 
-构建后 `npm run dev` 打开当前切片。正常 arm64 包位于 `out/CareerNext-darwin-arm64/CareerNext.app`。应用 userData 下的 `active-workspace-pointer.json` 指向唯一当前资料库，初始目录为 `workspaces/local/`；`career.sqlite` 保存正式 metadata / receipt，`blobs/` 保存原件和冻结 PDF，`staging/` 存受控临时文件。请使用测试资料验收；可用标准 `--user-data-dir=/绝对路径/测试目录` 启动独立测试实例。设置中可以手动备份、验证恢复候选并明确切换，以及查看永久清除影响并确认副本范围。周期备份默认关闭，启用后仅在应用运行时检查。预览尚未保存，取消不产生正式资料；保存结果待核对时查询原回执，不自动再保存。
+构建后运行 `npm start`：启动本地后台，准备好后自动在 Chrome 打开。再次运行会复用后台并打开新标签，不新增 writer。浏览器关标签后资料和后台仍保留；刷新或重新打开可继续。运行 `npm run stop` 正常退出本地后台；再运行 `npm start` 可重启。后台重启后，已有页面显示“重新连接”，不会自动重发保存或 AI 请求。
+
+`npm run dev` 以前台方式运行同一 Chrome 入口，Ctrl+C 正常退出。只有显式 `npm run dev:desktop` / `--career-desktop-ui` 才打开兼容 Electron 窗口，它不是默认产品界面。正常 arm64 包位于 `out/CareerNext-darwin-arm64/CareerNext.app`。应用 userData 下的 `active-workspace-pointer.json` 指向唯一当前资料库，初始目录为 `workspaces/local/`；`career.sqlite` 保存正式 metadata / receipt，`blobs/` 保存原件和冻结 PDF，`staging/` 存受控临时文件。请使用测试资料验收；可用 `npm start -- --user-data-dir=/绝对路径/测试目录` 启动独立 TEST 实例，`npm run stop -- --user-data-dir=/绝对路径/测试目录` 退出该实例。浏览器 URL 只包含 loopback 地址；实际端口按 profile 保存，不在 URL 放凭证。设置中可以手动备份、验证恢复候选并明确切换，以及查看永久清除影响并确认副本范围。周期备份默认关闭，启用后仅在应用运行时检查。预览尚未保存，取消不产生正式资料；保存结果待核对时查询原回执，不自动再保存。
 
 打包默认为本地 ad-hoc 签名。Developer ID signing、Notarization 和 x64 继续保持 READY，尚未实际验收；分别通过 `CAREER_SIGN_IDENTITY`、`CAREER_NOTARY_PROFILE` 与 `npm run package:x64` 提供流程入口。
 

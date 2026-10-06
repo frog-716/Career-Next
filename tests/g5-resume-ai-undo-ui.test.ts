@@ -24,11 +24,11 @@ it.each(['toolbar','keyboard'] as const)('Resume %s undo waits for accepted AI c
  try{
   await server.listen();const address=server.httpServer!.address();if(!address||typeof address==='string')throw Error('port');browser=await chromium.launch({headless:true});const page=await browser.newPage();page.setDefaultTimeout(10000);await page.goto('http://127.0.0.1:'+address.port);
   const editor=page.getByRole('textbox',{name:'简历正文'});await editor.waitFor();
-  await page.getByText('更多工具',{exact:true}).click();await page.getByRole('button',{name:'简历优化提案',exact:true}).click();const selection=page.getByLabel('简历优化选择');await selection.getByLabel(/个人简介 · Controlled delivery/).check();const ai=selection.getByRole('region',{name:'产品任务辅助'});
+  await page.getByLabel('简历更多',{exact:true}).click();await page.getByRole('button',{name:'简历优化提案',exact:true}).click();const selection=page.getByLabel('简历优化选择');await selection.getByLabel(/个人简介 · Controlled delivery/).check();const ai=selection.getByRole('region',{name:'产品任务辅助'});
   await ai.getByRole('button',{name:'准备外发预览'}).click();await ai.getByRole('button',{name:'授权这份最终请求'}).click();const proposal=ai.getByRole('article',{name:'产品待审提案'}).filter({has:page.getByRole('heading',{name:/^增加简历内容/})});await proposal.waitFor();
   // Literal regression fixture; this does not stand in for real macOS IME.
   await editor.locator('p').last().click();await page.keyboard.insertText('蒸牛蛙，这是中文输入测试 abc123');
-  await page.getByRole('button',{name:'查找替换',exact:true}).click();await page.getByLabel('查找',{exact:true}).fill('这是中文输入测试');await page.getByRole('button',{name:'定位',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.getSelection()?.toString())).toBe('这是中文输入测试');await page.getByRole('button',{name:'加粗',exact:true}).click();
+  await page.getByLabel('简历更多',{exact:true}).click();await page.getByRole('button',{name:'查找替换',exact:true}).click();await page.getByLabel('查找',{exact:true}).fill('这是中文输入测试');await page.getByRole('button',{name:'定位',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.getSelection()?.toString())).toBe('这是中文输入测试');await page.getByRole('button',{name:'加粗',exact:true}).click();
   expect(await editor.locator('strong').textContent()).toBe('这是中文输入测试');
   await proposal.getByRole('button',{name:'接受本条并立即生效'}).click();
   // Background status polling can report accepted before the editor readback arrives.

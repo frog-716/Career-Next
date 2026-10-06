@@ -43,20 +43,21 @@ async function fixture(failingHistoryReads=0){
   return resume.handle(request);
  });
  await page.route('https://career-resume-session.test/**',route=>route.fulfill({contentType:'text/html',body:'<div id="root"></div>'}));
- async function start(){await page.goto('https://career-resume-session.test/#'+opportunityId);await page.addScriptTag({content:script});await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();await page.getByText('更多工具',{exact:true}).click();}
+ async function openTools(){if(!await page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).isVisible())await page.getByLabel('简历更多',{exact:true}).click();}
+ async function start(){await page.goto('https://career-resume-session.test/#'+opportunityId);await page.addScriptTag({content:script});await page.getByRole('textbox',{name:'简历正文',exact:true}).waitFor();}
  async function assertLayoutSaved(fontSize:number){await expect.poll(()=>saveCommands.length).toBeGreaterThan(0);await page.getByTestId('resume-save-state').filter({hasText:'已保存'}).waitFor();const command=saveCommands.at(-1)!;expect(resume.handle({operation:'resume.receipt',commandId:command.commandId})).toMatchObject({status:'document',document:{content:{layout:{fontSize}}}});expect(resume.handle({operation:'resume.read',resumeId})).toMatchObject({status:'document',document:{content:{layout:{fontSize}}}});}
- return {root,resume,opened,page,start,saveCommands,versionCommands,assertLayoutSaved,close:async()=>{await page.close();db.close();rmSync(root,{recursive:true,force:true});}};
+ return {openTools,root,resume,opened,page,start,saveCommands,versionCommands,assertLayoutSaved,close:async()=>{await page.close();db.close();rmSync(root,{recursive:true,force:true});}};
 }
 it('named version freezes and previews plain text, bold, italic and list marks after later editing',async()=>{
  const f=await fixture();try{
   const content:CareerDocument=structuredClone(f.opened.document.content);
   content.sections[0].blocks=[{id:randomUUID(),type:'paragraph',spans:[{text:'蒸牛蛙，',marks:[]},{text:'这是中文输入测试',marks:[{type:'bold'}]},{text:' abc123',marks:[]},{text:' italic text',marks:[{type:'italic'}]}]},{id:randomUUID(),type:'bullet-list',items:[{id:randomUUID(),paragraphId:randomUUID(),spans:[{text:'List plain ',marks:[]},{text:'List bold',marks:[{type:'bold'}]},{text:' and italic',marks:[{type:'italic'}]}]}]}];
   expect(f.resume.handle({operation:'resume.save',commandId:randomUUID(),resumeId:f.opened.document.id,expectedRevision:1,expectedProfileRevision:0,content}).status).toBe('document');
-  await f.start();await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称').fill('G5 formatting baseline');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await f.page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor();
+  await f.start();await f.openTools();await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称').fill('G5 formatting baseline');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await f.page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor();
   const versions=f.resume.handle({operation:'resume.versions',resumeId:f.opened.document.id});if(versions.status!=='versions')throw Error('versions unavailable');expect(versions.versions).toHaveLength(1);expect(versions.versions[0].snapshot.content).toEqual(content);
   const editor=f.page.getByRole('textbox',{name:'简历正文',exact:true});await editor.locator('p').first().fill('Later plain current body');await f.page.getByTestId('resume-save-state').filter({hasText:'已保存'}).waitFor();
-  await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByRole('button',{name:'G5 formatting baseline',exact:true}).click();
-  const history=f.page.locator('aside.resume-panel').filter({has:f.page.getByRole('heading',{name:'命名版本历史',exact:true})});
+  await f.openTools();await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByRole('button',{name:'G5 formatting baseline',exact:true}).click();
+  const history=f.page.locator('aside.resume-history').filter({has:f.page.getByRole('heading',{name:'命名版本历史',exact:true})});
   expect(await history.locator('strong').allTextContents()).toEqual(['这是中文输入测试','List bold']);
   expect(await history.locator('em').allTextContents()).toEqual([' italic text',' and italic']);expect(await history.locator('ul > li').allTextContents()).toEqual(['List plain List bold and italic']);expect(await history.locator('section > p').first().textContent()).toBe('蒸牛蛙，这是中文输入测试 abc123 italic text');
   expect(f.resume.handle({operation:'resume.versions',resumeId:f.opened.document.id})).toEqual(versions);
@@ -66,8 +67,8 @@ it('named version freezes and previews plain text, bold, italic and list marks a
 });
 it('a failed document search does not stop font layout autosave and its actual owner receipt',async()=>{
  const f=await fixture();try{
-  await f.start();await f.page.getByRole('button',{name:'查找替换',exact:true}).click();await f.page.getByLabel('查找',{exact:true}).fill('text that is absent');await f.page.getByRole('button',{name:'定位',exact:true}).click();await f.page.getByText('当前文稿没有找到该文字',{exact:true}).waitFor();
-  await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');await f.assertLayoutSaved(13);
+  await f.start();await f.openTools();await f.page.getByRole('button',{name:'查找替换',exact:true}).click();await f.page.getByLabel('查找',{exact:true}).fill('text that is absent');await f.page.getByRole('button',{name:'定位',exact:true}).click();await f.page.getByText('当前文稿没有找到该文字',{exact:true}).waitFor();
+  if(await f.page.getByRole('button',{name:'关闭历史',exact:true}).isVisible())await f.page.getByRole('button',{name:'关闭历史',exact:true}).click();await f.openTools();await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');await f.assertLayoutSaved(13);
  }finally{await f.close();}
 });
 it('restoring a frozen body keeps its success notice and later layout changes still autosave',async()=>{
@@ -80,9 +81,9 @@ it('restoring a frozen body keeps its success notice and later layout changes st
   expect(f.resume.completeVersion(commandId,{blobId,digest:createHash('sha256').update(actual).digest('hex'),size:actual.length},()=>{}).status).toBe('version');
   const current=structuredClone(frozen);current.sections[0].blocks=[{id:randomUUID(),type:'paragraph',spans:[{text:'Current later body',marks:[]}]}];
   expect(f.resume.handle({operation:'resume.save',commandId:randomUUID(),resumeId:f.opened.document.id,expectedRevision:2,expectedProfileRevision:0,content:current}).status).toBe('document');
-  await f.start();f.page.on('dialog',dialog=>dialog.accept());await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByRole('button',{name:'Frozen version',exact:true}).click();await f.page.getByRole('button',{name:'恢复此版本正文',exact:true}).click();
+  await f.start();f.page.on('dialog',dialog=>dialog.accept());await f.openTools();await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByRole('button',{name:'Frozen version',exact:true}).click();await f.page.getByRole('button',{name:'恢复此版本正文',exact:true}).click();
   await f.page.getByText('已恢复正文；此替换可以撤销',{exact:true}).waitFor();expect(await f.page.getByRole('textbox',{name:'简历正文',exact:true}).textContent()).toContain('Frozen original body');
-  await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');await f.assertLayoutSaved(13);
+  if(await f.page.getByRole('button',{name:'关闭历史',exact:true}).isVisible())await f.page.getByRole('button',{name:'关闭历史',exact:true}).click();await f.openTools();await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');await f.assertLayoutSaved(13);
   const restored=f.resume.handle({operation:'resume.read',resumeId:f.opened.document.id});if(restored.status!=='document')throw Error('read failed');expect(restored.document.content).toEqual({...frozen,layout:{...frozen.layout,fontSize:13}});
  }finally{await f.close();}
 });
@@ -90,11 +91,11 @@ it('invalid live editor content blocks layout autosave, version freezing and lea
  const f=await fixture();try{
   await f.start();const body=f.page.getByRole('textbox',{name:'简历正文',exact:true}).locator('p').first();await body.fill('x'.repeat(10001));
   await f.page.getByTestId('resume-save-state').filter({hasText:'格式不受支持，当前输入未保存'}).waitFor();
-  await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');
+  if(await f.page.getByRole('button',{name:'关闭历史',exact:true}).isVisible())await f.page.getByRole('button',{name:'关闭历史',exact:true}).click();await f.openTools();await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');
   // Longer than debounce; no older valid document may silently substitute for the visible invalid body.
   await new Promise(resolve=>setTimeout(resolve,900));expect(f.saveCommands).toHaveLength(0);
   expect(await f.page.evaluate(()=>!window.dispatchEvent(new Event('beforeunload',{cancelable:true})))).toBe(true);
-  await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称',{exact:true}).fill('Must not freeze old content');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();
+  await f.openTools();await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称',{exact:true}).fill('Must not freeze old content');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();
   await f.page.getByText('请先结束中文输入并解决当前稿保存状态',{exact:true}).waitFor();expect(f.resume.handle({operation:'resume.versions',resumeId:f.opened.document.id})).toEqual({status:'versions',versions:[]});
   await f.page.getByRole('button',{name:'关闭，保留当前稿',exact:true}).click();await body.fill('Corrected supported body');await f.assertLayoutSaved(13);
   const corrected=f.resume.handle({operation:'resume.read',resumeId:f.opened.document.id});if(corrected.status!=='document')throw Error('read failed');expect(corrected.document.content.sections[0].blocks[0]).toMatchObject({type:'paragraph',spans:[{text:'Corrected supported body'}]});
@@ -103,12 +104,12 @@ it('invalid live editor content blocks layout autosave, version freezing and lea
 
 it('committed version remains saved when history reads fail, and explicit reread reveals the real version',async()=>{
  const f=await fixture(2);try{
-  await f.start();await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称',{exact:true}).fill('Committed despite read failure');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();
+  await f.start();await f.openTools();await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称',{exact:true}).fill('Committed despite read failure');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();
   await f.page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor();await f.page.getByText('版本历史读取失败，缓存可能不完整；已保存的版本保持不变。',{exact:true}).waitFor();
   expect(f.versionCommands).toHaveLength(1);expect(f.resume.handle({operation:'resume.receipt',commandId:f.versionCommands[0].commandId})).toMatchObject({status:'version',version:{name:'Committed despite read failure'}});
-  await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByText('版本历史读取失败，缓存可能不完整；已保存的版本保持不变。',{exact:true}).waitFor();expect(await f.page.getByText('尚未创建命名版本。',{exact:true}).count()).toBe(0);
-  await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');await f.assertLayoutSaved(13);await f.page.getByText('版本历史读取失败，缓存可能不完整；已保存的版本保持不变。',{exact:true}).waitFor();
-  await f.page.getByRole('button',{name:'重新读取版本历史',exact:true}).click();await f.page.getByRole('button',{name:'Committed despite read failure',exact:true}).waitFor();expect(await f.page.getByText('版本历史读取失败，缓存可能不完整；已保存的版本保持不变。',{exact:true}).count()).toBe(0);
+  await f.openTools();await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByText('版本历史读取失败，缓存可能不完整；已保存的版本保持不变。',{exact:true}).waitFor();expect(await f.page.getByText('尚未创建命名版本。',{exact:true}).count()).toBe(0);
+  if(await f.page.getByRole('button',{name:'关闭历史',exact:true}).isVisible())await f.page.getByRole('button',{name:'关闭历史',exact:true}).click();await f.openTools();await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');await f.assertLayoutSaved(13);await f.page.getByText('版本历史读取失败，缓存可能不完整；已保存的版本保持不变。',{exact:true}).waitFor();
+  await f.openTools();await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByRole('button',{name:'Committed despite read failure',exact:true}).waitFor();expect(await f.page.getByText('版本历史读取失败，缓存可能不完整；已保存的版本保持不变。',{exact:true}).count()).toBe(0);
   expect(f.versionCommands).toHaveLength(1);
  }finally{await f.close();}
 });

@@ -1,9 +1,6 @@
-.career-aux-panel{width:min(760px,calc(100vw - 36px));max-height:88dvh;box-sizing:border-box;overflow:auto;border:1px solid #ccd3dc;border-radius:12px;padding:24px;color:#202631;background:#fff}
-.career-aux-panel::backdrop{background:rgb(24 34 44 / .25)}
-.career-aux-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.career-aux-panel>header h2{margin:0;font-size:22px}.career-aux-panel section{margin:16px 0;padding:16px}.career-aux-panel [hidden]{display:none!important}
-.career-guide{line-height:1.75}.career-guide details{margin:12px 0;border-bottom:1px solid #d3d8df;padding:12px 0}.career-guide summary{font-weight:600;cursor:pointer}.career-guide p{white-space:pre-wrap}
-.career-onboarding{padding:16px;border:1px solid #ccd3dc;border-radius:8px;background:#f7f8fa}.career-onboarding h3{margin-top:0}.career-onboarding .actions{display:flex;flex-wrap:wrap;gap:8px}
-@media(max-width:640px){.career-aux-panel{padding:16px;width:calc(100vw - 20px);max-height:92dvh}.career-aux-panel>header{align-items:flex-start}}
+/* Content adapters; the approved stylesheet owns the sheet and help-item visuals. */
+.career-guide p{white-space:pre-wrap}.career-onboarding{margin:0;border:0;background:transparent;padding:24px 0}.career-onboarding h3{font-size:22px;margin:16px 0 10px}.career-onboarding .inline-actions{margin-top:30px}.career-context-help{float:right}
 
-.career-context-help{float:right;font-size:13px;background:transparent;border:0;color:#536173}
+.career-nonmodal-panel{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none}.career-nonmodal-panel .overlay,.career-nonmodal-panel .scrim{pointer-events:none}.career-nonmodal-panel .sheet{pointer-events:auto}
+
+.career-aux-panel{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;padding:0;border:0;background:transparent;overflow:visible;box-shadow:none}.career-aux-panel::backdrop{background:transparent}

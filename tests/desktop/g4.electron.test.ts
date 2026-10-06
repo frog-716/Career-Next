@@ -10,7 +10,7 @@ import {Result as DataResult} from '../../packages/contracts/application/schema'
 import {Result as WikiResult} from '../../packages/contracts/wiki/schema';
 it('normal application joins exported A/current B, first/resend, actual raw AI review, backup, isolated restore and user-confirmed purge',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'career-g4-desktop-')),fixture=path.join(root,'G4 Evidence.txt');await writeFile(fixture,'G4 fake fixture: actual immutable evidence.');
- const packaged=process.env.CAREER_PACKAGED==='1';const options={executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?[`--user-data-dir=${root}/profile`]:['.',`--user-data-dir=${root}/profile`],timeout:30000};let app=await _electron.launch(options);
+ const packaged=process.env.CAREER_PACKAGED==='1';const options={executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?['--career-desktop-ui',`--user-data-dir=${root}/profile`]:['.','--career-desktop-ui',`--user-data-dir=${root}/profile`],timeout:30000};let app=await _electron.launch(options);
  try{let page=await app.firstWindow();page.on('dialog',()=>{});page.setDefaultTimeout(15000);const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));await page.getByRole('navigation',{name:'一级导航'}).waitFor();
  expect(await page.getByRole('navigation').getByRole('link').allTextContents()).toEqual(['◇Wiki','◉机会','▤项目','▥任职']);
  await app.evaluate(({dialog},file)=>{dialog.showOpenDialog=(async()=>({canceled:false,filePaths:[file]})) as typeof dialog.showOpenDialog;},fixture);

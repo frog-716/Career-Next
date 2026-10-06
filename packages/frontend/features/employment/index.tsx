@@ -1,3 +1,4 @@
+import {NavigationIcon} from '../../design-system/NavigationIcon';
 import {wasPurged,type PurgeNotice} from '../../design-system/purge-notice';
 import { useState,useEffect,type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
@@ -34,9 +35,9 @@ unsaved:boolean;
 onCheck:()=>void;
 onContinue:()=>void}) {
  return <div role="status">{pending?'保存中':!state?'未保存':state.status==='unknown'?'暂时无法确认是否保存。你的输入还在，请先检查保存结果。':state.status==='not_recorded'?'已经确认这次保存尚未完成，可以继续保存。':state.result.kind==='failure'?errors[state.result.code]:unsaved?'已有保存结果，当前输入未保存':'已保存'}{state&&(state.status==='unknown'||state.status==='not_recorded')&&
-<button type="button" disabled={pending} onClick={onCheck}>检查是否已保存
+<button className="button" type="button" disabled={pending} onClick={onCheck}>检查是否已保存
 </button>}{state?.status==='not_recorded'&&
-<button type="button" disabled={pending} onClick={onContinue}>继续保存
+<button className="button" type="button" disabled={pending} onClick={onContinue}>继续保存
 </button>}{state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&
 <details>
 <summary>服务器当前内容（本地输入仍保留）
@@ -82,21 +83,21 @@ setPlanned({kind:'unknown'});
  return <form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>{if(!values.started)return;
 commands.save({operation:'create',commandId:crypto.randomUUID(),company:values.company,role:values.role,goal:values.goal,started:true,start,plannedEnd:planned});
 })}><fieldset disabled={commands.blocked}><h3>新增任职</h3>
-<label>公司
+<label className="field">公司
 <input {...form.register('company',{required:true,maxLength:300})}/>
 </label>
-<label>岗位
+<label className="field">岗位
 <input {...form.register('role',{required:true,maxLength:300})}/>
 </label>
-<label>当前目标
+<label className="field">当前目标
 <textarea {...form.register('goal',{maxLength:4000})}/>
 </label>
 <TimeInput label="实际开始" value={start} onChange={setStart}/>
 <TimeInput label="计划结束" value={planned} onChange={setPlanned}/>
-<label>
+<label className="field">
 <input type="checkbox" {...form.register('started',{required:true})}/>我确认已经真实开始这段任职
 </label>
-<button disabled={commands.blocked} type="submit">创建任职
+<button className="button" disabled={commands.blocked} type="submit">创建任职
 </button></fieldset>{commands.status}
 </form>;
 }
@@ -120,15 +121,15 @@ setReadError('');
 }else setReadError('人物历史暂时不可读');
 }catch{setReadError('人物历史暂时不可读，可刷新');
 }}
- return <article aria-label="人物资料">{person&&<><h4>{person.name}</h4><p>{person.role||'尚未填写当前角色'}</p>{renderProjects?.(employmentId,person.id)}{onOpenWiki&&<button onClick={()=>onOpenWiki('person',person.id)}>查看人物相关 Wiki</button>}<button className="primary-action" onClick={()=>setEditing(true)}>编辑人物</button><button hidden={!editing} onClick={()=>setEditing(false)}>返回人物阅读（保留输入）</button></>}
+ return <article aria-label="人物资料">{person&&<><h4>{person.name}</h4><p>{person.role||'尚未填写当前角色'}</p>{renderProjects?.(employmentId,person.id)}{onOpenWiki&&<button className="button" onClick={()=>onOpenWiki('person',person.id)}>查看人物相关 Wiki</button>}<button className="button primary" onClick={()=>setEditing(true)}>编辑人物</button><button className="button" hidden={!editing} onClick={()=>setEditing(false)}>返回人物阅读（保留输入）</button></>}
 <div hidden={!editing}><form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>commands.save(person?{operation:'person.edit',commandId:crypto.randomUUID(),id:person.id,employmentId,expectedRevision:revision,name:values.name,role:values.role,reason:values.reason,mode:values.mode,occurredAt}:{operation:'person.create',commandId:crypto.randomUUID(),employmentId,name:values.name,role:values.role,occurredAt}))}><fieldset disabled={commands.blocked}><h4>{person?'维护人物':'新增人物（同名不会合并）'}</h4>
-<label>姓名
+<label className="field">姓名
 <input {...form.register('name',{required:true,maxLength:300})}/>
 </label>
-<label>任职角色
+<label className="field">任职角色
 <input {...form.register('role',{maxLength:300})}/>
 </label>{person&&<>
-<label>变化类型
+<label className="field">变化类型
 <select {...form.register('mode')}>
 <option value="change">后来真实变化
 </option>
@@ -136,23 +137,23 @@ setReadError('');
 </option>
 </select>
 </label>
-<label>变化说明
+<label className="field">变化说明
 <input {...form.register('reason',{required:true,maxLength:1000})}/>
 </label></>}
 <TimeInput label="人物角色实际业务时间" value={occurredAt} onChange={setOccurredAt}/>
-<button disabled={commands.blocked}>保存人物
+<button className="button" disabled={commands.blocked}>保存人物
 </button></fieldset>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'name' in commands.state.result.current&&<>
-<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
+<button className="button" type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'name' in state.result.current)setRevision(state.result.current.revision);
 }}>保留输入，按最新版本重新保存
 </button>
-<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
+<button className="button" type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'name' in state.result.current){form.reset({name:state.result.current.name,role:state.result.current.role,reason:'',mode:'change'});
 setRevision(state.result.current.revision);
 }}}>放弃本地修改，使用当前人物
 </button></>}
 </form></div><details hidden={!person}><summary>角色历史</summary>{person&&
-<button onClick={()=>void readHistory()}>读取人物角色历史
+<button className="button" onClick={()=>void readHistory()}>读取人物角色历史
 </button>}{readError&&
 <p role="alert">{readError}
 </p>}{history&&
@@ -172,12 +173,12 @@ return result;
  if(query.isPending)return <p>读取任职中
 </p>;
 if(!query.data)return <div role="alert">指定任职暂时无法读取。
-<button onClick={()=>void query.refetch()}>刷新
+<button className="button" onClick={()=>void query.refetch()}>刷新
 </button>
 </div>;
  return <>{query.isError&&
 <p role="alert">已保存、暂时未刷新。输入仍保留。
-<button onClick={()=>void query.refetch()}>刷新
+<button className="button" onClick={()=>void query.refetch()}>刷新
 </button>
 </p>}
 <EmploymentDetails renderProjects={renderProjects} onOpenWiki={onOpenWiki} employment={query.data.employment} people={query.data.people.filter(person=>!wasPurged(purgeNotice,'person',person.id))} request={request} onSaved={()=>{void client.invalidateQueries({queryKey:['employment',id]});
@@ -215,25 +216,25 @@ setReadError('');
 }else setReadError('历史暂时无法读取');
 }catch{setReadError('历史暂时无法读取，可刷新');
 }}
- return <section><h3>{employment.company} · {employment.role}</h3>
+ return <section className="aura-module-detail"><h3>{employment.company} · {employment.role}</h3>
 <p>{employment.status==='current'?'当前任职':'历史任职'}；实际开始 {displayTime(employment.start)}；计划结束 {displayTime(employment.plannedEnd)}；实际结束 {displayTime(employment.actualEnd)}
 </p>
-<nav aria-label="任职分区" className="section-tabs">{([['overview','概览'],['people','人物'],['projects','项目']] as const).map(([id,label])=><button key={id} aria-current={tab===id?'page':undefined} onClick={()=>setTab(id)}>{label}</button>)}</nav><div hidden={tab!=='overview'}><p className="readable-body">{employment.goal||'可以记录这段工作目前最想完成的目标。'}</p>{onOpenWiki&&<button onClick={()=>onOpenWiki('employment',employment.id)}>查看任职相关 Wiki</button>}<button className="primary-action" onClick={()=>setEditing(true)}>编辑任职</button><details><summary>更多</summary><button onClick={()=>{setEditing(true);setLifecycleOpen(true);}}>结束任职 / 日期纠错</button><button onClick={()=>void readHistory()}>查看任职历史</button><details><summary>查看技术详情</summary><pre>{JSON.stringify({id:employment.id,revision:employment.revision,recordedAt:employment.recordedAt},null,2)}</pre></details></details><div hidden={!editing}><button onClick={()=>setEditing(false)}>返回任职阅读（保留输入）</button>
+<nav aria-label="任职分区" className="section-tabs">{([['overview','概览'],['people','人物'],['projects','项目']] as const).map(([id,label])=><button className="button" key={id} aria-current={tab===id?'page':undefined} onClick={()=>setTab(id)}>{label}</button>)}</nav><div hidden={tab!=='overview'}><p className="readable-body">{employment.goal||'可以记录这段工作目前最想完成的目标。'}</p>{onOpenWiki&&<button className="button" onClick={()=>onOpenWiki('employment',employment.id)}>查看任职相关 Wiki</button>}<button className="button primary" onClick={()=>setEditing(true)}>编辑任职</button><details><summary>更多</summary><button className="button" onClick={()=>{setEditing(true);setLifecycleOpen(true);}}>结束任职 / 日期纠错</button><button className="button" onClick={()=>void readHistory()}>查看任职历史</button><details><summary>查看技术详情</summary><pre>{JSON.stringify({id:employment.id,revision:employment.revision,recordedAt:employment.recordedAt},null,2)}</pre></details></details><div hidden={!editing}><button className="button" onClick={()=>setEditing(false)}>返回任职阅读（保留输入）</button>
 <form onChange={commands.markUnsaved} onSubmit={form.handleSubmit(values=>{if(employment.status==='current'&&actualEnd.kind!=='unknown'){setLifecycleError('请使用“确认任职已真实结束”提交实际结束日期；当前输入仍保留。');return;}setLifecycleError('');commands.save({operation:'edit',commandId:crypto.randomUUID(),id:employment.id,expectedRevision:revision,company:values.company,role:values.role,goal:values.goal,start,plannedEnd:planned,actualEnd,reason:values.reason,mode:values.mode,occurredAt});})}><fieldset disabled={commands.blocked}>
-<label>公司
+<label className="field">公司
 <input {...form.register('company',{required:true,maxLength:300})}/>
 </label>
-<label>岗位
+<label className="field">岗位
 <input {...form.register('role',{required:true,maxLength:300})}/>
 </label>
-<label>当前目标
+<label className="field">当前目标
 <textarea {...form.register('goal',{maxLength:4000})}/>
 </label>
 <TimeInput label="实际开始" value={start} onChange={setStart}/>
 <TimeInput label="计划结束" value={planned} onChange={setPlanned}/>
 <TimeInput label="实际结束" value={actualEnd} onChange={setActualEnd}/>
 <TimeInput label="本次变化实际业务时间" value={occurredAt} onChange={setOccurredAt}/>
-<label>变化类型
+<label className="field">变化类型
 <select {...form.register('mode')}>
 <option value="change">后来真实变化
 </option>
@@ -241,20 +242,20 @@ setReadError('');
 </option>
 </select>
 </label>
-<label>变化说明
+<label className="field">变化说明
 <input {...form.register('reason',{required:true,maxLength:1000})}/>
 </label>{form.formState.errors.reason&&
 <p role="alert">请填写变化说明
 </p>}
-<button disabled={commands.blocked}>保存任职
+<button className="button" disabled={commands.blocked}>保存任职
 </button>
-{lifecycleError&&<p role="alert">{lifecycleError}</p>}<details open={lifecycleOpen} onToggle={event=>setLifecycleOpen(event.currentTarget.open)}><summary>结束 / 恢复任职</summary><button type="button" disabled={commands.blocked} onClick={()=>action(employment.status==='current'?'end':'reopen')}>{employment.status==='current'?'确认任职已真实结束':'恢复同一任职'}
+{lifecycleError&&<p role="alert">{lifecycleError}</p>}<details open={lifecycleOpen} onToggle={event=>setLifecycleOpen(event.currentTarget.open)}><summary>结束 / 恢复任职</summary><button className="button" type="button" disabled={commands.blocked} onClick={()=>action(employment.status==='current'?'end':'reopen')}>{employment.status==='current'?'确认任职已真实结束':'恢复同一任职'}
 </button></details></fieldset>{commands.status}{commands.state?.status==='known'&&commands.state.result.kind==='failure'&&commands.state.result.code==='conflict'&&commands.state.result.current&&'company' in commands.state.result.current&&<>
-<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
+<button className="button" type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'company' in state.result.current)setRevision(state.result.current.revision);
 }}>保留输入，按最新版本重新保存
 </button>
-<button type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
+<button className="button" type="button" disabled={commands.blocked} onClick={()=>{const state=commands.state;
 if(state?.status==='known'&&state.result.kind==='failure'&&state.result.current&&'company' in state.result.current){const current=state.result.current;
 form.reset({company:current.company,role:current.role,goal:current.goal,reason:'',mode:'change',started:true});
 setStart(current.start);
@@ -269,7 +270,7 @@ setRevision(current.revision);
 <ol>{history.history.map(item=>
 <li key={item.revision}>{item.action==='ended'?'结束':item.action==='reopened'?'恢复':item.action==='created'?'创建':'维护'} · {item.mode==='correction'?'纠错':item.mode==='change'?'真实变化':'录入'} · {item.reason} · 实际业务时间 {displayTime(item.occurredAt)} · 实际结束 {displayTime(item.employment.actualEnd)} · 录入 {item.recordedAt}
 </li>)}
-</ol>}</div><div hidden={tab!=='people'}><h3>人物</h3><p>同名人物不会自动合并；只记录这段任职里的真实人物。</p><button onClick={()=>setCreatingPerson(value=>!value)}>记录人物</button><ul className="readable-list">{people.map(person=><li key={person.id}><button onClick={()=>{setPersonId(person.id);setOpenedPeople(old=>old.includes(person.id)?old:[...old,person.id]);}}>{person.name} · {person.role||'未填写角色'}</button></li>)}</ul>{people.length===0&&<p>还没有记录人物。遇到值得记住的同事时再补充。</p>}{people.filter(person=>openedPeople.includes(person.id)).map(person=><div key={person.id} hidden={personId!==person.id}><PersonEditor person={person} employmentId={employment.id} request={request} onSaved={onSaved} renderProjects={renderProjects} onOpenWiki={onOpenWiki}/></div>)}<div hidden={!creatingPerson}><PersonEditor employmentId={employment.id} request={request} onSaved={person=>{setCreatingPerson(false);if(person){setPersonId(person.id);setOpenedPeople(old=>old.includes(person.id)?old:[...old,person.id]);}onSaved();}}/></div></div><div hidden={tab!=='projects'}><h3>相关项目</h3>{renderProjects?.(employment.id)??<p>项目可在“项目”入口中选择这段任职进行关联。</p>}</div>
+</ol>}</div><div hidden={tab!=='people'}><h3>人物</h3><p>同名人物不会自动合并；只记录这段任职里的真实人物。</p><button className="button" onClick={()=>setCreatingPerson(value=>!value)}>记录人物</button><ul className="readable-list">{people.map(person=><li key={person.id}><button className="button" onClick={()=>{setPersonId(person.id);setOpenedPeople(old=>old.includes(person.id)?old:[...old,person.id]);}}>{person.name} · {person.role||'未填写角色'}</button></li>)}</ul>{people.length===0&&<p>还没有记录人物。遇到值得记住的同事时再补充。</p>}{people.filter(person=>openedPeople.includes(person.id)).map(person=><div key={person.id} hidden={personId!==person.id}><PersonEditor person={person} employmentId={employment.id} request={request} onSaved={onSaved} renderProjects={renderProjects} onOpenWiki={onOpenWiki}/></div>)}<div hidden={!creatingPerson}><PersonEditor employmentId={employment.id} request={request} onSaved={person=>{setCreatingPerson(false);if(person){setPersonId(person.id);setOpenedPeople(old=>old.includes(person.id)?old:[...old,person.id]);}onSaved();}}/></div></div><div hidden={tab!=='projects'}><h3>相关项目</h3>{renderProjects?.(employment.id)??<p>项目可在“项目”入口中选择这段任职进行关联。</p>}</div>
 </section>;
 }
 export function EmploymentPage({request,purgeNotice,renderProjects,onOpenWiki}:PageProps) {
@@ -286,9 +287,7 @@ const [creating,setCreating]=useState(false);
  function open(id:string){setSelected(id);
 setOpened(old=>old.includes(id)?old:[...old,id]);
 }
- return <section aria-label="任职" data-feedback-owner="employment" data-feedback-id={selected}><h1>任职</h1><p>记录一段真实工作经历，以及里面的人和项目。</p><div hidden={!!selected&&!creating}>
-<button onClick={()=>setCreating(value=>!value)}>{creating?'收起新增（保留输入）':'新建任职'}
-</button>
+ return <section className="screen aura-module" aria-label="任职" data-feedback-owner="employment" data-feedback-id={selected}><header className="page-header"><div className="title"><h1>任职</h1><p>记录一段真实工作经历，以及里面的人和项目。</p></div><div className="actions" hidden={!!selected&&!creating}><button className="button primary" onClick={()=>setCreating(value=>!value)}>{creating?'收起新增（保留输入）':'新建任职'}</button></div></header><div hidden={!!selected&&!creating}>
 <div hidden={!creating}>
 <CreateEmployment request={request} onCreated={id=>{setCreating(false);
 open(id);
@@ -296,18 +295,17 @@ void client.invalidateQueries({queryKey:['employments']});
 }}/>
 </div>{list.isError&&
 <p role="alert">列表暂时未刷新，已保存内容不受影响。
-<button onClick={()=>void list.refetch()}>刷新
+<button className="button" onClick={()=>void list.refetch()}>刷新
 </button>
 </p>}{list.data?.kind==='list'&&
-<ul>{list.data.employments.map(item=>
+<ul className="rows aura-rows">{list.data.employments.map(item=>
 <li key={item.id}>
-<button onClick={()=>open(item.id)}>{item.company} · {item.role} · {item.status==='current'?'当前':'历史'}
-</button>
+<button className="recent-row" aria-label={`${item.company} · ${item.role} · ${item.status==='current'?'当前':'历史'}`} onClick={()=>open(item.id)}><span className="row-icon"><NavigationIcon name="employment"/></span><div className="row-text"><strong>{item.company} · {item.role}</strong><p>{item.status==='current'?'当前':'历史'}</p></div><NavigationIcon name="arrow"/></button>
 </li>)}
 </ul>}{!selected&&list.data?.kind==='list'&&list.data.employments.length===0&&
 <p>真正开始一份工作后，在这里记录。
 </p>}</div>{selected&&
-<button onClick={()=>setSelected(undefined)}>返回任职列表（保留输入）
+<button className="button" onClick={()=>setSelected(undefined)}>返回任职列表（保留输入）
 </button>}{opened.map(id=>
 <div key={id} hidden={id!==selected}>
 <EmploymentEditor renderProjects={renderProjects} onOpenWiki={onOpenWiki} purgeNotice={purgeNotice} id={id} request={request}/>

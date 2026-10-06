@@ -1,3 +1,1 @@
-.feedback-backdrop{position:fixed;inset:0;background:#19243b66;z-index:100;display:flex;justify-content:center;align-items:center;padding:12px}
-.feedback-dialog{background:var(--career-surface,#fff);color:var(--career-ink,#19243b);border-radius:12px;padding:20px;max-width:680px;width:100%;max-height:calc(100vh - 24px);overflow:auto;overflow-wrap:anywhere}
-.feedback-dialog textarea{display:block;width:100%;min-height:100px}.feedback-dialog label{display:block}.feedback-dialog button{margin:4px}
+.feedback-backdrop{z-index:100}.feedback-dialog{overflow-wrap:anywhere}.feedback-dialog fieldset{border:0;padding:0;min-width:0}.feedback-dialog textarea{width:100%;min-height:100px}.feedback-dialog .field{margin:0}.feedback-dialog [role=status]{font-size:12px;color:var(--muted)}

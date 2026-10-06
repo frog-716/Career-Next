@@ -21,7 +21,7 @@ it('final normal Main rejects foreign preload callers and external navigation; i
  const root=await mkdtemp(path.join(tmpdir(),'career-g6-security-'));let app:ElectronApplication|undefined,requests=0;
  const sentinel=createServer((_request,response)=>{requests++;response.end('unrelated local fixture');});await new Promise<void>(resolve=>sentinel.listen(0,'127.0.0.1',resolve));const address=sentinel.address();if(!address||typeof address==='string')throw Error('fixture address');const external=`http://127.0.0.1:${address.port}/untrusted`;
  try{
-  app=await _electron.launch({executablePath:executable,args:[`--user-data-dir=${root}/profile`],timeout:30000});const page=await app.firstWindow();await page.getByRole('navigation',{name:'一级导航'}).waitFor();await app.evaluate(({BrowserWindow})=>{for(const win of BrowserWindow.getAllWindows())win.hide();});
+  app=await _electron.launch({executablePath:executable,args:['--career-desktop-ui',`--user-data-dir=${root}/profile`],timeout:30000});const page=await app.firstWindow();await page.getByRole('navigation',{name:'一级导航'}).waitFor();await app.evaluate(({BrowserWindow})=>{for(const win of BrowserWindow.getAllWindows())win.hide();});
   const baseline=await page.evaluate(()=>window.careerMaterials.ready());
   const foreign=await app.evaluate(async({app,BrowserWindow},commandId)=>{
    const results=[];
@@ -57,7 +57,7 @@ it('standalone normal package exposes no TCP/inspector listener and never reuses
  if(!executable)throw Error('normal packaged executable required');const root=await mkdtemp(path.join(tmpdir(),'career-g6-listener-')),profile=path.join(root,'profile');let app:ChildProcess|undefined,requests=0;
  const token=randomUUID(),sentinel=createServer((_request,response)=>{requests++;response.end(token);});await new Promise<void>(resolve=>sentinel.listen(0,'127.0.0.1',resolve));const address=sentinel.address();if(!address||typeof address==='string')throw Error('fixture address');const url=`http://127.0.0.1:${address.port}/`;
  try{
-  expect(await(await fetch(url)).text()).toBe(token);app=spawn(executable,[`--user-data-dir=${profile}`],{stdio:'ignore'});if(!app.pid)throw Error('owned PID missing');const pid=app.pid;
+  expect(await(await fetch(url)).text()).toBe(token);app=spawn(executable,['--career-desktop-ui',`--user-data-dir=${profile}`],{stdio:'ignore'});if(!app.pid)throw Error('owned PID missing');const pid=app.pid;
   await expect.poll(async()=>{try{return JSON.parse(await readFile(path.join(profile,'active-workspace-pointer.json'),'utf8')).workspaceInstance;}catch{return undefined;}},{timeout:30000}).not.toBeUndefined();expect(app.exitCode).toBe(null);const owned=await ownedProcesses(pid);
   const argv=(await execute('/bin/ps',['-p',owned.join(','),'-o','pid=,command='])).stdout;expect(argv).not.toMatch(/--inspect(?:-brk)?(?:=|\s|$)|--remote-debugging-(?:port|pipe)(?:=|\s|$)/);
   let listeners:string;try{listeners=(await execute('/usr/sbin/lsof',['-nP','-a','-p',owned.join(','),'-iTCP','-sTCP:LISTEN'])).stdout;}catch(error){if((error as {code?:number}).code!==1)throw error;listeners=(error as {stdout?:string}).stdout??'';}

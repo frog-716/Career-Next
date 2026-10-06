@@ -9,7 +9,7 @@ import {Result as WikiResult} from '../../packages/contracts/wiki/schema';
 
 it('J02 continuously accumulates actual Project Raw, people, Wiki, rejected/accepted proposal, reassociation, corrected basis and purge',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'career-g5-work-')),fixture=path.join(root,'Project evidence.txt');await writeFile(fixture,'Actual project notes: I participated in delivery.');
- const packaged=process.env.CAREER_PACKAGED==='1';const app=await _electron.launch({executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?[`--user-data-dir=${root}/profile`]:['.',`--user-data-dir=${root}/profile`]});
+ const packaged=process.env.CAREER_PACKAGED==='1';const app=await _electron.launch({executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?['--career-desktop-ui',`--user-data-dir=${root}/profile`]:['.','--career-desktop-ui',`--user-data-dir=${root}/profile`]});
  const page=await app.firstWindow();page.on('dialog',dialog=>void dialog.dismiss().catch(()=>{}));page.setDefaultTimeout(15000);
  try{
  await page.getByRole('navigation').waitFor();const nav=async(name:string)=>page.getByRole('navigation').getByRole('link',{name,exact:false}).click();

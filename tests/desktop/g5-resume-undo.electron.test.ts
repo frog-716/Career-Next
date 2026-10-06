@@ -7,7 +7,7 @@ import path from 'node:path';
 it.each(['new','existing'] as const)('AI resume-add from %s task: undo preserves preceding manual text and bold, saves without conflict, and remains accepted',async(taskSource)=>{
  const root=await mkdtemp(path.join(tmpdir(),'career-g5-resume-undo-'));
  const packaged=process.env.CAREER_PACKAGED==='1';
- const app=await _electron.launch({executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?['--career-development-diagnostics',`--user-data-dir=${root}/profile`]:['.','--career-development-diagnostics',`--user-data-dir=${root}/profile`],timeout:30000});
+ const app=await _electron.launch({executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?['--career-development-diagnostics','--career-desktop-ui',`--user-data-dir=${root}/profile`]:['.','--career-development-diagnostics','--career-desktop-ui',`--user-data-dir=${root}/profile`],timeout:30000});
  try{
   const page=await app.firstWindow();page.setDefaultTimeout(10000);
   await page.getByRole('navigation',{name:'一级导航'}).waitFor();
@@ -23,7 +23,7 @@ it.each(['new','existing'] as const)('AI resume-add from %s task: undo preserves
    location.hash='#/opportunity/'+opportunity.id+'/resume';return {resumeId:opened.document.id,taskId};
   },taskSource==='existing');
   const editor=page.getByRole('textbox',{name:'简历正文'});await editor.waitFor();
-  await page.getByText('更多工具',{exact:true}).click();await page.getByRole('button',{name:'简历优化提案',exact:true}).click();
+  await page.getByLabel('简历更多',{exact:true}).click();await page.getByRole('button',{name:'简历优化提案',exact:true}).click();
   const selection=page.getByLabel('简历优化选择');await selection.getByLabel(/个人简介 · Controlled delivery/).check();
   const ai=selection.getByRole('region',{name:'产品任务辅助'});
   if(fixture.taskId)await ai.getByRole('button',{name:/查看此前建议/}).click();
@@ -52,9 +52,9 @@ it.each(['new','existing'] as const)('AI resume-add from %s task: undo preserves
   expect(await proposal.getByRole('heading').textContent()).toContain('已采纳');
   const tasks=await page.evaluate(()=>window.career.request('ai',{operation:'product.list'})) as any;expect(tasks.tasks[0].proposals.find((p:any)=>p.change.kind==='resume-add').state).toBe('accepted');
   // The user's full chain continues from Undo to freezing and viewing a named version.
-  await page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await page.getByLabel('版本名称').fill('G5 manual baseline');await page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor({timeout:45000});
+  await page.getByLabel('简历更多',{exact:true}).click();await page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await page.getByLabel('版本名称').fill('G5 manual baseline');await page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor({timeout:45000});
   const versions=await page.evaluate(id=>window.career.request('resume',{operation:'resume.versions',resumeId:id}),fixture.resumeId) as any;expect(versions.versions[0].snapshot.content).toEqual(after.document.content);
-  await page.getByRole('button',{name:'版本历史',exact:true}).click();await page.getByRole('button',{name:'G5 manual baseline',exact:true}).click();expect(await page.locator('.resume-frozen-body strong').textContent()).toBe('这是中文输入测试');expect(await page.locator('.resume-frozen-body').textContent()).toContain('蒸牛蛙，这是中文输入测试 abc123');
+  await page.getByLabel('简历更多',{exact:true}).click();await page.getByRole('button',{name:'版本历史',exact:true}).click();await page.getByRole('button',{name:'G5 manual baseline',exact:true}).click();expect(await page.locator('.resume-frozen-body strong').textContent()).toBe('这是中文输入测试');expect(await page.locator('.resume-frozen-body').textContent()).toContain('蒸牛蛙，这是中文输入测试 abc123');
   await writeFile(path.join(tmpdir(),`career-g5-resume-undo-${packaged?'packaged':'dev'}.json`),JSON.stringify({manualTextAndBoldRetained:true,onlyAiAdditionUndone:true,autosavedWithoutConflict:true,proposalAccepted:true,realIME:'NOT TESTED by this automated regression'},null,2));
  }catch(error){const page=await app.firstWindow();await writeFile('/tmp/career-g5-resume-undo-red.txt',await page.locator('body').innerText());await page.screenshot({path:'/tmp/career-g5-resume-undo-red.png'});throw error;}
  finally{await app.evaluate(({dialog})=>{dialog.showMessageBoxSync=(()=>1) as typeof dialog.showMessageBoxSync;}).catch(()=>{});await app.close();await rm(root,{recursive:true,force:true});}

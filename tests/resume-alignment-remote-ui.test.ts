@@ -24,12 +24,12 @@ it('AI reconciliation adopts concurrent identity alignment and keeps it after un
  try{
   await server.listen();const address=server.httpServer!.address();if(!address||typeof address==='string')throw Error('port');browser=await chromium.launch({headless:true});const page=await browser.newPage();page.setDefaultTimeout(10000);await page.goto('http://127.0.0.1:'+address.port);
   const editor=page.getByRole('textbox',{name:'简历正文'});await editor.waitFor();
-  await page.getByText('更多工具',{exact:true}).click();await page.getByRole('button',{name:'简历优化提案',exact:true}).click();const selection=page.getByLabel('简历优化选择');await selection.getByLabel(/个人简介 · Controlled delivery/).check();const ai=selection.getByRole('region',{name:'产品任务辅助'});
+  await page.getByLabel('简历更多',{exact:true}).click();await page.getByRole('button',{name:'简历优化提案',exact:true}).click();const selection=page.getByLabel('简历优化选择');await selection.getByLabel(/个人简介 · Controlled delivery/).check();const ai=selection.getByRole('region',{name:'产品任务辅助'});
   await ai.getByRole('button',{name:'准备外发预览'}).click();await ai.getByRole('button',{name:'授权这份最终请求'}).click();const proposal=ai.getByRole('article',{name:'产品待审提案'}).filter({has:page.getByRole('heading',{name:/^增加简历内容/})});await proposal.waitFor();
   const remote=await call('resume',{operation:'resume.read',resumeId:opened.document.id});const changed=structuredClone(remote.document.content);changed.layout.identityNameAlignment='right';
   await call('resume',{operation:'resume.save',commandId:randomUUID(),resumeId:opened.document.id,expectedRevision:remote.document.revision,expectedProfileRevision:remote.profile.revision,content:changed});
   await proposal.getByRole('button',{name:'接受本条并立即生效'}).click();await page.getByText('仅选定区块的提案已生效，可独立撤销；其他输入保留。',{exact:true}).waitFor();
-  const identity=page.getByLabel('基础资料姓名',{exact:true});expect(await identity.evaluate(el=>getComputedStyle(el).textAlign)).toBe('right');
+  const identity=page.getByTestId('resume-name-layout');expect(await identity.evaluate(el=>getComputedStyle(el).textAlign)).toBe('right');
   await page.getByRole('button',{name:'撤销',exact:true}).click();expect(await identity.evaluate(el=>getComputedStyle(el).textAlign)).toBe('right');
   await editor.locator('p').last().click();await page.keyboard.type('Local continuation after AI Undo.');await expect.poll(()=>page.getByTestId('resume-save-state').textContent()).toBe('已保存');
   const formal=await call('resume',{operation:'resume.read',resumeId:opened.document.id});expect(formal.document.content.layout.identityNameAlignment).toBe('right');

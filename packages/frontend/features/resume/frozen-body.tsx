@@ -17,8 +17,8 @@ function FrozenSpans({spans}:{spans:Span[]}){
 /** Read-only view of the frozen Career document; never reads the live editor. */
 export function FrozenResumeBody({content}:{content:CareerDocument}){
  return <div className={`resume-frozen-body resume-font-${content.layout.fontSize}`}>
-  {content.sections.map(section=><section key={section.id}>
-   <h4>{section.title}</h4>
+  {content.sections.map(section=><section className="paper-section" key={section.id}>
+   <h3>{section.title}</h3>
    {section.blocks.map(block=>block.type==='paragraph'
     ?<p key={block.id} style={{textAlign:block.alignment??'left'}}><FrozenSpans spans={block.spans}/></p>
     :<ul key={block.id}>{block.items.map(item=><li key={item.id} style={{textAlign:item.alignment??'left'}}><FrozenSpans spans={item.spans}/></li>)}</ul>)}

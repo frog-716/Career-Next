@@ -12,7 +12,7 @@ import {Result as EmploymentResult} from '../../packages/contracts/employment/sc
 it('normal arm64 application connects three owners, real protected Raw, public core, Wiki readonly reference and durable restart',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'career-g3-desktop-')),file=path.join(root,'Formal Offer.txt');await writeFile(file,'Guaranteed cash 30k. Actual protected original.');
  const packaged=process.env.CAREER_PACKAGED==='1';
- const options={executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?[`--user-data-dir=${root}/profile`]:['.',`--user-data-dir=${root}/profile`],timeout:30000};
+ const options={executablePath:packaged?path.resolve(process.env.CAREER_PACKAGED_EXECUTABLE??'out/CareerNext-darwin-arm64/CareerNext.app/Contents/MacOS/CareerNext'):undefined,args:packaged?['--career-desktop-ui',`--user-data-dir=${root}/profile`]:['.','--career-desktop-ui',`--user-data-dir=${root}/profile`],timeout:30000};
  let app=await _electron.launch(options);
  try{
   let page=await app.firstWindow();page.setDefaultTimeout(10000);const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
