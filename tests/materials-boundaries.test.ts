@@ -7,7 +7,7 @@ it('renderer contract cannot choose arbitrary paths, actor, SQL or another sourc
   for (const input of [{operation:'select',path:'/etc/passwd'},{operation:'list',actor:'human'},{operation:'execute',sql:'INSERT INTO materials_raw'},{operation:'read',materialId:crypto.randomUUID(),workspaceInstance:crypto.randomUUID()}]) expect(Request.safeParse(input).success).toBe(false);
   expect(SourceRef.safeParse({owner:'wiki',objectId:crypto.randomUUID(),revision:1,scope:'personal',locator:'whole'}).success).toBe(false);
 });
-it('all formal frontend and preload sources exclude Node/database/backend imports; Materials owns table writes', () => {
+it('all formal frontend sources exclude Node/database/backend imports; Materials owns table writes', () => {
   for(const file of sources('packages/frontend').filter(p=>!p.includes('/probe/'))) {
     const text=readFileSync(file,'utf8'); expect(text,file).not.toMatch(/from\s+['"](?:node:|.*backend|better-sqlite3)/);
   }
@@ -17,6 +17,5 @@ it('all formal frontend and preload sources exclude Node/database/backend import
   for(const file of sources('packages/backend/platform')) {
     expect(readFileSync(file,'utf8'),file).not.toMatch(/from\s+['"][^'"]*(?:domains|contracts\/materials)/);
   }
-  const preload=readFileSync('apps/desktop/preload/materials.ts','utf8');
-  expect(preload).not.toMatch(/node:|better-sqlite3|exposeInMainWorld\([^,]+,\s*ipcRenderer/);
+
 });

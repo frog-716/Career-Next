@@ -1,5 +1,5 @@
 import {z}from'zod';
-/** Main-to-utility metadata only: no credential bytes or renderer operation. */
+/** Host-to-writer metadata only: no credential bytes or renderer operation. */
 export const ProviderBinding=z.strictObject({provider:z.literal('deepseek-v4.1-flash').optional(),enabled:z.boolean(),generation:z.string().min(1).max(100)});
 export type ProviderBinding=z.infer<typeof ProviderBinding>;
 

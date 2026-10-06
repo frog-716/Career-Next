@@ -1,3 +1,5 @@
+> Historical host decision. Superseded by ADR 005; the former background host is not the current runtime.
+
 # Browser-first 本地运行入口
 
 状态：用户于 2026-10-06 明确决定；实现与验收见 [运行入口验证](../verification/browser-first.md)。

@@ -1,0 +1,1906 @@
+{
+  "scope": "Tracked and unignored source, docs and skills; node_modules/dist/out separately audited. Generated index self-matches are CURRENT_REQUIRED provenance and excluded from recursive indexing.",
+  "counts": {
+    "CURRENT_REQUIRED": 49,
+    "HISTORICAL_EVIDENCE": 267,
+    "STALE_REFERENCE": 0
+  },
+  "records": [
+    {
+      "file": "README.md",
+      "line": 3,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "README.md",
+      "line": 31,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/adr/005-ELECTRON-RETIREMENT-E1.md",
+      "line": 1,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/adr/005-ELECTRON-RETIREMENT-E1.md",
+      "line": 3,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/adr/005-ELECTRON-RETIREMENT-E1.md",
+      "line": 5,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/adr/005-ELECTRON-RETIREMENT-E1.md",
+      "line": 7,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/adr/005-ELECTRON-RETIREMENT-E1.md",
+      "line": 11,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/adr/005-ELECTRON-RETIREMENT-E1.md",
+      "line": 19,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md",
+      "line": 7,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md",
+      "line": 14,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md",
+      "line": 15,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md",
+      "line": 16,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md",
+      "line": 18,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md",
+      "line": 19,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/adr/004-BROWSER-FIRST-LOCAL-ENTRY.md",
+      "line": 31,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-provider-startup-results.json",
+      "line": 38,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/README.md",
+      "line": 3,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/README.md",
+      "line": 5,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-secret-ui-results.json",
+      "line": 28,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-secret-ui-results.json",
+      "line": 29,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-secret-ui-results.json",
+      "line": 30,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/j07-credential-wait-verification.json",
+      "line": 100,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/j07-credential-wait-verification.json",
+      "line": 105,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-secret-ui.md",
+      "line": 37,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-secret-coordinator-results.json",
+      "line": 50,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/j07-final-closeout.json",
+      "line": 101,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/j07-final-closeout.json",
+      "line": 197,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g3-manual-submodules.md",
+      "line": 20,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 7,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 15,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 16,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 17,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 18,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 19,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 20,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 21,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 22,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 23,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 27,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 29,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 45,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-complete-journeys.md",
+      "line": 82,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final.md",
+      "line": 17,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final.md",
+      "line": 23,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search-results.json",
+      "line": 41,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search-results.json",
+      "line": 492,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search-results.json",
+      "line": 493,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search-results.json",
+      "line": 495,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search-results.json",
+      "line": 498,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search-results.json",
+      "line": 499,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g4-cross-domain.md",
+      "line": 15,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g4-cross-domain.md",
+      "line": 29,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g4-cross-domain.md",
+      "line": 33,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g4-cross-domain.md",
+      "line": 53,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-f2-ai.md",
+      "line": 65,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-security-results.json",
+      "line": 11,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-security-results.json",
+      "line": 21,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-security-results.json",
+      "line": 184,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-security-results.json",
+      "line": 204,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-post-blackbox.md",
+      "line": 21,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-post-blackbox.md",
+      "line": 22,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-post-blackbox.md",
+      "line": 43,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-post-blackbox.md",
+      "line": 99,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-provider-binding.md",
+      "line": 3,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-final-review.md",
+      "line": 32,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 13,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 14,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 15,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 16,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 17,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 18,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 19,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 20,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 21,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 24,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 25,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 26,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 29,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 30,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 31,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 34,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 35,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 36,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 37,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 38,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 43,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 44,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 45,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 46,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 50,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 51,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 53,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 54,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 55,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 56,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 63,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 65,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 66,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 68,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 71,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 72,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 76,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 78,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 79,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 80,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 82,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 84,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 85,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 86,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 92,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 93,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 94,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 95,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 96,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 97,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 98,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 99,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 100,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 101,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 102,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 103,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 104,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 105,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 106,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 107,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 108,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 112,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 113,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-acceptance-matrix.md",
+      "line": 114,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/frontend-b.md",
+      "line": 32,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-auto-results.json",
+      "line": 137,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-auto-results.json",
+      "line": 339,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-auto-results.json",
+      "line": 363,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-auto-results.json",
+      "line": 375,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-auto-results.json",
+      "line": 387,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-auto-results.json",
+      "line": 399,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-post-blackbox-results.json",
+      "line": 31,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-post-blackbox-results.json",
+      "line": 32,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g5-post-blackbox-results.json",
+      "line": 171,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-security.md",
+      "line": 5,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-security.md",
+      "line": 11,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-security.md",
+      "line": 13,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/resume-alignment.md",
+      "line": 19,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/resume-alignment.md",
+      "line": 25,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/resume-alignment.md",
+      "line": 28,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-desktop-continuity-results.json",
+      "line": 126,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-two-windows-results.json",
+      "line": 5,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-two-windows-results.json",
+      "line": 55,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search.md",
+      "line": 10,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search.md",
+      "line": 11,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-search.md",
+      "line": 32,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/architecture/AI-RUNTIME.md",
+      "line": 35,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/AI-RUNTIME.md",
+      "line": 85,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 1,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 7,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 17,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 18,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 19,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 20,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 21,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 22,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 23,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 24,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 25,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 26,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 27,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 28,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 29,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 30,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 31,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 32,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 33,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 34,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 35,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 36,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 37,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 38,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 39,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 40,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 41,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 42,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 43,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 45,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 55,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/E2-ELECTRON-RETIREMENT.md",
+      "line": 61,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 5,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 65,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 70,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 71,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 87,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 93,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 95,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 103,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 115,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 121,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 123,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 133,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 138,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 144,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 155,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 161,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 175,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 176,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 200,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 207,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 211,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 212,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 217,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 224,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 228,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 240,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 241,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 242,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 243,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 244,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 245,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 246,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 267,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ARCHITECTURE.md",
+      "line": 275,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/ux/A6-IMPLEMENTATION.md",
+      "line": 46,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/architecture/ADR/003-AUTHORITY-IS-NOT-RECOVERED-CONTENT.md",
+      "line": 11,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Frozen input or explicitly archived gate/integration evidence; not current runtime guidance."
+    },
+    {
+      "file": "docs/architecture/MODULES.md",
+      "line": 162,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/MODULES.md",
+      "line": 173,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/MODULES.md",
+      "line": 198,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/ADR/001-LOCAL-TRANSACTIONS-AND-OWNERSHIP.md",
+      "line": 9,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 395,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 1890,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 1891,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2533,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2541,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2546,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2551,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2556,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2561,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2566,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2571,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2576,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2581,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2586,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2591,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2596,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2601,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2606,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2611,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2616,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2621,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2622,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2626,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2631,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2639,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2647,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2652,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2657,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2665,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2673,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2678,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2686,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2694,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2695,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2699,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2720,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2860,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2861,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2882,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2899,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-final-results.json",
+      "line": 2904,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 71,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 73,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 91,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 135,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 137,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 143,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 183,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 226,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 379,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 393,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DELIVERY.md",
+      "line": 436,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DATA.md",
+      "line": 12,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DATA.md",
+      "line": 23,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DATA.md",
+      "line": 325,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/architecture/DATA.md",
+      "line": 329,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Immutable frozen original host references; ADR 005 amends the host choice, not business rules."
+    },
+    {
+      "file": "docs/verification/j07-real-external.md",
+      "line": 151,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/j07-real-external.md",
+      "line": 157,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/frontend-a.md",
+      "line": 30,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/frontend-a.md",
+      "line": 33,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-secret-coordinator.md",
+      "line": 18,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/E1-ELECTRON-REPLACEMENT.md",
+      "line": 3,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/E1-ELECTRON-REPLACEMENT.md",
+      "line": 9,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/E1-ELECTRON-REPLACEMENT.md",
+      "line": 21,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/E1-ELECTRON-REPLACEMENT.md",
+      "line": 31,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/E1-ELECTRON-REPLACEMENT.md",
+      "line": 43,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "MAP.md",
+      "line": 3,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "MAP.md",
+      "line": 34,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "MAP.md",
+      "line": 37,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "MAP.md",
+      "line": 90,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "MAP.md",
+      "line": 154,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "MAP.md",
+      "line": 157,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "MAP.md",
+      "line": 159,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Current retirement/navigation boundary or provenance/classification map; not an executable old-host instruction."
+    },
+    {
+      "file": "docs/verification/m1b-fixture-migration.md",
+      "line": 7,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "tests/desktop/e1-launcher.test.ts",
+      "line": 11,
+      "classification": "CURRENT_REQUIRED",
+      "reason": "Negative process-tree regression assertion."
+    },
+    {
+      "file": "docs/operations/E1-CREDENTIAL-TRANSITION.md",
+      "line": 7,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/operations/E1-CREDENTIAL-TRANSITION.md",
+      "line": 16,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/operations/E1-CREDENTIAL-TRANSITION.md",
+      "line": 25,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/operations/E1-CREDENTIAL-TRANSITION.md",
+      "line": 27,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-f2-ai.json",
+      "line": 1092,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-provider-startup.md",
+      "line": 24,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/frontend-a6.md",
+      "line": 48,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-desktop-continuity.md",
+      "line": 17,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g6-desktop-continuity.md",
+      "line": 22,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/agents/g2-integration.md",
+      "line": 17,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/agents/g2-integration.md",
+      "line": 21,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/g2-first-batch.md",
+      "line": 11,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/legacy-proposal-history.md",
+      "line": 11,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/browser-first.md",
+      "line": 9,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/browser-first.md",
+      "line": 12,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    },
+    {
+      "file": "docs/verification/browser-first.md",
+      "line": 54,
+      "classification": "HISTORICAL_EVIDENCE",
+      "reason": "Recorded earlier gate/plan, explicitly indexed as historical or superseded."
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import {it,expect} from 'vitest';import {execFile,spawn} from 'node:child_process';import {promisify} from 'node:util';import {mkdtemp,readFile,readlink,rm,cp} from 'node:fs/promises';import path from 'node:path';import {tmpdir} from 'node:os';
-const run=promisify(execFile),binary=path.resolve('out/Career-E1-arm64/Career.app/Contents/MacOS/Career');
+const run=promisify(execFile),binary=path.resolve('out/Career-arm64/Career.app/Contents/MacOS/Career');
 it('packaged Chrome framework links stay inside the bundle instead of the development cache',async()=>{
- const framework=path.resolve('out/Career-E1-arm64/Career.app/Contents/Resources/engine/Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework');
+ const framework=path.resolve('out/Career-arm64/Career.app/Contents/Resources/engine/Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework');
  for(const relative of ['Resources','Versions/Current'])expect(path.isAbsolute(await readlink(path.join(framework,relative)))).toBe(false);
 });
 it('arm64 launcher reuses one Node backend, restarts after crash, and handles Chinese/space profile paths',async()=>{
@@ -17,6 +17,6 @@ it('arm64 launcher reuses one Node backend, restarts after crash, and handles Ch
 
 it('a relocated Career.app with spaces and Chinese uses only its bundled runtime',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'Career E1 TEST 安装目录 ')),relocated=path.join(root,'Career.app'),profile=path.join(root,'TEST 资料'),copied=path.join(relocated,'Contents/MacOS/Career');
- try{const {constants}=await import('node:fs');await cp(path.resolve('out/Career-E1-arm64/Career.app'),relocated,{recursive:true,verbatimSymlinks:true,mode:constants.COPYFILE_FICLONE});await run(copied,['--user-data-dir='+profile,'--no-browser-open']);const state=JSON.parse(await readFile(path.join(profile,'browser-host.json'),'utf8'));expect((await run('/bin/ps',['-p',String(state.pid),'-o','command='])).stdout).toContain(path.join(relocated,'Contents/Resources/runtime/node'));await run(copied,['stop','--user-data-dir='+profile]);
+ try{const {constants}=await import('node:fs');await cp(path.resolve('out/Career-arm64/Career.app'),relocated,{recursive:true,verbatimSymlinks:true,mode:constants.COPYFILE_FICLONE});await run(copied,['--user-data-dir='+profile,'--no-browser-open']);const state=JSON.parse(await readFile(path.join(profile,'browser-host.json'),'utf8'));expect((await run('/bin/ps',['-p',String(state.pid),'-o','command='])).stdout).toContain(path.join(relocated,'Contents/Resources/runtime/node'));await run(copied,['stop','--user-data-dir='+profile]);
  }finally{try{await run(copied,['stop','--user-data-dir='+profile]);}catch{}await rm(root,{recursive:true,force:true});}
 },90000);

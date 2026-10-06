@@ -1,0 +1,10 @@
+import {it,expect} from 'vitest';import {writeFile} from 'node:fs/promises';import path from 'node:path';
+import {launchBrowserFixture,skipTutorial} from '../fixtures/browser-host';
+it('Browser picker preview/cancel/confirm/idempotent receipt/read/reopen preserves exact personal Raw',async()=>{
+ const f=await launchBrowserFixture();try{await skipTutorial(f.page);const file=path.join(f.profile,'TEST-import.md'),text='E2 TEST Raw 中文 · exact local evidence';await writeFile(file,text);
+ async function select(){if(!await f.page.getByRole('button',{name:'导入原始材料',exact:true}).isVisible())await f.page.getByLabel('Wiki 更多',{exact:true}).click();await f.page.getByRole('button',{name:'导入原始材料',exact:true}).click();const chooser=f.page.waitForEvent('filechooser');await f.page.getByRole('button',{name:'选择本地文本材料',exact:true}).click();await(await chooser).setFiles(file);await f.page.getByText(text,{exact:true}).waitFor();}
+ await select();await f.page.getByRole('button',{name:'取消导入',exact:true}).click();expect(await f.page.evaluate(()=>window.careerMaterials.request({operation:'list'}))).toMatchObject({kind:'list',items:[]});await f.page.getByRole('button',{name:'返回知识列表（保留输入）'}).click();await select();
+ // Confirm through the real owner via the UI; the owner receipt survives reopening.
+ await f.page.getByRole('button',{name:'确认保存原件',exact:true}).click();await expect.poll(()=>f.page.evaluate(()=>window.careerMaterials.request({operation:'list'}))).toMatchObject({kind:'list',items:[{}]});const list:any=await f.page.evaluate(()=>window.careerMaterials.request({operation:'list'}));expect(list.items).toHaveLength(1);const id=list.items[0].id??list.items[0].materialId;expect(await f.page.evaluate(id=>window.careerMaterials.request({operation:'read',materialId:id}),id)).toMatchObject({kind:'raw',raw:{text}});await f.reopen('');const again:any=await f.page.evaluate(()=>window.careerMaterials.request({operation:'list'}));expect(again.items).toHaveLength(1);expect(await f.page.evaluate(id=>window.careerMaterials.request({operation:'read',materialId:id}),id)).toMatchObject({kind:'raw',raw:{text}});
+ }finally{await f.close();}
+},60000);

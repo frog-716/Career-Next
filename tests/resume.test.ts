@@ -35,7 +35,7 @@ it('lost receipt preserves original command and checks committed body before fur
 
 it('frozen PDF rendering escapes user HTML and disallows resource/script links',async()=>{
  const {renderSnapshot}=await import('../packages/backend/domains/resume/public');
- const snapshot={id:randomUUID(),resumeId:randomUUID(),opportunityId:randomUUID(),resumeRevision:1,profileRevision:1,content,profile:{revision:1,name:'<script>alert(1)</script>',contact:'a & b',links:[{label:'我的网页',href:'https://example.test/'}]},contentHash:'d'.repeat(64),templateVersion:'a4-basic-1',fontVersion:'macos-system-cjk',engineVersion:'electron-44.5.1',rendererVersion:'career-print-1',recordedAt:new Date().toISOString()};
+ const snapshot={id:randomUUID(),resumeId:randomUUID(),opportunityId:randomUUID(),resumeRevision:1,profileRevision:1,content,profile:{revision:1,name:'<script>alert(1)</script>',contact:'a & b',links:[{label:'我的网页',href:'https://example.test/'}]},contentHash:'d'.repeat(64),templateVersion:'a4-basic-1',fontVersion:'macos-system-cjk',engineVersion:'historical-test-engine',rendererVersion:'career-print-1',recordedAt:new Date().toISOString()};
  const html=renderSnapshot(snapshot);expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');expect(html).not.toContain('<script>');expect(html).toContain('a &amp; b');expect(html).toContain('size:A4');expect(()=>renderSnapshot({...snapshot,profile:{...snapshot.profile,links:[{label:'bad',href:'javascript:alert(1)'}]}})).toThrow();
 });
 it('keeping local text at a newer conflict baseline submits it before claiming saved',async()=>{

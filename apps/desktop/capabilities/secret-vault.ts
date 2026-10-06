@@ -12,7 +12,7 @@ export function createSecretVault(directory:string,storage:Storage,durability?:{
  let authorization:{generation:string;state:'waiting_for_system_authorization'|'ready'|'cancelled'|'denied'|'timeout'|'unavailable'}|undefined;
  let activeRead:{generation:string;promise:Promise<string>;settled:boolean;fail(reason:CredentialFailure):void}|undefined;
  function unavailable(generation:string,reason:ReadinessReason):never{if(!activeRead?.settled)readiness={generation,available:false,reason};throw Error('credential_unavailable');}
- // Native status codes are optional. Electron 44 often returns only a generic failure;
+ // Native status codes are optional; some storage implementations return only a generic failure;
  // do not infer a user's choice from timing, a process name or an error message.
  function nativeFailure(error:unknown):CredentialFailure{
   const parsed=CredentialFailure.safeParse(error instanceof Error?error.message:undefined);if(parsed.success)return parsed.data;

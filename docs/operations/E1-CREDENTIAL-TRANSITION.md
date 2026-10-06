@@ -1,3 +1,7 @@
+# Historical E1 plan — superseded by E2
+
+本文件保留 E1 当时的交接/回退设计，不是当前可执行流程。E2 用户明确禁止读取旧 Key，并选择后续自行重新输入；当前入口见 [CREDENTIAL-REENTRY](CREDENTIAL-REENTRY.md)。代码删除不再以真实凭据解密为前提，旧 Secret 数据保持不动。
+
 # E1 credential transition and rollback
 
 E1 does not read, decrypt or migrate existing real credentials. New native-v1 vaults live in `security-native-v1/` and `security-tavily-native-v1/`, outside business workspaces/backups. Existing Electron `security/` and `security-tavily/` ciphertext and metadata remain unchanged. The browser has no saved-secret getter. Restore disables native service bindings; a configured key is not a restored execution authorization.

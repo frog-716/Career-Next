@@ -5,8 +5,8 @@ import { build } from 'vite';
 import { rm, mkdir, writeFile } from 'node:fs/promises';
 await rm('dist/application',{recursive:true,force:true});
 await rm('dist/materials-renderer',{recursive:true,force:true});
-const entries={main:'apps/desktop/main/main.ts',preload:'apps/desktop/preload/materials.ts',utility:'packages/backend/bootstrap/utility.ts',writer:'packages/backend/bootstrap/writer.ts','local-search':'packages/backend/platform/search/worker.ts','workspace-check':'packages/backend/platform/database/active-check.ts'};
-for(const [name,entry] of Object.entries(entries)) await build({configFile:false,build:{emptyOutDir:false,outDir:'dist/application',target:'node24',lib:{entry,formats:['cjs'],fileName:()=>`${name}.cjs`},rolldownOptions:{external:[/^node:/,'electron','better-sqlite3']}}});
+const entries={writer:'packages/backend/bootstrap/writer.ts','local-search':'packages/backend/platform/search/worker.ts'};
+for(const [name,entry] of Object.entries(entries)) await build({configFile:false,build:{emptyOutDir:false,outDir:'dist/application',target:'node24',lib:{entry,formats:['cjs'],fileName:()=>`${name}.cjs`},rolldownOptions:{external:[/^node:/,'better-sqlite3']}}});
 await build({configFile:false,root:'packages/frontend/app',base:'./',build:{outDir:'../../../dist/materials-renderer',emptyOutDir:true}});
 
 for(const manifest of [materialsManifest,...businessManifests]) {

@@ -43,4 +43,4 @@ AI 建议采用原侧边 sheet 外观，但保持非模态，允许编辑未选�
 
 ## 当前运行入口
 
-用户已将正式默认界面改为 Chrome 本地 Web，A6 原件与业务会话继续复用。运行入口、安全与正常 arm64 宿主验证见 [Browser-first](../verification/browser-first.md)。历史 Electron 画面/失败证据保留，不代表当前默认入口；人工视觉复审仍待用户，不据此关闭 #39。
+用户已将正式默认界面改为 Chrome 本地 Web，A6 原件与业务会话继续复用。当前运行入口、安全与正常 arm64 宿主验证见 [E2](../verification/E2-ELECTRON-RETIREMENT.md)；[Browser-first](../verification/browser-first.md) 保留当时证据。历史 Electron 画面/失败证据保留，不代表当前默认入口；人工视觉复审仍待用户，不据此关闭 #39。

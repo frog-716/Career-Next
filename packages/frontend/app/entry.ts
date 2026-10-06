@@ -1,6 +1,7 @@
 export {};
 try{
- if(location.protocol==='http:'){const {installBrowserBridge}=await import('./browser-bridge');await installBrowserBridge();}
+ if(location.protocol!=='http:'||location.hostname!=='127.0.0.1')throw Error('local_browser_origin_required');
+ const {installBrowserBridge}=await import('./browser-bridge');await installBrowserBridge();
  await import('./main');
 }catch{
  const root=document.getElementById('root'),main=document.createElement('main'),message=document.createElement('p'),reload=document.createElement('button');

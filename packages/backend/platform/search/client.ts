@@ -4,7 +4,7 @@ import { LocalSearchRequest, LocalSearchResult } from '../../../contracts/applic
 export interface LocalSearchBudget { rows: number; bytes: number; comparisons: number; results: number; timeoutMs: number }
 export const defaultLocalSearchBudget: LocalSearchBudget = { rows: 256, bytes: 256 * 1024, comparisons: 500000, results: 50, timeoutMs: 1500 };
 export interface ReadProcessInput { filename: string; request: LocalSearchRequest; budget: LocalSearchBudget; hostParentPid: number }
-/** Trusted Main can replace Node fork with a fixed utilityProcess launcher. */
+/** Fixed readonly Node child process; only trusted bootstrap chooses its artifact. */
 export interface ReadProcess {
   send(input: ReadProcessInput): void;
   onMessage(callback: (value: unknown) => void): void;
@@ -14,7 +14,7 @@ export interface ReadProcess {
 }
 export type ReadProcessSpawner = (fixedArtifact: string) => ReadProcess;
 const spawnReadProcess: ReadProcessSpawner = fixedArtifact => {
-  const child = fork(fixedArtifact, [], { execArgv: [], env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: ['ignore', 'ignore', 'ignore', 'ipc'] });
+  const child = fork(fixedArtifact, [], { execArgv: [], env: { PATH:process.env.PATH, HOME:process.env.HOME }, stdio: ['ignore', 'ignore', 'ignore', 'ipc'] });
   let resolveExit!: () => void;
   const exited = new Promise<void>(resolve => { resolveExit = resolve; });
   child.once('exit', resolveExit); child.once('error', resolveExit);

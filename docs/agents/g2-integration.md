@@ -1,3 +1,5 @@
+> G2 historical integration agreement. The host/build choices below describe that gate; current host boundaries are in ADR 005 / MAP.
+
 # G2 第一批的集成约定
 
 任务正本是 GitHub G2 umbrella 与 W/E/P/O/R/U 六个子 Issue。冻结产品与架构仍是唯一规则正本。本轮不进入 G3，不读取旧 Career。

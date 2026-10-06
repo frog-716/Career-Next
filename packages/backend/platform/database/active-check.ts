@@ -1,4 +1,3 @@
 import Database from 'better-sqlite3';import path from 'node:path';import {z}from'zod';
-/** Fixed Main-owned readonly preflight. It never migrates, repairs, or chooses a workspace. */
+/** Fixed host-owned readonly preflight. It never migrates, repairs, or chooses a workspace. */
 export function checkActiveIdentity(root:string,expected:string){const id=z.uuid().parse(expected);const db=new Database(path.join(root,'career.sqlite'),{readonly:true,fileMustExist:true});try{db.pragma('query_only=ON');if(db.pragma('quick_check(1)',{simple:true})!=='ok')throw Error('active_pointer_invalid');const row=db.prepare('SELECT instance FROM platform_workspace').get() as {instance:string}|undefined;if(row?.instance!==id)throw Error('active_pointer_invalid');}finally{db.close();}}
-if(process.parentPort){try{checkActiveIdentity(process.argv[2]!,process.argv[3]!);process.parentPort.postMessage({valid:true});}catch{process.parentPort.postMessage({valid:false});}setImmediate(()=>process.exit(0));}

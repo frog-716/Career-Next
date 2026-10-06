@@ -6,7 +6,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 it('Career.app uses Node-only backend, file transfer, frozen PDF and restore through the production Chrome UI',async()=>{
  const evidence=path.resolve('out/implementation/e1/CHROME-TEST-DATA');await mkdir(evidence,{recursive:true});const profile=await mkdtemp(path.join(evidence,'profile-'));
- const executablePath=path.resolve('out/Career-E1-arm64/Career.app/Contents/MacOS/Career');const launchArgs=[`--user-data-dir=${profile}`,'--no-browser-open'];await run(executablePath,launchArgs);
+ const executablePath=path.resolve('out/Career-arm64/Career.app/Contents/MacOS/Career');const launchArgs=[`--user-data-dir=${profile}`,'--no-browser-open'];await run(executablePath,launchArgs);
  const browser=await chromium.launch({channel:'chrome',headless:true});const context=await browser.newContext({viewport:{width:1280,height:850}});let page=await context.newPage();page.on('dialog',dialog=>void dialog.accept());const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
  async function address(){let value:any;await expect.poll(async()=>{try{value=JSON.parse(await readFile(path.join(profile,'browser-host.json'),'utf8'));return (await fetch(`http://127.0.0.1:${value.port}/host-status`)).ok;}catch{return false;}},{timeout:30000}).toBe(true);return `http://127.0.0.1:${value.port}`;}
  try{

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createMaterialsBackend as createBackend } from '../../packages/backend/domains/materials/public';
 
-// The source-level test runner injects the same built writer used by Electron.
+// The source-level test runner injects the same built writer used by the Node host.
 function createMaterialsBackend(root: string, makeBlobs?: Parameters<typeof createBackend>[1]) {
   return createBackend(root,makeBlobs,path.resolve('dist/application/writer.cjs'));
 }

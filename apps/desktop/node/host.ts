@@ -20,8 +20,10 @@ import {createBrowserHost,type BrowserContext} from '../browser/server';
 import {createNativeKeychainStorage} from '../capabilities/native-keychain';
 import {createHeadlessPrinter} from '../capabilities/headless-pdf';
 import {withBrowserFile,cleanAbandonedBrowserFiles} from '../capabilities/browser-files';
+import {ProviderBinding} from '../../../packages/backend/platform/providers/binding';
 
-export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void};
+// Trusted assembly ports for isolated fixtures; main.ts never supplies a fake binding or transport.
+export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch};
 /** Platform assembly only. Existing owners, writer and authorization controller remain the authority. */
 export async function createNodeHost(options:NodeHostOptions){
  const profile=path.resolve(options.profile);await mkdir(profile,{recursive:true,mode:0o700});
@@ -31,11 +33,11 @@ export async function createNodeHost(options:NodeHostOptions){
  const deepseekStorage=native('deepseek'),tavilyStorage=native('tavily');
  const secrets=createSecretVault(path.join(profile,'security-native-v1'),deepseekStorage);
  const tavilySecrets=createSecretVault(path.join(profile,'security-tavily-native-v1'),tavilyStorage,undefined,'tavily');
- let providerBinding=await resolveStartupProviderBinding(path.join(profile,'security-native-v1'),()=>secrets.request({operation:'status'}));
+ let providerBinding=options.providerBinding?ProviderBinding.parse(options.providerBinding):await resolveStartupProviderBinding(path.join(profile,'security-native-v1'),()=>secrets.request({operation:'status'}));
  if(providerBinding.provider&&providerBinding.enabled){let grant:any;try{grant=JSON.parse(await readFile(path.join(profile,'security-native-v1','workspace-activation.json'),'utf8'));}catch{}if(grant?.generation!==providerBinding.generation||grant?.workspaceInstance!==active.expected){await secrets.request({operation:'disable'});providerBinding={...providerBinding,enabled:false};}}
  const tavilyStatus=await tavilySecrets.request({operation:'status'});if(tavilyStatus.kind==='status'&&tavilyStatus.status.enabled){let grant:any;try{grant=JSON.parse(await readFile(path.join(profile,'security-tavily-native-v1','workspace-activation.json'),'utf8'));}catch{}if(grant?.generation!==tavilyStatus.status.generation||grant?.workspaceInstance!==active.expected)await tavilySecrets.request({operation:'disable'});}
- if(!providerBinding.provider)providerBinding={...providerBinding,enabled:false};
- const runtime=await createRuntimeBackend(active.root,path.join(options.artifacts,'writer.cjs'),profile,{automaticBackups:options.automaticBackups,providerBinding,providerKey:generation=>secrets.readCredential(generation),tavilyKey:generation=>tavilySecrets.readCredential(generation),printMetadata:printer.metadata});
+ if(!options.providerBinding&&!providerBinding.provider)providerBinding={...providerBinding,enabled:false};
+ const runtime=await createRuntimeBackend(active.root,path.join(options.artifacts,'writer.cjs'),profile,{automaticBackups:options.automaticBackups,providerBinding,providerTransport:options.providerTransport,providerKey:generation=>secrets.readCredential(generation),tavilyKey:generation=>tavilySecrets.readCredential(generation),tavilyTransport:options.tavilyTransport,printMetadata:printer.metadata});
  try{
  let session:Awaited<ReturnType<typeof runtime.connectHuman>>;let closed=false;
  session=await runtime.connectHuman();await cleanAbandonedBrowserFiles(profile);

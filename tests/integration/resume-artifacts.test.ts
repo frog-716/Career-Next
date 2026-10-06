@@ -19,7 +19,7 @@ beforeAll(async () => {
   await build({ configFile: false, logLevel: 'silent', build: {
     outDir: 'dist/test-support', emptyOutDir: false, target: 'node24',
     lib: { entry: 'packages/backend/bootstrap/writer.ts', formats: ['cjs'], fileName: () => 'resume-artifacts-writer.cjs' },
-    rolldownOptions: { external: [/^node:/, 'electron', 'better-sqlite3'] },
+    rolldownOptions: { external: [/^node:/, 'better-sqlite3'] },
   } });
 }, 20000);
 async function newDocument(runtime: Runtime, session: HumanSession) {

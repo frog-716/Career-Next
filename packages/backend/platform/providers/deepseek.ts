@@ -23,7 +23,7 @@ export function createDeepSeekProvider(generation:string,keyForDispatch:(generat
   const {manifest}=input;
   if(signal.aborted)throw Error('not_sent');
   if(JSON.stringify(manifest.recipient)!==JSON.stringify(recipient)||createHash('sha256').update(JSON.stringify(manifest)).digest('hex')!==input.manifestDigest||JSON.stringify(prepareDeepSeekRequest(manifest).providerRequest)!==JSON.stringify(manifest.providerRequest))throw Error('manifest_mismatch');
-  // Retrieval is private Main-to-utility IPC, not a generic business command or recorder.
+  // Retrieval stays in the trusted host, not a generic business command or recorder.
   let key:string|undefined;
   try{try{key=await keyForDispatch(generation);}catch{throw Error('not_sent');}if(signal.aborted||Date.parse(manifest.validity.expiresAt)<=Date.now())throw Error('not_sent');if(!key||key.length>4096||/[\r\n]/.test(key))throw Error('not_sent');
    const waiting=new AbortController(),abort=()=>waiting.abort();signal.addEventListener('abort',abort,{once:true});const timeout=setTimeout(abort,60000);
