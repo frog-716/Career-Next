@@ -1,6 +1,6 @@
 # Career-Next 项目地图
 
-当前状态：[E1 替代宿主 PASS](docs/verification/E1-ELECTRON-REPLACEMENT.md)，真人睡眠唤醒与两次 Chrome 冷启动均通过，[E2 清理与回归 PASS](docs/verification/E2-ELECTRON-RETIREMENT.md)，默认 Node / Chrome，Electron 正式依赖/适配层已移除；旧凭据保留，用户后续通过新 Secret UI 重新输入。G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
+当前状态：[E1 替代宿主 PASS](docs/verification/E1-ELECTRON-REPLACEMENT.md)，真人睡眠唤醒与两次 Chrome 冷启动均通过，[E2 清理与回归 PASS](docs/verification/E2-ELECTRON-RETIREMENT.md)，默认 Node / Chrome，Electron 正式依赖/适配层已移除。[S1 新 Keychain 重新录入 PASS](docs/verification/s1-keychain-reentry.md)：DeepSeek 与 Tavily 各完成一次真实连接检查，Chrome 冷启动后配置仍可用；旧 Electron safeStorage 未读、未删；飞书阶段尚未开始。G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
 
 ## 目标与当前阶段
 
@@ -154,6 +154,6 @@ G0 探针及执行入口已在 E2 退役。历史结果保留在 verification / 
 - 用户批准 Electron Retirement，见 [E1 Amendment](docs/adr/005-ELECTRON-RETIREMENT-E1.md)；它覆盖 V2 的宿主选择，冻结正文与历史验证不修改。业务 owner、Contract、SQLite schema、React/A6 不变。
 - `Career.app` / `npm start` → macOS launcher → 独立 Node backend → 127.0.0.1 → Chrome。`apps/desktop/node/` 负责装配/启动；`native/launcher.swift` 仅持有启动锁并启动固定 runtime。重复启动核对宿主身份，复用后台；`npm run stop` 等待后台及唯一 writer 退出。
 - `apps/desktop/browser/server.ts` 保留 Host/Origin/CSRF/每标签会话与工作区绑定。`frontend/app/browser-bridge.ts` 请求能力只在内存；文件字节通过固定受控上传入口，PDF 下载只能读取正式 ResumeVersion，不能传系统路径/通用 blob ID。
-- `capabilities/native-keychain.ts` / `native/keychain.swift` 提供固定 Career slot 的私有加解密。新 native-v1 库与旧 Electron 密文分离；本轮仅 TEST Secret，后续由用户 [重新输入](docs/operations/CREDENTIAL-REENTRY.md)，本轮不读旧 Key。恢复关闭外部服务绑定，不恢复旧授权。
+- `capabilities/native-keychain.ts` / `native/keychain.swift` 提供固定 Career slot 的私有加解密。DeepSeek 与 Tavily 真实 Key 已由用户通过正式 UI 重新录入新 Keychain，浏览器只显示配置/可用状态；旧 Electron safeStorage 未读、未删。恢复关闭外部服务绑定，不恢复旧授权。
 - `capabilities/headless-pdf.ts` 使用固定 Chromium 153.0.8010.12、固定参数与字体指纹；原冻结 PDF 不重新生成。无效 active pointer 进入独立只读恢复页面，用户明确选备份、验证、确认后才切换。
 - `npm run package` 生成 `out/Career-arm64/Career.app`。当前工程不含 Electron/Forge 或旧宿主适配层。E1 回滚点为本地 `e1-pass-before-e2` tag；不删除旧用户凭据，不自动恢复或解密它们。发布签名/公证/x64 仍未验收。执行与测试命令见 README。

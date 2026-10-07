@@ -18,6 +18,29 @@ section.screen{margin:auto}section.opportunity-section,section.aura-owner-sectio
 .career-aux-panel .sheet-body section{margin:0;border:0;padding:0;background:transparent;border-radius:0}.career-aux-panel .form fieldset{border:0;padding:0}.career-aux-panel .form label{margin:0}.career-aux-panel .settings-version{padding:0;border:0;background:transparent}
 .career-aux-panel .career-settings-version{display:flex;justify-content:space-between;align-items:center}.nav-setting-row>span{display:flex;align-items:center;gap:8px}.nav-setting-row>span svg{width:16px;height:16px}
 .career-aux-panel .settings-page section{margin-bottom:24px}.career-aux-panel .settings-page h3{margin-bottom:6px}.career-aux-panel .settings-page p{font-size:13px;color:var(--muted)}
+.career-aux-panel .settings-page .connection-safety{margin:0 0 16px;padding:10px 12px;border-radius:8px;background:#f6f7f4;color:#59635b;font-size:12px;line-height:1.55}
+.career-aux-panel .settings-page .career-feishu-info{margin:0 0 14px;padding:14px 15px;border:1px solid #e7e9e5;border-radius:10px;background:#fff}
+.career-aux-panel .settings-page .career-feishu-info .feishu-card-head{margin-bottom:4px;align-items:center}
+.career-aux-panel .settings-page .career-feishu-info p{margin:5px 0 0;font-size:12px;line-height:1.55}
+.career-aux-panel .settings-page .career-feishu-info details{margin-top:9px;color:var(--muted);font-size:11px}
+.career-aux-panel .settings-page .credential-card{display:block;margin:0 0 12px;padding:14px 15px;border:1px solid #e7e9e5;border-radius:10px;background:#fff}
+.credential-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.credential-card-head h3{margin:0!important;font-size:14px!important;color:var(--ink)}
+.credential-card-head .credential-status{margin:3px 0 0;font-size:11px!important;color:var(--muted)}
+.credential-card .field{margin-top:12px}
+.credential-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.credential-actions .button,.credential-actions .text-button{min-height:32px}
+.credential-editor{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.credential-more{margin-top:9px;font-size:11px;color:var(--muted)}
+.credential-more summary{cursor:pointer;width:max-content;padding:4px 0}
+.credential-more .credential-actions{margin:5px 0 0}
+.credential-more .danger{color:#8f4545}
+.connection-test-preview{margin-top:14px;padding:13px;border-radius:8px;background:#f8f9f6;border:1px solid #e8eae5}
+.connection-test-preview h4{margin:0 0 7px;font-size:12px;color:var(--ink)}
+.connection-test-preview p{margin:5px 0;font-size:11px!important;line-height:1.55;overflow-wrap:anywhere}
+.connection-test-preview pre{max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:9px 0;padding:10px;border-radius:6px;background:#fff;border:1px solid var(--line);font-size:10px;line-height:1.55}
+.connection-test-preview~[role=status]{font-size:11px!important}
+@media(max-width:600px){.career-aux-panel .settings-page .connection-safety{font-size:11px;padding:9px 10px}.career-aux-panel .settings-page .career-feishu-info,.career-aux-panel .settings-page .credential-card{padding:12px}.credential-actions{gap:7px}.connection-test-preview{padding:10px}.connection-test-preview pre{max-height:150px;font-size:9px}}
 .resume-tools .icon-button[aria-pressed=true]{background:var(--soft)}
 
 /* Resume proposal review must not freeze unrelated live blocks. Same sheet, nonmodal hit area. */

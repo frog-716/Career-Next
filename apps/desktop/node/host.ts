@@ -21,6 +21,8 @@ import {createNativeKeychainStorage} from '../capabilities/native-keychain';
 import {createHeadlessPrinter} from '../capabilities/headless-pdf';
 import {withBrowserFile,cleanAbandonedBrowserFiles} from '../capabilities/browser-files';
 import {ProviderBinding} from '../../../packages/backend/platform/providers/binding';
+import {createProviderConnectionTester} from '../../../packages/backend/platform/providers/connection-test';
+import {ProviderConnectionTestRequest} from '../../../packages/contracts/ai/connection-test';
 
 // Trusted assembly ports for isolated fixtures; main.ts never supplies a fake binding or transport.
 export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch};
@@ -46,6 +48,13 @@ export async function createNodeHost(options:NodeHostOptions){
  if(active.initial){durableJson(path.join(profile,'active-workspace-pointer.json'),{copyId:copy.id,relativePath:path.relative(profile,active.root),workspaceInstance:session.workspaceInstance});await finishNodeBootstrap(profile);}
  const coordinator=createSecretCoordinator(secrets,async binding=>{if(binding.enabled&&binding.provider)durableJson(path.join(profile,'security-native-v1','workspace-activation.json'),{workspaceInstance:session.workspaceInstance,generation:binding.generation});runtime.configureProvider(binding);});
  const tavily=createTavilyCredentials(tavilySecrets,async()=>{runtime.invalidateTavily();});
+ const connectionTester=createProviderConnectionTester({deepseekKey:generation=>secrets.readCredential(generation),tavilyKey:generation=>tavilySecrets.readCredential(generation),deepseekTransport:options.providerTransport,tavilyTransport:options.tavilyTransport});
+ async function connectionGeneration(provider:'deepseek'|'tavily'){
+  const result=provider==='deepseek'?await coordinator.request({operation:'status'}):await tavily.request({operation:'status'});
+  if(result.kind!=='status'||!result.status.configured||!result.status.enabled||!result.status.generation)return undefined;
+  if(provider==='deepseek'&&result.status.provider!=='deepseek-v4.1-flash')return undefined;
+  return result.status.generation;
+ }
  const printing=new Map<string,Promise<unknown>>();
  const handlers:Record<string,(input:unknown,context:BrowserContext)=>Promise<unknown>>={
   ready:async(_,context)=>{if(closed)throw Error('disconnected');context.bind(session.workspaceInstance);return identity();},
@@ -53,6 +62,7 @@ export async function createNodeHost(options:NodeHostOptions){
   materials:async input=>dispatchMaterials(runtime.materials,session,identity(),MaterialRequest.parse(input)),
   'secrets/deepseek':async input=>{const parsed=SecretInput.safeParse(input);if(!parsed.success)return {kind:'failure' as const,code:'invalid_request' as const};const value=parsed.data;return coordinator.request(value.operation==='save'?{...value,provider:'deepseek-v4.1-flash'}:value);},
   'secrets/tavily':async input=>{const result=await tavily.request(input as never);if((input as {operation?:string})?.operation==='save'&&result.kind==='status'&&result.status.enabled&&result.status.generation)durableJson(path.join(profile,'security-tavily-native-v1','workspace-activation.json'),{workspaceInstance:session.workspaceInstance,generation:result.status.generation});return result;},
+  'connection/test':async input=>{if(closed)throw Error('disconnected');const parsed=ProviderConnectionTestRequest.safeParse(input);if(!parsed.success)throw Error('invalid_request');return connectionTester.request(parsed.data,()=>connectionGeneration(parsed.data.provider));},
   'search/local':async input=>runtime.search(session,input),
   'search/tavily':async input=>{const operation=(input as {operation?:string})?.operation;return runtime.externalSearch(session,input,operation==='receipt'?undefined:await tavily.generationForDispatch().catch(()=>undefined));},
  };

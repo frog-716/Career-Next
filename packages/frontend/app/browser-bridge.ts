@@ -1,6 +1,7 @@
 import {BusinessModuleSchema} from '../../contracts/registry';
 import {Identity} from '../../contracts/common/runtime';
 import {PurgeNotification} from '../../contracts/application/schema';
+import {ProviderConnectionTestResult,type ProviderConnectionTestInput} from '../../contracts/ai/connection-test';
 import type {} from '../../contracts/common/file-bridge';
 import {chooseBrowserFile} from './browser-files';
 /** Browser memory only: no saved keys, capability URLs, localStorage tokens or automatic command replay. */
@@ -21,6 +22,7 @@ export async function installBrowserBridge(){
  window.careerSentFiles={select:async()=>{if(!browserFiles)throw Error('file_picker_unavailable');const file=await chooseBrowserFile('.pdf,.txt,.md,.png,.jpg,.jpeg,.webp',16*1024*1024);return file?upload('files/sent',file):undefined;}};
  window.careerSecrets={request:input=>call('secrets/deepseek',input)};
  window.careerTavilySecrets={request:input=>call('secrets/tavily',input)};
+ window.careerConnectionTest={request:async input=>ProviderConnectionTestResult.parse(await call('connection/test',input as ProviderConnectionTestInput))};
  window.careerSearch={request:input=>call('search/local',input)};
  window.careerTavilySearch={request:input=>call('search/tavily',input)};
  await bindSession();

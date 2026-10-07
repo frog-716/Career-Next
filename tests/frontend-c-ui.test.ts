@@ -88,4 +88,4 @@ window.careerMaterials={request:async()=>({kind:'list',items:[]})};createRoot(do
 it('normal DeepSeek settings do not present a local fake credential as a real connection',async()=>ui('provider-identity',`
 import{SecretSettings}from'../../packages/frontend/support/ai/secret-settings.tsx';
 const bridge={request:async()=>({kind:'status',status:{configured:true,enabled:true,generation:'00000000-0000-4000-8000-000000000011',readiness:'available'}})};createRoot(document.getElementById('app')!).render(<SecretSettings bridge={bridge}/>);
-`,async page=>{await page.getByRole('status').filter({hasText:'DeepSeek 尚未连接'}).waitFor();expect(await page.getByRole('status').innerText()).not.toContain('当前本机检查可用');}),30000);
+`,async page=>{await page.getByRole('status').filter({hasText:'未配置 DeepSeek'}).waitFor();expect(await page.getByRole('status').innerText()).not.toContain('本机检查可用');}),30000);
