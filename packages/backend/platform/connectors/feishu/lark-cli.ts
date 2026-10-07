@@ -4,9 +4,12 @@ import os from 'node:os';
 import path from 'node:path';
 import {access,realpath} from 'node:fs/promises';
 import type {FeishuAuthState,FeishuUserProfile} from './connector';
+import {FeishuSearchQuery,FeishuDocumentType} from '../../../../contracts/platform/feishu-discovery';
+import type {FeishuSearchPage} from './discovery';
+import {z} from 'zod';
 
 const execFile=promisify(nodeExecFile);
-export type FeishuCliRun=(args:string[])=>Promise<{stdout:string;code:number}>;
+export type FeishuCliRun=(args:string[])=>Promise<{stdout:string;code:number;failure?:'authorization'|'permission'|'unavailable'}>;
 export function larkCliInvocation(binary:string,args:string[],nodeExecutable=process.execPath){
  return /\.(?:c|m)?js$/i.test(binary)?{executable:nodeExecutable,args:[binary,...args]}:{executable:binary,args};
 }
@@ -18,13 +21,30 @@ function jsonEnvelope(text:string){
  }
  throw Error('feishu_cli_response_invalid');
 }
-async function defaultRunner(args:string[]):Promise<{stdout:string;code:number}>{
+async function defaultRunner(args:string[]):ReturnType<FeishuCliRun>{
  const candidates=[process.env.CAREER_LARK_CLI,path.join(os.homedir(),'.local/bin/lark-cli'),'/opt/homebrew/bin/lark-cli','/usr/local/bin/lark-cli'].filter((value):value is string=>!!value);
  let binary:string|undefined;for(const candidate of candidates){try{await access(candidate);binary=candidate;break;}catch{}}
  if(!binary)throw Error('feishu_cli_unavailable');
  try{const target=await realpath(binary).catch(()=>binary),invocation=larkCliInvocation(target,args);const result=await execFile(invocation.executable,invocation.args,{encoding:'utf8',timeout:20_000,maxBuffer:2*1024*1024,env:{...process.env,LARKSUITE_CLI_NO_UPDATE_NOTIFIER:'1',LARKSUITE_CLI_NO_SKILLS_NOTIFIER:'1'}});return {stdout:result.stdout,code:0};}
- catch(error){const value=error as NodeJS.ErrnoException&{stdout?:string;code?:number};return {stdout:value.stdout??'',code:typeof value.code==='number'?value.code:1};}
+ catch(error){const value=error as NodeJS.ErrnoException&{stdout?:string;stderr?:string;code?:number};const clue=(value.stderr??'').toLowerCase();return {stdout:value.stdout??'',code:typeof value.code==='number'?value.code:1,failure:/missing_scope|99991679/.test(clue)?'permission':/token_expired|invalid_token|unauthorized|9999166[1348]/.test(clue)?'authorization':'unavailable'};}
 }
+
+// Projection happens inside the CLI before stdout reaches Career. In particular,
+// summary_highlighted, author/contact fields and original response are discarded.
+export const feishuMetadataProjection='{ok: .ok, data: {has_more: .data.has_more, results: [.data.results[]? | {documentId: (.entity_id // .result_meta.token // .result_meta.url), title: (.title // .title_highlighted), type: (.result_meta.doc_types // .entity_type), updatedAt: (.result_meta.update_time_iso // .result_meta.update_time), url: .result_meta.url}]}}';
+const SearchProjection=z.object({ok:z.literal(true),data:z.object({has_more:z.boolean(),results:z.array(z.strictObject({documentId:z.string().min(1).max(2000),title:z.string().min(1).max(1000),type:z.string().nullable(),updatedAt:z.union([z.string(),z.number()]).nullable(),url:z.string().nullable()})).max(20)})});
+function metadataUrl(value:string|null):string|null{if(!value)return null;try{const url=new URL(value),host=url.hostname.toLowerCase();if(url.protocol!=='https:'||url.username||url.password||!(host==='feishu.cn'||host.endsWith('.feishu.cn')||host==='larksuite.com'||host.endsWith('.larksuite.com')))return null;return url.href;}catch{return null;}}
+function metadataTime(value:string|number|null):string|null{if(value===null)return null;const numeric=typeof value==='number'||/^\d+$/.test(value),milliseconds=numeric?Number(value)*(Number(value)<1e12?1000:1):Date.parse(String(value));if(!Number.isFinite(milliseconds))return null;try{return new Date(milliseconds).toISOString();}catch{return null;}}
+/** Fixed title-only, single-page search. Never calls inspect, metadata follow-ups or body APIs. */
+export function createLarkCliDiscoveryPorts(run:FeishuCliRun=defaultRunner){return {
+ async searchDocuments(query:string):Promise<FeishuSearchPage>{
+  FeishuSearchQuery.parse(query);
+  const response=await run(['drive','+search','--query',query,'--only-title','--page-size','20','--as','user','--json','--jq',feishuMetadataProjection]);
+  if(response.code!==0)throw Error(response.failure==='permission'?'feishu_search_permission_required':response.failure==='authorization'?'feishu_authorization_required':'feishu_search_unavailable');
+  const projected=SearchProjection.parse(jsonEnvelope(response.stdout));
+  return {hasMore:projected.data.has_more,items:projected.data.results.map(item=>({documentId:item.documentId,title:item.title.replace(/<\/?hb?>/g,''),type:FeishuDocumentType.catch('other').parse(item.type?.toLowerCase()),updatedAt:metadataTime(item.updatedAt),url:metadataUrl(item.url)}))};
+ },
+};}
 function findAvatar(value:unknown):string|undefined{
  if(!value||typeof value!=='object')return;
  if(Array.isArray(value)){for(const item of value){const found=findAvatar(item);if(found)return found;}return;}

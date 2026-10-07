@@ -14,7 +14,7 @@ it('Feishu identity stays platform-only across restart and denies arbitrary Cont
   await expect(host.handlers['feishu/connect']({open_id:'ou_other_test_user'},context)).rejects.toThrow();expect(reads).toBe(0);
   expect(await host.handlers['feishu/connect']({},context)).toEqual({provider:'feishu',state:'connected'});expect(reads).toBe(1);
   expect(await host.handlers['feishu/identity']({},context)).toEqual({connected:true,provider:'feishu',displayName:'TEST nickname',avatar:'feishu/avatar'});
-  expect(Object.keys(host.handlers).filter(x=>x.startsWith('feishu/')).sort()).toEqual(['feishu/connect','feishu/identity','feishu/status']);
+  expect(Object.keys(host.handlers).filter(x=>x.startsWith('feishu/')).sort()).toEqual(['feishu/connect','feishu/identity','feishu/search','feishu/status']);
   expect(await host.handlers['business/profile']({operation:'profile.read'},context)).toEqual(before);
   const backup:any=await host.handlers['business/application']({operation:'data.backup'},context);expect(backup.kind).toBe('backup');
   expect((await readdir(path.join(profile,backup.copy.relativePath))).sort()).toEqual(['backup.json','blobs','career.sqlite']);

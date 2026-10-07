@@ -3,6 +3,7 @@ import {Identity} from '../../contracts/common/runtime';
 import {PurgeNotification} from '../../contracts/application/schema';
 import {ProviderConnectionTestResult,type ProviderConnectionTestInput} from '../../contracts/ai/connection-test';
 import {FeishuConnectionStatus,FeishuCurrentIdentity} from '../../contracts/platform/feishu-identity';
+import {FeishuSearchRequest,FeishuSearchResult} from '../../contracts/platform/feishu-discovery';
 import type {} from '../../contracts/common/file-bridge';
 import {chooseBrowserFile} from './browser-files';
 /** Browser memory only: no saved keys, capability URLs, localStorage tokens or automatic command replay. */
@@ -37,6 +38,7 @@ export async function installBrowserBridge(){
    const blob=await response.blob();if(!blob.type.startsWith('image/'))return undefined;return URL.createObjectURL(blob);
   },
  };
+ window.careerFeishuDiscovery={searchDocuments:async input=>FeishuSearchResult.parse(await call('feishu/search',FeishuSearchRequest.parse(input)))};
  await bindSession();
  if(hostControl)window.careerHost={stop:async()=>{await call('host/stop',{confirmed:true});}};
  if(browserPdf)window.careerPdf={async download(resumeId,versionId){if(!capability)await bindSession();const response=await fetch('/api/files/resume-pdf',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Career-Capability':capability!},body:JSON.stringify({resumeId,versionId}),redirect:'error'});if(!response.ok)throw Error('download_failed');const blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='Career-Resume.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}};
