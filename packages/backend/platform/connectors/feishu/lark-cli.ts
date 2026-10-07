@@ -6,6 +6,7 @@ import {access,realpath} from 'node:fs/promises';
 import type {FeishuAuthState,FeishuUserProfile} from './connector';
 import {FeishuSearchQuery,FeishuDocumentType} from '../../../../contracts/platform/feishu-discovery';
 import type {FeishuSearchPage} from './discovery';
+import type {FeishuBitableReadPorts} from './bitable';
 import {z} from 'zod';
 
 const execFile=promisify(nodeExecFile);
@@ -52,6 +53,29 @@ function findAvatar(value:unknown):string|undefined{
   if(/avatar/i.test(key)&&typeof item==='string'&&item.trim())return item.trim();
   const found=findAvatar(item);if(found)return found;
  }
+}
+
+// Fixed schema-only shortcuts. Never fetch a table's records, view filters,
+// formula values, link targets, comments or attachment bytes.
+export const bitableProjections={
+ tables:'{ok: .ok, data: {total: .data.total, tables: [.data.tables[]? | {id: (.id // .table_id), name: (.name // .table_name)}]}}',
+ views:'{ok: .ok, data: {total: .data.total, views: [.data.views[]? | {id: (.id // .view_id), name: (.name // .view_name), type: (.type // .view_type // "unknown")}]}}',
+ fields:'{ok: .ok, data: {total: .data.total, fields: [.data.fields[]? | {name: (.name // .field_name), type: (.type // "unknown")}]}}',
+};
+export function createLarkCliBitablePorts(run:FeishuCliRun=defaultRunner):FeishuBitableReadPorts{
+ const name=z.string().min(1).max(1000),id=z.string().min(1).max(200),type=z.union([z.string().min(1).max(100),z.number().int()]).transform(String);
+ async function list<T>(kind:keyof typeof bitableProjections,appToken:string,tableId:string|undefined,item:z.ZodType<T>){
+  if(!/^[A-Za-z0-9]{16,128}$/.test(appToken)||tableId!==undefined&&!/^tbl[A-Za-z0-9_-]{3,128}$/.test(tableId))throw Error('feishu_structure_reference_invalid');
+  const args=['base',kind==='tables'?'+table-list':kind==='views'?'+view-list':'+field-list','--base-token',appToken,...tableId?['--table-id',tableId]:[],'--as','user','--json','--jq',bitableProjections[kind]];
+  const response=await run(args);if(response.code!==0)throw Error(response.failure==='permission'?'feishu_structure_permission_required':response.failure==='authorization'?'feishu_authorization_required':'feishu_structure_unavailable');
+  const data=z.object({ok:z.literal(true),data:z.record(z.string(),z.unknown())}).parse(jsonEnvelope(response.stdout)).data;
+  const total=z.number().int().nonnegative().parse(data.total),items=z.array(item).max(300).parse(data[kind]);return {items,hasMore:total>items.length};
+ }
+ return {
+  listTables:app=>list('tables',app,undefined,z.strictObject({id,name})),
+  listViews:(app,table)=>list('views',app,table,z.strictObject({id,name,type})),
+  listFields:(app,table)=>list('fields',app,table,z.strictObject({name,type})),
+ };
 }
 function currentUserRecord(value:unknown,depth=0):unknown{
  if(!value||typeof value!=='object'||Array.isArray(value)||depth>3)return;

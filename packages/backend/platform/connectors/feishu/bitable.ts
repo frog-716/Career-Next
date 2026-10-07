@@ -1,0 +1,38 @@
+import {randomUUID} from 'node:crypto';
+import {BitableTablesRequest,BitableTableRequest,BitableTablesResult,BitableViewsResult,BitableFieldsResult,type BitableFailure} from '../../../../contracts/platform/feishu-bitable';
+import type {FeishuConnectionStatus} from './connector';
+
+export type StructurePage<T>={items:T[];hasMore:boolean};
+export type FeishuBitableReadPorts={
+ listTables(appToken:string):Promise<StructurePage<{id:string;name:string}>>;
+ listViews(appToken:string,tableId:string):Promise<StructurePage<{id:string;name:string;type:string}>>;
+ listFields(appToken:string,tableId:string):Promise<StructurePage<{name:string;type:string}>>;
+};
+export type FeishuBitablePorts=FeishuBitableReadPorts&{
+ getConnectionStatus():Promise<FeishuConnectionStatus>;
+ resolveBitable(ref:string):{appToken:string;title:string}|undefined;
+};
+const failed=(reason:BitableFailure['reason']):BitableFailure=>({kind:'failure',reason});
+/** Session-only structure capability. No record port, business DB or raw ID input. */
+export function createFeishuBitableStructure(ports:FeishuBitablePorts){
+ const tables=new Map<string,{appToken:string;tableId:string}>(),tableResults=new Map<string,Promise<BitableTablesResult>>(),viewResults=new Map<string,Promise<BitableViewsResult>>(),fieldResults=new Map<string,Promise<BitableFieldsResult>>();
+ async function status(){try{const s=await ports.getConnectionStatus();return s.state==='connected'?undefined:failed(s.state);}catch{return failed('connection_invalid');}}
+ async function attempt<T>(work:()=>Promise<T>):Promise<T|BitableFailure>{try{return await work();}catch(error){const reason=error instanceof Error?error.message:'';return failed(reason==='feishu_structure_permission_required'?'permission_required':reason==='feishu_authorization_required'?'reauthorization_required':'structure_failed');}}
+ return {
+  async listBitableTables(input:unknown):Promise<BitableTablesResult>{
+   const request=BitableTablesRequest.safeParse(input);if(!request.success)return failed('invalid_request');const selected=ports.resolveBitable(request.data.selectedRef);if(!selected)return failed('reference_unavailable');const unavailable=await status();if(unavailable)return unavailable;
+   const key=request.data.selectedRef;if(tableResults.has(key))return tableResults.get(key)!;
+   const result=attempt(async()=>{const page=await ports.listTables(selected.appToken);const refs=page.items.map(item=>({ref:randomUUID(),name:item.name}));const projected=BitableTablesResult.parse({kind:'tables',title:selected.title,items:refs,hasMore:page.hasMore});if(projected.kind!=='tables')throw Error();projected.items.forEach((item,index)=>tables.set(item.ref,{appToken:selected.appToken,tableId:page.items[index]!.id}));return projected;});tableResults.set(key,result);return result;
+  },
+  async listBitableViews(input:unknown):Promise<BitableViewsResult>{
+   const request=BitableTableRequest.safeParse(input);if(!request.success)return failed('invalid_request');const table=tables.get(request.data.tableRef);if(!table)return failed('reference_unavailable');const unavailable=await status();if(unavailable)return unavailable;
+   const key=request.data.tableRef;if(viewResults.has(key))return viewResults.get(key)!;
+   const result=attempt(async()=>{const page=await ports.listViews(table.appToken,table.tableId);return BitableViewsResult.parse({kind:'views',items:page.items.map(item=>({ref:randomUUID(),name:item.name,type:item.type})),hasMore:page.hasMore});});viewResults.set(key,result);return result;
+  },
+  async listBitableFields(input:unknown):Promise<BitableFieldsResult>{
+   const request=BitableTableRequest.safeParse(input);if(!request.success)return failed('invalid_request');const table=tables.get(request.data.tableRef);if(!table)return failed('reference_unavailable');const unavailable=await status();if(unavailable)return unavailable;
+   const key=request.data.tableRef;if(fieldResults.has(key))return fieldResults.get(key)!;
+   const result=attempt(async()=>{const page=await ports.listFields(table.appToken,table.tableId);return BitableFieldsResult.parse({kind:'fields',items:page.items.map(item=>({name:item.name,type:item.type})),hasMore:page.hasMore});});fieldResults.set(key,result);return result;
+  },
+ };
+}
