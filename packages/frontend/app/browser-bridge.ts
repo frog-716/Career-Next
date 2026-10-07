@@ -4,6 +4,7 @@ import {PurgeNotification} from '../../contracts/application/schema';
 import {ProviderConnectionTestResult,type ProviderConnectionTestInput} from '../../contracts/ai/connection-test';
 import {FeishuConnectionStatus,FeishuCurrentIdentity} from '../../contracts/platform/feishu-identity';
 import {FeishuSearchRequest,FeishuSearchResult,FeishuDocumentMetadata} from '../../contracts/platform/feishu-discovery';
+import {BitablePreviewSelectionRequest,BitablePreviewRequest,BitablePreviewSelectionResult,BitablePreviewResult} from '../../contracts/platform/feishu-bitable-preview';
 import {BitableTablesRequest,BitableTableRequest,BitableTablesResult,BitableViewsResult,BitableFieldsResult} from '../../contracts/platform/feishu-bitable';
 import type {} from '../../contracts/common/file-bridge';
 import {chooseBrowserFile} from './browser-files';
@@ -40,6 +41,10 @@ export async function installBrowserBridge(){
   },
  };
  window.careerFeishuDiscovery={searchDocuments:async input=>FeishuSearchResult.parse(await call('feishu/search',FeishuSearchRequest.parse(input)))};
+ window.careerFeishuBitablePreview={
+  selectBitablePreview:async input=>BitablePreviewSelectionResult.parse(await call('feishu/bitable/select-preview',BitablePreviewSelectionRequest.parse(input))),
+  previewBitableRecords:async input=>BitablePreviewResult.parse(await call('feishu/bitable/preview',BitablePreviewRequest.parse(input))),
+ };
  window.careerFeishuBitable={
   getSelectedBitable:async()=>FeishuDocumentMetadata.nullable().parse(await call('feishu/bitable/selected')),
   listBitableTables:async input=>BitableTablesResult.parse(await call('feishu/bitable/tables',BitableTablesRequest.parse(input))),

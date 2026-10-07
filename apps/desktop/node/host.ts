@@ -24,12 +24,13 @@ import {ProviderBinding} from '../../../packages/backend/platform/providers/bind
 import {createProviderConnectionTester} from '../../../packages/backend/platform/providers/connection-test';
 import {ProviderConnectionTestRequest} from '../../../packages/contracts/ai/connection-test';
 import {createFeishuConnector,type FeishuConnectorPorts} from '../../../packages/backend/platform/connectors/feishu/connector';
-import {createLarkCliFeishuPorts,createLarkCliDiscoveryPorts,createLarkCliBitablePorts} from '../../../packages/backend/platform/connectors/feishu/lark-cli';
+import {createLarkCliFeishuPorts,createLarkCliDiscoveryPorts,createLarkCliBitablePorts,createLarkCliRecordPreviewPorts} from '../../../packages/backend/platform/connectors/feishu/lark-cli';
 import {createFeishuDiscovery,type FeishuDiscoveryPorts} from '../../../packages/backend/platform/connectors/feishu/discovery';
+import {createBitableRecordPreview,type BitableRecordReadPorts} from '../../../packages/backend/platform/connectors/feishu/record-preview';
 import {createFeishuBitableStructure,type FeishuBitableReadPorts} from '../../../packages/backend/platform/connectors/feishu/bitable';
 
 // Trusted assembly ports for isolated fixtures; main.ts never supplies a fake binding or transport.
-export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch;feishuPorts?:Omit<FeishuConnectorPorts,'profileRoot'>;feishuDiscoveryPorts?:Pick<FeishuDiscoveryPorts,'searchDocuments'>;feishuBitablePorts?:FeishuBitableReadPorts;feishuSelectedBitable?:{title:string;url:string}};
+export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch;feishuPorts?:Omit<FeishuConnectorPorts,'profileRoot'>;feishuDiscoveryPorts?:Pick<FeishuDiscoveryPorts,'searchDocuments'>;feishuBitablePorts?:FeishuBitableReadPorts;feishuBitableRecordPorts?:BitableRecordReadPorts;feishuSelectedBitable?:{title:string;url:string}};
 /** Platform assembly only. Existing owners, writer and authorization controller remain the authority. */
 export async function createNodeHost(options:NodeHostOptions){
  const profile=path.resolve(options.profile);await mkdir(profile,{recursive:true,mode:0o700});
@@ -41,6 +42,7 @@ export async function createNodeHost(options:NodeHostOptions){
  const feishuDiscovery=createFeishuDiscovery({getConnectionStatus:feishu.getConnectionStatus,...(options.feishuDiscoveryPorts??createLarkCliDiscoveryPorts())});
  if(options.feishuSelectedBitable)feishuDiscovery.registerSelectedBitable(options.feishuSelectedBitable);
  const feishuBitable=createFeishuBitableStructure({getConnectionStatus:feishu.getConnectionStatus,resolveBitable:feishuDiscovery.resolveBitable,...(options.feishuBitablePorts??createLarkCliBitablePorts())});
+ const feishuBitablePreview=createBitableRecordPreview({getConnectionStatus:feishu.getConnectionStatus,resolveView:feishuBitable.resolveView,...(options.feishuBitableRecordPorts??createLarkCliRecordPreviewPorts())});
  const secrets=createSecretVault(path.join(profile,'security-native-v1'),deepseekStorage);
  const tavilySecrets=createSecretVault(path.join(profile,'security-tavily-native-v1'),tavilyStorage,undefined,'tavily');
  let providerBinding=options.providerBinding?ProviderBinding.parse(options.providerBinding):await resolveStartupProviderBinding(path.join(profile,'security-native-v1'),()=>secrets.request({operation:'status'}));
@@ -77,6 +79,8 @@ export async function createNodeHost(options:NodeHostOptions){
   'feishu/identity':async input=>{z.strictObject({}).parse(input);return feishu.getCurrentIdentity();},
   'feishu/connect':async input=>{z.strictObject({}).parse(input);return feishu.connect();},
   'feishu/search':async input=>feishuDiscovery.searchDocuments(input),
+  'feishu/bitable/select-preview':async input=>feishuBitablePreview.select(input),
+  'feishu/bitable/preview':async input=>feishuBitablePreview.preview(input),
   'feishu/bitable/selected':async input=>{z.strictObject({}).parse(input);return feishuDiscovery.getSelectedBitable();},
   'feishu/bitable/tables':async input=>feishuBitable.listBitableTables(input),
   'feishu/bitable/views':async input=>feishuBitable.listBitableViews(input),

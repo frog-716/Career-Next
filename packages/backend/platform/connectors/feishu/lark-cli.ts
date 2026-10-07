@@ -8,6 +8,7 @@ import {FeishuSearchQuery,FeishuDocumentType} from '../../../../contracts/platfo
 import type {FeishuSearchPage} from './discovery';
 import type {FeishuBitableReadPorts} from './bitable';
 import {z} from 'zod';
+import {PreviewCell,PreviewColumn} from '../../../../contracts/platform/feishu-bitable-preview';
 
 const execFile=promisify(nodeExecFile);
 export type FeishuCliRun=(args:string[])=>Promise<{stdout:string;code:number;failure?:'authorization'|'permission'|'unavailable'}>;
@@ -134,4 +135,30 @@ export function createLarkCliFeishuPorts(run:FeishuCliRun=defaultRunner){
    const chunks:Buffer[]=[];let size=0;if(!response.body)throw Error('avatar_unavailable');for await(const chunk of response.body){const part=Buffer.from(chunk);size+=part.length;if(size>2*1024*1024)throw Error('avatar_too_large');chunks.push(part);}return {bytes:Buffer.concat(chunks),mime};
   },
  };
+}
+
+// Project inside CLI before stdout: complex cell payloads never reach Browser.
+// JSON inline output makes one request; NDJSON/export/pagination is deliberately absent.
+export const bitableRecordProjection=`
+def present: . != null and . != [] and . != "";
+def cell($t):
+ if . == null then {kind:"empty"}
+ elif $t == "attachment" then {kind:"summary",category:"attachment",count:(if type=="array" then length else 0 end),present:present}
+ elif $t == "link" then {kind:"summary",category:"linked_record",count:(if type=="array" then length else 0 end),present:present}
+ elif ($t=="user" or $t=="created_by" or $t=="updated_by" or $t=="group_chat") then {kind:"summary",category:"user",present:present}
+ elif ($t=="formula" or $t=="lookup") then {kind:"summary",category:$t,present:present}
+ elif $t=="text" and type=="string" then {kind:"text",value:.[0:12000]}
+ elif $t=="number" and type=="number" then {kind:"number",value:.}
+ elif ($t=="datetime" or $t=="date" or $t=="created_at" or $t=="updated_at") and (type=="string" or type=="number") then {kind:"date",value:.}
+ elif ($t=="select" or $t=="single_select" or $t=="multi_select") and type=="array" and all(.[];type=="string") then {kind:"choice",value:.}
+ elif $t=="checkbox" and type=="boolean" then {kind:"boolean",value:.}
+ else {kind:"summary",category:(if type=="array" or type=="object" then "rich_content" else "other" end),present:present} end;
+{ok:.ok,data:(.data as $d | {columns:[range(0;($d.fields|length)) as $i | {name:$d.fields[$i],type:$d.field_type_list[$i]}],rows:[$d.data[]? | . as $row | [range(0;($d.fields|length)) as $i | $row[$i] | cell($d.field_type_list[$i])]],hasMore:$d.has_more})}`;
+export function createLarkCliRecordPreviewPorts(run:FeishuCliRun=defaultRunner):import('./record-preview').BitableRecordReadPorts{
+ return {async readRecords(appToken,tableId,viewId){
+  if(!/^[A-Za-z0-9]{16,128}$/.test(appToken)||!tableId.trim()||tableId.length>1000||!viewId.trim()||viewId.length>1000)throw Error('feishu_record_reference_invalid');
+  const result=await run(['base','+record-list','--base-token',appToken,'--table-id',tableId,'--view-id',viewId,'--limit','5','--offset','0','--as','user','--json','--jq',bitableRecordProjection]);
+  if(result.code!==0)throw Error(result.failure==='permission'?'feishu_record_permission_required':result.failure==='authorization'?'feishu_authorization_required':'feishu_record_unavailable');
+  const page=z.object({ok:z.literal(true),data:z.strictObject({columns:z.array(PreviewColumn).max(64),rows:z.array(z.array(PreviewCell).max(64)).max(5),hasMore:z.boolean()})}).parse(jsonEnvelope(result.stdout));return page.data;
+ }};
 }

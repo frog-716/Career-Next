@@ -34,7 +34,7 @@ test('zero tables is a valid result; missing permission is cached without retry 
  const f=fixture();f.ports.listTables.mockRejectedValueOnce(Error('feishu_structure_permission_required'));
  expect(await f.structure.listBitableTables({selectedRef:f.selected.ref})).toEqual({kind:'failure',reason:'permission_required'});
  expect(await f.structure.listBitableTables({selectedRef:f.selected.ref})).toEqual({kind:'failure',reason:'permission_required'});expect(f.ports.listTables).toHaveBeenCalledTimes(1);
- expect(Object.keys(structure).sort()).toEqual(['listBitableFields','listBitableTables','listBitableViews']);
+ expect(Object.keys(structure).sort()).toEqual(['listBitableFields','listBitableTables','listBitableViews','resolveView']);
 });
 test('a cloud document cannot be treated as a Bitable; disconnected and invalid connections make no structure calls',async()=>{
  const discovery=createFeishuDiscovery({getConnectionStatus:async()=>({provider:'feishu',state:'connected'}),searchDocuments:async()=>({hasMore:false,items:[{documentId:'TEST DOC',title:'TEST Cloud',type:'docx',updatedAt:null,url:link},{documentId:'TEST BASE',title:'TEST Base',type:'bitable',updatedAt:null,url:link}]})});
