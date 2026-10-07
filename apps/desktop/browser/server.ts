@@ -7,7 +7,8 @@ export type BrowserContext={bind(workspace:string):void;replaceBinding(workspace
 export type BrowserUpload={name:string;bytes:Buffer;target?:unknown};
 type Options={root:string;port:number;identity():{workspaceInstance:string}|undefined;handlers:Record<string,(input:unknown,context:BrowserContext)=>Promise<unknown>>;
  uploads?:Record<string,{maximumBytes:number;handle(input:BrowserUpload,context:BrowserContext):Promise<unknown>}>;
- downloads?:Record<string,(input:unknown,context:BrowserContext)=>Promise<{bytes:Buffer;name:string;type:string}>>};
+ downloads?:Record<string,(input:unknown,context:BrowserContext)=>Promise<{bytes:Buffer;name:string;type:string}>>;
+ assets?:Record<string,(input:unknown,context:BrowserContext)=>Promise<{bytes:Buffer;type:string}>>};
 const token=()=>randomBytes(32).toString('base64url');
 /** One loopback transport for enumerated Career contracts; never accepts paths, IPC channels or executable names. */
 export async function createBrowserHost(options:Options){
@@ -43,7 +44,8 @@ export async function createBrowserHost(options:Options){
    if(operation==='close-tab'){if(key)tabs?.delete(key);return reply(response,200,{ok:true});}
    if(operation==='events'){const events=tab.events.splice(0);return reply(response,200,{ok:true,result:events});}
    const download=options.downloads&&Object.hasOwn(options.downloads,operation)?options.downloads[operation]:undefined;
-   const handler=Object.hasOwn(options.handlers,operation)?options.handlers[operation]:undefined;if(!handler&&!upload&&!download)return reply(response,404,{error:'invalid_request'});
+   const asset=options.assets&&Object.hasOwn(options.assets,operation)?options.assets[operation]:undefined;
+   const handler=Object.hasOwn(options.handlers,operation)?options.handlers[operation]:undefined;if(!handler&&!upload&&!download&&!asset)return reply(response,404,{error:'invalid_request'});
    if(operation!=='ready'&&operation!=='reconnect'&&(!tab.workspace||tab.workspace!==options.identity()?.workspaceInstance))return reply(response,409,{error:'workspace_changed_reload_required'});
    const admittedWorkspace=tab.workspace;
    let input:unknown;
@@ -53,6 +55,7 @@ export async function createBrowserHost(options:Options){
    if(operation!=='ready'&&operation!=='reconnect'&&(admittedWorkspace!==options.identity()?.workspaceInstance||tab.workspace!==admittedWorkspace))return reply(response,409,{error:'workspace_changed_reload_required'});
    const context:BrowserContext={bind(workspace){if(tab.workspace&&tab.workspace!==workspace)throw Error('workspace_changed_reload_required');tab.workspace=workspace;},replaceBinding(workspace){tab.workspace=workspace;},notify(notice,workspace,skipSelf){for(const group of sessions.values())for(const other of group.values())if(other.workspace===workspace&&(!skipSelf||other!==tab)){other.events.push(notice);if(other.events.length>128)other.events=[{kind:'reload_required'}];}}};
    if(download){const result=await download(input,context);if(tabs?.get(key)!==tab||tab.workspace!==options.identity()?.workspaceInstance)throw Error('invalid_capability');response.writeHead(200,{...headers,'Content-Type':result.type,'Content-Disposition':`attachment; filename="Career-export.pdf"; filename*=UTF-8''${encodeURIComponent(result.name)}`});response.end(result.bytes);return;}
+   if(asset){const result=await asset(input,context);if(tabs?.get(key)!==tab||tab.workspace!==options.identity()?.workspaceInstance)throw Error('invalid_capability');response.writeHead(200,{...headers,'Content-Type':result.type,'Content-Disposition':'inline'});response.end(result.bytes);return;}
    const result=upload?await upload.handle(input as BrowserUpload,context):await handler!(input,context);return reply(response,200,{ok:true,result});
   }
   const topLevelAppNavigation=request.headers['sec-fetch-mode']==='navigate'&&request.headers['sec-fetch-dest']==='document'&&(url.pathname==='/'||url.pathname==='/index.html');
@@ -61,7 +64,7 @@ export async function createBrowserHost(options:Options){
   const filename=path.resolve(options.root,'.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));
   if(!filename.startsWith(path.resolve(options.root)+path.sep))return reply(response,403,{error:'invalid_capability'});
   try{const info=await lstat(filename);if(!info.isFile()||info.isSymbolicLink())return reply(response,403,{error:'invalid_capability'});const bytes=await readFile(filename);const extension=path.extname(filename);const type=({'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2'} as Record<string,string>)[extension];if(!type)return reply(response,404,{error:'invalid_request'});response.writeHead(200,{...headers,'Content-Type':type});response.end(request.method==='HEAD'?undefined:bytes);}catch{return reply(response,404,{error:'not_found'});}
- })().catch(error=>{if(response.headersSent){response.end();return;}const allowed=['disconnected','workspace_changed_reload_required','credential_cancelled','credential_denied','credential_timeout','credential_unavailable','invalid_request','invalid_capability'];reply(response,400,{error:allowed.includes(error?.message)?error.message:'invalid_request'});});});
+ })().catch(error=>{if(response.headersSent){response.end();return;}const allowed=['disconnected','workspace_changed_reload_required','credential_cancelled','credential_denied','credential_timeout','credential_unavailable','avatar_unavailable','invalid_request','invalid_capability'];reply(response,400,{error:allowed.includes(error?.message)?error.message:'invalid_request'});});});
  server.requestTimeout=30_000;server.headersTimeout=10_000;
  await new Promise<void>((resolve,reject)=>{server.once('error',reject);server.listen(options.port,'127.0.0.1',()=>{server.removeListener('error',reject);resolve();});});
  const address=server.address();if(!address||typeof address==='string')throw Error('browser_host_failed');origin=`http://127.0.0.1:${address.port}`;cookieName='career_session_'+address.port;

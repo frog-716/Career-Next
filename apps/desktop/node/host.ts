@@ -23,9 +23,11 @@ import {withBrowserFile,cleanAbandonedBrowserFiles} from '../capabilities/browse
 import {ProviderBinding} from '../../../packages/backend/platform/providers/binding';
 import {createProviderConnectionTester} from '../../../packages/backend/platform/providers/connection-test';
 import {ProviderConnectionTestRequest} from '../../../packages/contracts/ai/connection-test';
+import {createFeishuConnector,type FeishuConnectorPorts} from '../../../packages/backend/platform/connectors/feishu/connector';
+import {createLarkCliFeishuPorts} from '../../../packages/backend/platform/connectors/feishu/lark-cli';
 
 // Trusted assembly ports for isolated fixtures; main.ts never supplies a fake binding or transport.
-export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch};
+export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch;feishuPorts?:Omit<FeishuConnectorPorts,'profileRoot'>};
 /** Platform assembly only. Existing owners, writer and authorization controller remain the authority. */
 export async function createNodeHost(options:NodeHostOptions){
  const profile=path.resolve(options.profile);await mkdir(profile,{recursive:true,mode:0o700});
@@ -33,6 +35,7 @@ export async function createNodeHost(options:NodeHostOptions){
  const printer=createHeadlessPrinter(path.join(options.artifacts,'pdf-environment.json'));
  const native=(slot:'deepseek'|'tavily')=>createNativeKeychainStorage({helper:path.join(options.artifacts,'career-keychain'),profile,slot});
  const deepseekStorage=native('deepseek'),tavilyStorage=native('tavily');
+ const feishu=createFeishuConnector({profileRoot:profile,...(options.feishuPorts??createLarkCliFeishuPorts())});
  const secrets=createSecretVault(path.join(profile,'security-native-v1'),deepseekStorage);
  const tavilySecrets=createSecretVault(path.join(profile,'security-tavily-native-v1'),tavilyStorage,undefined,'tavily');
  let providerBinding=options.providerBinding?ProviderBinding.parse(options.providerBinding):await resolveStartupProviderBinding(path.join(profile,'security-native-v1'),()=>secrets.request({operation:'status'}));
@@ -65,6 +68,9 @@ export async function createNodeHost(options:NodeHostOptions){
   'connection/test':async input=>{if(closed)throw Error('disconnected');const parsed=ProviderConnectionTestRequest.safeParse(input);if(!parsed.success)throw Error('invalid_request');return connectionTester.request(parsed.data,()=>connectionGeneration(parsed.data.provider));},
   'search/local':async input=>runtime.search(session,input),
   'search/tavily':async input=>{const operation=(input as {operation?:string})?.operation;return runtime.externalSearch(session,input,operation==='receipt'?undefined:await tavily.generationForDispatch().catch(()=>undefined));},
+  'feishu/status':async input=>{z.strictObject({}).parse(input);return feishu.getConnectionStatus();},
+  'feishu/identity':async input=>{z.strictObject({}).parse(input);return feishu.getCurrentIdentity();},
+  'feishu/connect':async input=>{z.strictObject({}).parse(input);return feishu.connect();},
  };
  if(options.requestExit){let requested=false;handlers['host/stop']=async input=>{z.strictObject({confirmed:z.literal(true)}).parse(input);if(!requested){requested=true;setTimeout(()=>options.requestExit!(),250);}return {stopping:true};};}
  for(const module of BusinessModuleSchema.options)handlers['business/'+module]=async(input,context)=>{
@@ -90,7 +96,7 @@ export async function createNodeHost(options:NodeHostOptions){
  browser=await createBrowserHost({root:options.webRoot,port:options.port??0,identity,handlers,uploads:{
   'files/materials':{maximumBytes:MAX_TEXT_BYTES,handle:async input=>{const target=input.target===undefined?undefined:ImportTarget.parse(input.target),bound=session;return withBrowserFile(profile,input,['.txt','.md'],MAX_TEXT_BYTES,async filename=>{if(session!==bound)throw Error('invalid_capability');return MaterialResult.parse({kind:'preview',preview:await runtime.materials.selectFile(bound,filename,target)});});}},
   'files/sent':{maximumBytes:16*1024*1024,handle:async input=>{if(input.target!==undefined)throw Error('invalid_request');const bound=session;return withBrowserFile(profile,input,['.pdf','.txt','.md','.png','.jpg','.jpeg','.webp'],16*1024*1024,async filename=>{if(session!==bound)throw Error('invalid_capability');return runtime.selectSentFile(bound,filename);});}},
- },downloads:{'files/resume-pdf':async input=>{const value=z.strictObject({resumeId:z.uuid(),versionId:z.uuid()}).parse(input);const bytes=await runtime.readVersionPdf(session,value.resumeId,value.versionId);return {bytes,name:'Career-Resume.pdf',type:'application/pdf'};}}});
+ },downloads:{'files/resume-pdf':async input=>{const value=z.strictObject({resumeId:z.uuid(),versionId:z.uuid()}).parse(input);const bytes=await runtime.readVersionPdf(session,value.resumeId,value.versionId);return {bytes,name:'Career-Resume.pdf',type:'application/pdf'};}},assets:{'feishu/avatar':async input=>{z.strictObject({}).parse(input);const avatar=await feishu.readAvatar();if(!avatar)throw Error('avatar_unavailable');return {bytes:avatar.bytes,type:avatar.mime};}}});
  return {...browser,handlers,identity,async close(){if(closed)return;closed=true;await Promise.allSettled([secrets.request({operation:'cancel'}),tavilySecrets.request({operation:'cancel'})]);await browser.close();deepseekStorage.close();tavilyStorage.close();await printer.close();await Promise.allSettled([...printing.values()]);await runtime.close();}};
  }catch(error){deepseekStorage.close();tavilyStorage.close();await printer.close();await runtime.close();throw error;}
 }

@@ -2,6 +2,7 @@ import {BusinessModuleSchema} from '../../contracts/registry';
 import {Identity} from '../../contracts/common/runtime';
 import {PurgeNotification} from '../../contracts/application/schema';
 import {ProviderConnectionTestResult,type ProviderConnectionTestInput} from '../../contracts/ai/connection-test';
+import {FeishuConnectionStatus,FeishuCurrentIdentity} from '../../contracts/platform/feishu-identity';
 import type {} from '../../contracts/common/file-bridge';
 import {chooseBrowserFile} from './browser-files';
 /** Browser memory only: no saved keys, capability URLs, localStorage tokens or automatic command replay. */
@@ -25,6 +26,17 @@ export async function installBrowserBridge(){
  window.careerConnectionTest={request:async input=>ProviderConnectionTestResult.parse(await call('connection/test',input as ProviderConnectionTestInput))};
  window.careerSearch={request:input=>call('search/local',input)};
  window.careerTavilySearch={request:input=>call('search/tavily',input)};
+ window.careerFeishu={
+  getConnectionStatus:async()=>FeishuConnectionStatus.parse(await call('feishu/status')),
+  getCurrentIdentity:async()=>FeishuCurrentIdentity.parse(await call('feishu/identity')),
+  connect:async()=>FeishuConnectionStatus.parse(await call('feishu/connect')),
+  getAvatar:async()=>{
+   if(!capability)await bindSession();
+   let response:Response;try{response=await fetch('/api/feishu/avatar',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Career-Capability':capability!},body:'{}',redirect:'error'});}catch{window.dispatchEvent(new Event('career-backend-disconnected'));throw Error('disconnected');}
+   if(!response.ok){let code='avatar_unavailable';try{const result=await response.json();if(result.error==='invalid_capability')capability=undefined;else if(result.error==='disconnected')code='disconnected';}catch{}if(code==='disconnected')throw Error(code);return undefined;}
+   const blob=await response.blob();if(!blob.type.startsWith('image/'))return undefined;return URL.createObjectURL(blob);
+  },
+ };
  await bindSession();
  if(hostControl)window.careerHost={stop:async()=>{await call('host/stop',{confirmed:true});}};
  if(browserPdf)window.careerPdf={async download(resumeId,versionId){if(!capability)await bindSession();const response=await fetch('/api/files/resume-pdf',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Career-Capability':capability!},body:JSON.stringify({resumeId,versionId}),redirect:'error'});if(!response.ok)throw Error('download_failed');const blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='Career-Resume.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}};

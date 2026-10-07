@@ -72,3 +72,12 @@ test('binary uploads and downloads retain session, origin and workspace admissio
   current='w2';expect((await post('files/materials',Buffer.from('TEST'),{...auth,'Content-Type':'application/octet-stream'})).status).toBe(409);expect(calls).toBe(1);
  }finally{await host.close();await rm(directory,{recursive:true,force:true});}
 });
+
+test('a cached connector avatar is a capability-bound same-origin image, not a generic file endpoint',async()=>{
+ const directory=await mkdtemp(path.join(tmpdir(),'career-feishu-avatar-http-'));await writeFile(path.join(directory,'index.html'),'TEST');let workspace='w1';
+ const host=await createBrowserHost({root:directory,port:0,identity:()=>({workspaceInstance:workspace}),handlers:{ready:async(_,context)=>{context.bind(workspace);return {};},'feishu/status':async input=>{if(JSON.stringify(input)!=='{}')throw Error('invalid_request');return {provider:'feishu',state:'connected'};}},assets:{'feishu/avatar':async input=>{expect(input).toEqual({});return {bytes:Buffer.from('TEST-AVATAR'),type:'image/jpeg'};}}});
+ try{const post=(endpoint:string,headers:Record<string,string>={},body='{}')=>fetch(host.url+'/api/'+endpoint,{method:'POST',headers:{Origin:host.url,'Content-Type':'application/json',...headers},body});const boot=await post('bootstrap'),cookie=boot.headers.get('set-cookie')!.split(';')[0]!,capability=(await boot.json()).capability,auth={Cookie:cookie,'X-Career-Capability':capability};await post('ready',auth);
+  const image=await post('feishu/avatar',auth);expect(image.status).toBe(200);expect(image.headers.get('content-type')).toBe('image/jpeg');expect(image.headers.get('content-disposition')).toBe('inline');expect(image.headers.get('cache-control')).toBe('no-store');expect(await image.text()).toBe('TEST-AVATAR');
+  expect((await post('feishu/avatar',{Cookie:cookie})).status).toBe(403);expect((await post('feishu/avatar',{...auth,Origin:'https://evil.example'})).status).toBe(403);expect((await post('feishu/generic',auth)).status).toBe(404);expect((await post('feishu/status',auth,'{"credential":"do-not-accept"}')).status).toBe(400);
+ }finally{await host.close();await rm(directory,{recursive:true,force:true});}
+});
