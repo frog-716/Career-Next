@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {execFile as nodeExecFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import os from 'node:os';
@@ -28,7 +29,7 @@ async function defaultRunner(args:string[]):ReturnType<FeishuCliRun>{
  let binary:string|undefined;for(const candidate of candidates){try{await access(candidate);binary=candidate;break;}catch{}}
  if(!binary)throw Error('feishu_cli_unavailable');
  try{const target=await realpath(binary).catch(()=>binary),invocation=larkCliInvocation(target,args);const result=await execFile(invocation.executable,invocation.args,{encoding:'utf8',timeout:20_000,maxBuffer:2*1024*1024,env:{...process.env,LARKSUITE_CLI_NO_UPDATE_NOTIFIER:'1',LARKSUITE_CLI_NO_SKILLS_NOTIFIER:'1'}});return {stdout:result.stdout,code:0};}
- catch(error){const value=error as NodeJS.ErrnoException&{stdout?:string;stderr?:string;code?:number};const clue=(value.stderr??'').toLowerCase();return {stdout:value.stdout??'',code:typeof value.code==='number'?value.code:1,failure:/missing_scope|99991679/.test(clue)?'permission':/token_expired|invalid_token|unauthorized|9999166[1348]/.test(clue)?'authorization':'unavailable'};}
+ catch(error){const value=error as NodeJS.ErrnoException&{stdout?:string;stderr?:string;code?:number};const clue=(value.stderr??'').toLowerCase();return {stdout:value.stdout??'',code:typeof value.code==='number'?value.code:1,failure:/missing_scope|99991679/.test(clue)?'permission':/token_expired|invalid_token|unauthorized|need_user_authorization|user_authorization|refresh_token_expired|9999166[1348]/.test(clue)?'authorization':'unavailable'};}
 }
 
 // Projection happens inside the CLI before stdout reaches Career. In particular,
@@ -107,14 +108,19 @@ function avatarUrlFromPayload(payload:unknown){
 
 /** Fixed lark-cli identity adapter. It never returns raw CLI envelopes or credential fields. */
 export function createLarkCliFeishuPorts(run:FeishuCliRun=defaultRunner){
+ let accountIdentity:string|null=null;
+ function rememberAccount(payload:unknown,state:FeishuAuthState){const user=(payload as {identities?:{user?:{openId?:unknown;open_id?:unknown}}})?.identities?.user,openId=user?.openId??user?.open_id;accountIdentity=['ready','needs_refresh'].includes(state)&&typeof openId==='string'&&/^ou_[A-Za-z0-9_-]{8,128}$/.test(openId)?createHash('sha256').update('feishu/current-user/open_id\0'+openId,'utf8').digest('hex'):null;}
  return {
-  async authState():Promise<FeishuAuthState>{try{const result=await run(['auth','status','--json']);if(result.code!==0)return 'unavailable';return authStateFromPayload(jsonEnvelope(result.stdout));}catch{return 'unavailable';}},
+  // Backend-only projection of the most recent existing local auth status; no CLI call.
+  currentAccountIdentity:()=>accountIdentity,
+  async authState():Promise<FeishuAuthState>{accountIdentity=null;try{const result=await run(['auth','status','--json']);if(result.code!==0)return 'unavailable';const payload=jsonEnvelope(result.stdout),state=authStateFromPayload(payload);rememberAccount(payload,state);return state;}catch{return 'unavailable';}},
   async readCurrentUser():Promise<FeishuUserProfile>{
-   const local=await run(['auth','status','--json']);if(local.code!==0)throw Error('feishu_identity_unavailable');
+   accountIdentity=null;const local=await run(['auth','status','--json']);if(local.code!==0)throw Error('feishu_identity_unavailable');
    let authorization:Record<string,any>;try{authorization=jsonEnvelope(local.stdout);}catch{throw Error('feishu_identity_unavailable');}
    const current=authorization.identities?.user,openId=current?.openId??current?.open_id;
-   if(authStateFromPayload(authorization)!=='ready'||typeof openId!=='string'||!/^ou_[A-Za-z0-9_-]{8,128}$/.test(openId))throw Error('feishu_identity_unavailable');
-   const result=await run(['api','GET','/open-apis/contact/v3/users/'+openId,'--params','{"user_id_type":"open_id"}','--as','user','--json']);if(result.code!==0)throw Error('feishu_identity_unavailable');
+   const auth=authStateFromPayload(authorization);rememberAccount(authorization,auth);
+   if(!['ready','needs_refresh'].includes(auth)||typeof openId!=='string'||!/^ou_[A-Za-z0-9_-]{8,128}$/.test(openId))throw Error('feishu_identity_unavailable');
+   const result=await run(['api','GET','/open-apis/contact/v3/users/'+openId,'--params','{"user_id_type":"open_id"}','--as','user','--json']);if(result.code!==0)throw Error(result.failure==='authorization'?'feishu_authorization_required':result.failure==='permission'?'feishu_scope_denied':'feishu_identity_unavailable');
    let payload:unknown;try{payload=jsonEnvelope(result.stdout);}catch{throw Error('feishu_identity_unavailable');}
    if(!(payload as Record<string,unknown>)?.ok)throw Error('feishu_identity_unavailable');
    const user=currentUserRecord(payload),name=nicknameFromCurrentUser(user);

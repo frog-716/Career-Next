@@ -16,6 +16,7 @@ function initialDocument():CareerDocument{return {schemaVersion:1,sections:[{id:
 function preserveAlignment(before:import('../../../contracts/resume/schema').ResumeBlock,after:import('../../../contracts/resume/schema').ResumeBlock){
  const result=structuredClone(after);
  if(before.type==='paragraph'&&result.type==='paragraph'){
+  if(before.entry===undefined)delete result.entry;else result.entry=structuredClone(before.entry);
   if(before.alignment===undefined)delete result.alignment;else result.alignment=before.alignment;
  }else if(before.type==='bullet-list'&&result.type==='bullet-list'){
   for(const item of result.items){const original=before.items.find(value=>value.id===item.id&&value.paragraphId===item.paragraphId);
@@ -24,7 +25,7 @@ function preserveAlignment(before:import('../../../contracts/resume/schema').Res
   }
  }else{
   const aligned=before.type==='paragraph'?before.alignment&&before.alignment!=='left':before.items.some(item=>item.alignment&&item.alignment!=='left');
-  if(aligned)throw Error('alignment-preservation-required');
+  if(aligned||before.type==='paragraph'&&before.entry)throw Error('alignment-preservation-required');
   if(result.type==='paragraph')delete result.alignment;else for(const item of result.items)delete item.alignment;
  }
  return result;
@@ -33,6 +34,7 @@ function preserveAlignment(before:import('../../../contracts/resume/schema').Res
 function insertionAlignment(anchor:import('../../../contracts/resume/schema').ResumeBlock,after:import('../../../contracts/resume/schema').ResumeBlock){
  const result=structuredClone(after);
  if(result.type==='paragraph'){
+  delete result.entry;
   if(anchor.type==='paragraph'&&anchor.alignment!==undefined)result.alignment=anchor.alignment;else delete result.alignment;
  }else for(const [index,item] of result.items.entries()){
   const inherited=anchor.type==='bullet-list'?anchor.items[index]?.alignment:anchor.alignment;
@@ -56,7 +58,7 @@ export function createResumeDomain(db:Database.Database,dependencies:Opportunity
    if(old){if(old.payload_json!==JSON.stringify(request))return {status:'conflict',profile:profile(),document:document(request.resumeId)};return {status:'pending-job',job:Snapshot.parse(JSON.parse(old.snapshot_json)),name:old.name};}
    const conflict=check(request.resumeId,request.expectedRevision,request.expectedProfileRevision);if(conflict)return conflict;
    const doc=document(request.resumeId)!;const current=profile();const metadata=blockProvenance(doc.id),evidence=metadata.length?{blockProvenance:metadata}:{};
-   const snapshot=Snapshot.parse({id:request.commandId,resumeId:doc.id,opportunityId:doc.opportunityId,resumeRevision:doc.revision,profileRevision:current.revision,content:doc.content,...evidence,profile:current,contentHash:createHash('sha256').update(JSON.stringify({content:doc.content,profile:current,...evidence})).digest('hex'),templateVersion:'a4-basic-1',fontVersion:printMetadata.fontVersion,engineVersion:printMetadata.engineVersion,rendererVersion:'career-print-2',recordedAt:new Date().toISOString()});
+   const snapshot=Snapshot.parse({id:request.commandId,resumeId:doc.id,opportunityId:doc.opportunityId,resumeRevision:doc.revision,profileRevision:current.revision,content:doc.content,...evidence,profile:current,contentHash:createHash('sha256').update(JSON.stringify({content:doc.content,profile:current,...evidence})).digest('hex'),templateVersion:doc.content.layout.template==='miaoda-paper'?'miaoda-paper-1':doc.content.layout.template==='miaoda-resume'?'miaoda-resume-1':'a4-basic-1',fontVersion:printMetadata.fontVersion,engineVersion:printMetadata.engineVersion,rendererVersion:'career-print-2',recordedAt:new Date().toISOString()});
    db.prepare('INSERT INTO resume_render_jobs VALUES(?,?,?,?)').run(request.commandId,JSON.stringify(request),JSON.stringify(snapshot),'name' in request?request.name:'');
    return {status:'pending-job',job:snapshot,name:'name' in request?request.name:''};
   })());}catch{return {status:'failure',code:'storage-failed'};}

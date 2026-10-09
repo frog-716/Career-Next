@@ -47,3 +47,12 @@ test('expired, revoked and unavailable user authorization remain distinct from a
  expect(await createLarkCliFeishuPorts(response('not_configured')).authState()).toBe('not_configured');
  expect(await createLarkCliFeishuPorts(async()=>{throw Error('private failure details');}).authState()).toBe('unavailable');
 });
+
+test('refreshable local credentials reach the fixed user Contact call so official CLI can renew authorization',async()=>{
+ const run=vi.fn(async(args:string[])=>({code:0,stdout:JSON.stringify(args[0]==='auth'?{identities:{user:{status:'needs_refresh',tokenStatus:'needs_refresh',openId:'ou_current_test_user'}}}:{ok:true,data:{user:{nickname:'TEST nickname'}}})}));expect(await createLarkCliFeishuPorts(run).readCurrentUser()).toEqual({displayName:'TEST nickname'});expect(run.mock.calls.filter(([args])=>args[0]==='api')).toHaveLength(1);expect(run.mock.calls.every(([args])=>args[0]==='auth'||args.includes('/open-apis/contact/v3/users/ou_current_test_user'))).toBe(true);
+});
+test('backend account hash comes only from the current local auth identity and its getter makes no requests',async()=>{
+ let openId='ou_TEST_account_currentA',status='ready';const run=vi.fn(async()=>({code:0,stdout:JSON.stringify({ok:true,identities:{user:{status,tokenStatus:'valid',openId}},access_token:'PRIVATE_SECRET'})})),ports=createLarkCliFeishuPorts(run);
+ expect(ports.currentAccountIdentity()).toBeNull();expect(run).not.toHaveBeenCalled();expect(await ports.authState()).toBe('ready');const first=ports.currentAccountIdentity();expect(first).toMatch(/^[a-f0-9]{64}$/);expect(first).not.toContain(openId);expect(ports.currentAccountIdentity()).toBe(first);expect(run).toHaveBeenCalledTimes(1);
+ openId='ou_TEST_account_currentB';await ports.authState();expect(ports.currentAccountIdentity()).not.toBe(first);expect(run).toHaveBeenCalledTimes(2);status='revoked';await ports.authState();expect(ports.currentAccountIdentity()).toBeNull();expect(JSON.stringify(ports.currentAccountIdentity())).not.toMatch(/PRIVATE|ou_TEST/);
+});

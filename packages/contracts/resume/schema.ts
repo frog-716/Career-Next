@@ -11,11 +11,12 @@ export const Span=z.strictObject({text:z.string().max(10000),marks:z.array(Mark)
 export type Span=z.infer<typeof Span>;
 export const Alignment=z.enum(['left','center','right']);
 export type Alignment=z.infer<typeof Alignment>;
-const Paragraph=z.strictObject({alignment:Alignment.optional(),id:Id,type:z.literal('paragraph'),spans:z.array(Span).max(1000)});
+export const ResumeEntry=z.strictObject({id:Id,field:z.enum(['school','degree','major','startDate','endDate','description','company','position','name','role','techStack','category','items','responsibility','date'])});
+const Paragraph=z.strictObject({entry:ResumeEntry.optional(),alignment:Alignment.optional(),id:Id,type:z.literal('paragraph'),spans:z.array(Span).max(1000)});
 const BulletList=z.strictObject({id:Id,type:z.literal('bullet-list'),items:z.array(z.strictObject({id:Id,paragraphId:Id,alignment:Alignment.optional(),spans:z.array(Span).max(1000)})).max(200)});
 export const Section=z.strictObject({id:Id,kind:z.enum(['summary','skills','experience','project','education']),title:z.string().max(120),blocks:z.array(z.discriminatedUnion('type',[Paragraph,BulletList])).max(200)});
 export const ResumeBlock=Section.shape.blocks.element;export type ResumeBlock=z.infer<typeof ResumeBlock>;
-export const CareerDocument=z.strictObject({schemaVersion:z.literal(1),sections:z.array(Section).min(1).max(30),layout:z.strictObject({template:z.literal('a4-basic'),fontSize:z.number().int().min(10).max(14),identityPosition:z.literal('top'),identityNameAlignment:Alignment.optional()})}).superRefine((document,context)=>{
+export const CareerDocument=z.strictObject({schemaVersion:z.literal(1),sections:z.array(Section).min(1).max(30),layout:z.strictObject({template:z.enum(['a4-basic','miaoda-resume','miaoda-paper']),fontSize:z.number().int().min(10).max(14),identityPosition:z.literal('top'),contentScale:z.number().min(0.5).max(2).optional(),identityNameAlignment:Alignment.optional()})}).superRefine((document,context)=>{
  const ids:string[]=[];
  for(const section of document.sections){ids.push(section.id);for(const block of section.blocks){ids.push(block.id);if(block.type==='bullet-list')for(const item of block.items)ids.push(item.id,item.paragraphId);}}
  if(new Set(ids).size!==ids.length)context.addIssue({code:'custom',message:'文档区块 ID 必须唯一'});
@@ -25,7 +26,7 @@ export type CareerDocument=z.infer<typeof CareerDocument>;
 
 export const Document=z.strictObject({id:Id,opportunityId:Id,revision:Revision,content:CareerDocument,recordedAt:z.string().datetime()});
 export const BlockProvenance=z.strictObject({blockId:Id,provenance:z.array(Provenance).max(1000)});
-export const Snapshot=z.strictObject({id:Id,resumeId:Id,opportunityId:Id,resumeRevision:Revision,profileRevision:Revision,content:CareerDocument,blockProvenance:z.array(BlockProvenance).max(1000).optional(),profile:Profile,contentHash:z.string().regex(/^[a-f0-9]{64}$/),templateVersion:z.literal('a4-basic-1'),fontVersion:z.string().min(1).max(120),engineVersion:z.string().min(1).max(120),rendererVersion:z.enum(['career-print-1','career-print-2']),recordedAt:z.string().datetime()});
+export const Snapshot=z.strictObject({id:Id,resumeId:Id,opportunityId:Id,resumeRevision:Revision,profileRevision:Revision,content:CareerDocument,blockProvenance:z.array(BlockProvenance).max(1000).optional(),profile:Profile,contentHash:z.string().regex(/^[a-f0-9]{64}$/),templateVersion:z.enum(['a4-basic-1','miaoda-resume-1','miaoda-paper-1']),fontVersion:z.string().min(1).max(120),engineVersion:z.string().min(1).max(120),rendererVersion:z.enum(['career-print-1','career-print-2']),recordedAt:z.string().datetime()});
 export const PdfArtifact=z.strictObject({blobId:Id,digest:z.string().regex(/^[a-f0-9]{64}$/),size:z.number().int().positive().max(16*1024*1024)});
 export const Version=z.strictObject({id:Id,resumeId:Id,name:z.string().trim().max(120),kind:z.enum(['named','export']).optional(),snapshot:Snapshot,pdf:PdfArtifact,recordedAt:z.string().datetime()});
 export const NameVersion=z.strictObject({operation:z.literal('resume.name-version'),commandId:Id,resumeId:Id,expectedRevision:Revision,expectedProfileRevision:Revision,name:z.string().trim().min(1).max(120)});

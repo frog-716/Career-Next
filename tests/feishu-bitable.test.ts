@@ -34,7 +34,23 @@ test('zero tables is a valid result; missing permission is cached without retry 
  const f=fixture();f.ports.listTables.mockRejectedValueOnce(Error('feishu_structure_permission_required'));
  expect(await f.structure.listBitableTables({selectedRef:f.selected.ref})).toEqual({kind:'failure',reason:'permission_required'});
  expect(await f.structure.listBitableTables({selectedRef:f.selected.ref})).toEqual({kind:'failure',reason:'permission_required'});expect(f.ports.listTables).toHaveBeenCalledTimes(1);
- expect(Object.keys(structure).sort()).toEqual(['listBitableFields','listBitableTables','listBitableViews','resolveView']);
+ expect(Object.keys(structure).sort()).toEqual(['dispose','listBitableFields','listBitableTables','listBitableViews','resolveView']);
+});
+
+test.each(['tables','views','fields'] as const)('disposing structure revokes refs and rejects a late %s response',async kind=>{
+ const f=fixture(),tables=await f.structure.listBitableTables({selectedRef:f.selected.ref});if(tables.kind!=='tables')throw Error();const tableRef=tables.items[0]!.ref;
+ const views=await f.structure.listBitableViews({tableRef});if(views.kind!=='views')throw Error();const viewRef=views.items[0]!.ref;
+ // Use the second table for a fresh view/field attempt, then invalidate all earlier refs.
+ let release!:()=>void,reached!:()=>void;const waiting=new Promise<void>(resolve=>{release=resolve;}),started=new Promise<void>(resolve=>{reached=resolve;});
+ f.structure.dispose();
+ let pending:Promise<unknown>;
+ if(kind==='tables'){f.ports.listTables.mockImplementationOnce(async()=>{reached();await waiting;return {items:[{id:'tblLATE',name:'TEST Late'}],hasMore:false};});pending=f.structure.listBitableTables({selectedRef:f.selected.ref});}
+ else {const fresh=await f.structure.listBitableTables({selectedRef:f.selected.ref});if(fresh.kind!=='tables')throw Error();const freshRef=fresh.items[1]!.ref;
+  if(kind==='views'){f.ports.listViews.mockImplementationOnce(async()=>{reached();await waiting;return {items:[{id:'vewLATE',name:'TEST Late',type:'grid'}],hasMore:false};});pending=f.structure.listBitableViews({tableRef:freshRef});}
+  else {f.ports.listFields.mockImplementationOnce(async()=>{reached();await waiting;return {items:[{name:'TEST Late',type:'text'}],hasMore:false};});pending=f.structure.listBitableFields({tableRef:freshRef});}
+ }
+ await started;f.structure.dispose();release();expect(await pending).toEqual({kind:'failure',reason:'reference_unavailable'});
+ expect(f.structure.resolveView(tableRef,viewRef)).toBeUndefined();expect(await f.structure.listBitableViews({tableRef})).toEqual({kind:'failure',reason:'reference_unavailable'});
 });
 test('a cloud document cannot be treated as a Bitable; disconnected and invalid connections make no structure calls',async()=>{
  const discovery=createFeishuDiscovery({getConnectionStatus:async()=>({provider:'feishu',state:'connected'}),searchDocuments:async()=>({hasMore:false,items:[{documentId:'TEST DOC',title:'TEST Cloud',type:'docx',updatedAt:null,url:link},{documentId:'TEST BASE',title:'TEST Base',type:'bitable',updatedAt:null,url:link}]})});

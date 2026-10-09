@@ -4,7 +4,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { startWriter } from '../../platform/database/client';
 import { createBlobBroker } from '../../platform/files/blobs';
-import { Confirm, SourceRef, Raw, Preview, FeishuOrigin, MAX_TEXT_BYTES, type Receipt } from '../../../contracts/materials/schema';
+import { Confirm, SourceRef, Raw, Preview, MaterialOrigin, MAX_TEXT_BYTES, type Receipt } from '../../../contracts/materials/schema';
 import type {ProductionSinkAdapter} from '../../platform/files/staging';
 import { staging } from '../../platform/files/staging';
 import type { HumanSession, Store } from './store';
@@ -44,9 +44,9 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
     await writer.call('read', session, id);
     return Raw.parse({ ...metadata, text });
   }
-  async function selectFile(session: HumanSession, filename: string,target?:import('../../../contracts/materials/schema').ImportTarget,sourceOrigin?:FeishuOrigin) {
+  async function selectFile(session: HumanSession, filename: string,target?:import('../../../contracts/materials/schema').ImportTarget,sourceOrigin?:MaterialOrigin) {
     if (!['.txt', '.md'].includes(path.extname(filename).toLowerCase())) throw new Error('unsupported_file');
-    const origin=sourceOrigin?FeishuOrigin.parse(sourceOrigin):undefined;
+    const origin=sourceOrigin?MaterialOrigin.parse(sourceOrigin):undefined;
     const id = await writer.call('begin', session, path.basename(filename),target,origin);
     const job=(async()=>{try {
       const file = await files.select(id, filename, () => writer.call('valid', session, id),await sinkFor?.(id));
@@ -81,9 +81,23 @@ export async function createMaterialsBackend(root: string, makeBlobs: typeof cre
     },
     // Trusted coordinator may attach the already-read user Feishu snapshot metadata;
     // renderer select/confirm DTOs cannot supply or mutate this origin.
-    selectFile(session: HumanSession, filename: string,target?:import('../../../contracts/materials/schema').ImportTarget,origin?:FeishuOrigin) {
+    selectFile(session: HumanSession, filename: string,target?:import('../../../contracts/materials/schema').ImportTarget,origin?:MaterialOrigin) {
       if (closing) return Promise.reject(new Error('disconnected'));
       return track(selectFile(session, filename,target,origin));
+    },
+    // Trusted application coordinator only; Browser cannot submit text or provenance here.
+    selectTextSnapshot(session:HumanSession,name:string,text:string,sourceOrigin:MaterialOrigin) {
+      if(closing)return Promise.reject(new Error('disconnected'));
+      const origin=MaterialOrigin.parse(sourceOrigin);
+      return track((async()=>{
+        const id=await writer.call('begin',session,name,undefined,origin);
+        const job=(async()=>{try{
+          const value=await files.text(id,name,text,()=>writer.call('valid',session,id),await sinkFor?.(id));
+          const preview=Preview.parse({...value,importId:id,origin,revision:1,saved:false});
+          await writer.call('preview',session,preview);return preview;
+        }catch(error){await writer.call('cancel',session,id).catch(()=>{});await files.remove(id).catch(()=>{});throw error;}})();
+        selections.set(id,job);try{return await job;}finally{selections.delete(id);}
+      })());
     },
     async cancel(session: HumanSession, id: string) {
       await writer.call('cancel', session, id);

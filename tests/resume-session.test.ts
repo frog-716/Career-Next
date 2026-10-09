@@ -89,7 +89,7 @@ it('restoring a frozen body keeps its success notice and later layout changes st
 });
 it('invalid live editor content blocks layout autosave, version freezing and leaving until corrected',async()=>{
  const f=await fixture();try{
-  await f.start();const body=f.page.getByRole('textbox',{name:'简历正文',exact:true}).locator('p').first();await body.fill('x'.repeat(10001));
+  await f.start();const body=f.page.getByRole('textbox',{name:'简历正文',exact:true}).locator('p').first().locator('.source-entry-text');await body.fill('x'.repeat(10001));
   await f.page.getByTestId('resume-save-state').filter({hasText:'格式不受支持，当前输入未保存'}).waitFor();
   if(await f.page.getByRole('button',{name:'关闭历史',exact:true}).isVisible())await f.page.getByRole('button',{name:'关闭历史',exact:true}).click();await f.openTools();await f.page.getByLabel('简历字号',{exact:true}).selectOption('13');
   // Longer than debounce; no older valid document may silently substitute for the visible invalid body.
@@ -113,3 +113,14 @@ it('committed version remains saved when history reads fail, and explicit reread
   expect(f.versionCommands).toHaveLength(1);
  }finally{await f.close();}
 });
+it('unsaved identity survives a restore or undo that would otherwise replace the paper template',async()=>{
+ const f=await fixture();try{
+  const baseline=structuredClone(f.opened.document.content);baseline.layout.template='a4-basic';
+  f.resume.handle({operation:'resume.save',commandId:randomUUID(),resumeId:f.opened.document.id,expectedRevision:1,expectedProfileRevision:0,content:baseline});
+  await f.start();await f.openTools();await f.page.getByRole('button',{name:'命名版本（⌘S）',exact:true}).click();await f.page.getByLabel('版本名称').fill('TEST basic historical paper');await f.page.getByRole('button',{name:'保存版本及 PDF',exact:true}).click();await f.page.getByText('命名版本及 PDF 已冻结保存',{exact:true}).waitFor();
+  await f.page.getByLabel('简历模板',{exact:true}).filter({visible:true}).selectOption('miaoda-paper');await f.page.getByTestId('resume-save-state').filter({hasText:'已保存'}).waitFor();
+  const name=f.page.getByLabel('基础资料姓名',{exact:true});await name.fill('TEST unsaved identity');await f.openTools();await f.page.getByRole('button',{name:'版本历史',exact:true}).click();await f.page.getByRole('button',{name:'TEST basic historical paper',exact:true}).click();await f.page.getByRole('button',{name:'恢复此版本正文',exact:true}).click();
+  await f.page.getByText('请先保存姓名、联系方式和网页的未提交输入，再恢复版本。',{exact:true}).waitFor();expect(await name.inputValue()).toBe('TEST unsaved identity');await f.page.getByRole('button',{name:'取消查看 / 恢复',exact:true}).click();await f.page.getByRole('button',{name:'关闭历史',exact:true}).click();await f.page.getByRole('button',{name:'撤销',exact:true}).click();
+  expect(await name.inputValue()).toBe('TEST unsaved identity');expect(await f.page.getByRole('article',{name:'简历编辑纸面'}).evaluate(el=>el.classList.contains('source-paper'))).toBe(true);
+ }finally{await f.close();}
+},60000);

@@ -1,9 +1,12 @@
 import {BusinessModuleSchema} from '../../contracts/registry';
 import {Identity} from '../../contracts/common/runtime';
 import {PurgeNotification} from '../../contracts/application/schema';
+import {FeishuCacheEviction} from '../../contracts/platform/feishu-cache-eviction';
 import {ProviderConnectionTestResult,type ProviderConnectionTestInput} from '../../contracts/ai/connection-test';
 import {FeishuConnectionStatus,FeishuCurrentIdentity} from '../../contracts/platform/feishu-identity';
 import {FeishuSearchRequest,FeishuSearchResult,FeishuDocumentMetadata} from '../../contracts/platform/feishu-discovery';
+import {FeishuDocumentRequest,FeishuDocumentCachedPreviewRequest,FeishuDocumentResult,FeishuDocumentCancelRequest,FeishuDocumentCancelResult,FeishuDocumentImportRequest,FeishuDocumentImportResult} from '../../contracts/platform/feishu-document';
+import {SelectedBitableRecordResult,BitableRecordSelectionRequest,BitableRawPreviewResult,BitableRawPreviewRefRequest,BitableRawPreviewReadyRequest,BitableRawPreviewReady,BitableRawPreviewCancelled,BitableRawImportRequest,BitableRawImportResult} from '../../contracts/platform/feishu-bitable-raw-preview';
 import {BitablePreviewSelectionRequest,BitablePreviewRequest,BitablePreviewSelectionResult,BitablePreviewResult} from '../../contracts/platform/feishu-bitable-preview';
 import {BitableTablesRequest,BitableTableRequest,BitableTablesResult,BitableViewsResult,BitableFieldsResult} from '../../contracts/platform/feishu-bitable';
 import type {} from '../../contracts/common/file-bridge';
@@ -41,6 +44,15 @@ export async function installBrowserBridge(){
   },
  };
  window.careerFeishuDiscovery={searchDocuments:async input=>FeishuSearchResult.parse(await call('feishu/search',FeishuSearchRequest.parse(input)))};
+ window.careerFeishuDocument={cachedPreview:async input=>FeishuDocumentResult.parse(await call('feishu/document/cached-preview',FeishuDocumentCachedPreviewRequest.parse(input))),preview:async input=>FeishuDocumentResult.parse(await call('feishu/document/preview',FeishuDocumentRequest.parse(input))),cancel:async input=>FeishuDocumentCancelResult.parse(await call('feishu/document/cancel',FeishuDocumentCancelRequest.parse(input))),importPreview:async input=>FeishuDocumentImportResult.parse(await call('feishu/document/import',FeishuDocumentImportRequest.parse(input)))};
+ window.careerFeishuBitableRawPreview={
+  getSelectedRecord:async()=>SelectedBitableRecordResult.parse(await call('feishu/bitable/record-selection')),
+  selectRecord:async input=>SelectedBitableRecordResult.parse(await call('feishu/bitable/select-record',BitableRecordSelectionRequest.parse(input))),
+  prepareRawPreview:async input=>BitableRawPreviewResult.parse(await call('feishu/bitable/raw-preview',BitableRecordSelectionRequest.parse(input))),
+  cancelRawPreview:async input=>BitableRawPreviewCancelled.parse(await call('feishu/bitable/raw-preview-cancel',BitableRawPreviewRefRequest.parse(input))),
+  readyRawPreview:async input=>BitableRawPreviewReady.parse(await call('feishu/bitable/raw-preview-ready',BitableRawPreviewReadyRequest.parse(input))),
+  importRawPreview:async input=>BitableRawImportResult.parse(await call('feishu/bitable/raw-import',BitableRawImportRequest.parse(input))),
+ };
  window.careerFeishuBitablePreview={
   selectBitablePreview:async input=>BitablePreviewSelectionResult.parse(await call('feishu/bitable/select-preview',BitablePreviewSelectionRequest.parse(input))),
   previewBitableRecords:async input=>BitablePreviewResult.parse(await call('feishu/bitable/preview',BitablePreviewRequest.parse(input))),
@@ -55,7 +67,7 @@ export async function installBrowserBridge(){
  if(hostControl)window.careerHost={stop:async()=>{await call('host/stop',{confirmed:true});}};
  if(browserPdf)window.careerPdf={async download(resumeId,versionId){if(!capability)await bindSession();const response=await fetch('/api/files/resume-pdf',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Career-Capability':capability!},body:JSON.stringify({resumeId,versionId}),redirect:'error'});if(!response.ok)throw Error('download_failed');const blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='Career-Resume.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}};
  let stopped=false;
- async function notifications(){if(stopped)return;try{if(workspace){const notices=await call('events');for(const notice of notices){const parsed=PurgeNotification.safeParse(notice);if(parsed.success)for(const callback of listeners)callback(parsed.data);else if(notice?.kind==='workspace_changed'||notice?.kind==='reload_required')window.dispatchEvent(new Event('career-workspace-invalidated'));}}}catch{/* A notification poll never retries a command or invokes egress. */}finally{if(!stopped)setTimeout(notifications,1000);}}
+ async function notifications(){if(stopped)return;try{if(workspace){const notices=await call('events');for(const notice of notices){const eviction=FeishuCacheEviction.safeParse(notice);if(eviction.success){window.dispatchEvent(new CustomEvent('career-feishu-cache-evicted',{detail:eviction.data}));continue;}const parsed=PurgeNotification.safeParse(notice);if(parsed.success)for(const callback of listeners)callback(parsed.data);else if(notice?.kind==='workspace_changed'||notice?.kind==='reload_required')window.dispatchEvent(new Event('career-workspace-invalidated'));}}}catch{/* A notification poll never retries a command or invokes egress. */}finally{if(!stopped)setTimeout(notifications,1000);}}
  window.addEventListener('pagehide',()=>{stopped=true;if(capability)void fetch('/api/close-tab',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Career-Capability':capability},body:'{}',keepalive:true,redirect:'error'}).catch(()=>{});});
  window.addEventListener('pageshow',event=>{if(event.persisted){stopped=false;capability=undefined;void ready().then(()=>notifications()).catch(()=>window.dispatchEvent(new Event('career-workspace-invalidated')));}});void notifications();
 }

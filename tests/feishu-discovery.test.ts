@@ -46,3 +46,12 @@ test('search projection rejects unsolicited body fields and sanitizes metadata t
  run.mockResolvedValueOnce({code:0,stdout:JSON.stringify({ok:true,data:{has_more:false,results:[{documentId:'TEST',title:'TEST',type:'DOCX',updatedAt:null,url:null,summary:'FORBIDDEN CONTENT'}]}})});
  await expect(ports.searchDocuments('TEST')).rejects.toThrow();expect(run).toHaveBeenCalledTimes(2);
 });
+
+test('disposing discovery revokes document and Bitable refs and refuses a late search result',async()=>{
+ const page={hasMore:false,items:[{documentId:'TESTDocumentToken12345',title:'TEST Cloud',type:'docx' as const,updatedAt:null,url:null},{documentId:'TESTBitableIdentity12345',title:'TEST Base',type:'bitable' as const,updatedAt:null,url:'https://test.feishu.cn/base/TESTBitableIdentity12345'}]};
+ let release!:()=>void,reached!:()=>void;const waiting=new Promise<void>(resolve=>{release=resolve;}),started=new Promise<void>(resolve=>{reached=resolve;});let wait=false;
+ const discovery=createFeishuDiscovery({getConnectionStatus:async()=>({provider:'feishu',state:'connected'}),searchDocuments:async()=>{if(wait){reached();await waiting;}return page;}});
+ const prior=await discovery.searchDocuments({searchId:randomUUID(),query:'TEST'});if(prior.kind!=='results')throw Error();const selected=discovery.registerSelectedBitable({title:'TEST Selected',url:page.items[1].url!});
+ wait=true;const pending=discovery.searchDocuments({searchId:randomUUID(),query:'TEST late'});await started;discovery.dispose();expect(discovery.resolveDocument(prior.items[0]!.ref)).toBeUndefined();expect(discovery.resolveBitable(prior.items[1]!.ref)).toBeUndefined();expect(discovery.resolveBitable(selected.ref)).toBeUndefined();expect(discovery.getSelectedBitable()).toBeNull();
+ release();expect(await pending).toEqual({kind:'failure',reason:'search_failed'});wait=false;expect((await discovery.searchDocuments({searchId:randomUUID(),query:'TEST fresh'})).kind).toBe('results');
+});

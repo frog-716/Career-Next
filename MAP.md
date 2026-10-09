@@ -1,6 +1,8 @@
 # Career-Next 项目地图
 
-当前状态：[E1 替代宿主 PASS](docs/verification/E1-ELECTRON-REPLACEMENT.md)，真人睡眠唤醒与两次 Chrome 冷启动均通过，[E2 清理与回归 PASS](docs/verification/E2-ELECTRON-RETIREMENT.md)，默认 Node / Chrome，Electron 正式依赖/适配层已移除。[S1 新 Keychain 重新录入 PASS](docs/verification/s1-keychain-reentry.md)：DeepSeek 与 Tavily 各完成一次真实连接检查，Chrome 冷启动后配置仍可用；旧 Electron safeStorage 未读、未删。[F1 飞书连接身份 PASS](docs/verification/f1-feishu-identity.md)：按用户确认使用官方 Contact User `nickname` 与真实头像；缓存、后台/Chrome 重启和600px已验证。连接身份与Profile隔离。[F2 元数据发现 PASS](docs/verification/f2-feishu-metadata-discovery.md)：用户完成1次真实标题搜索、5条候选并选择1条多维表格；正文/记录读取、Raw/Wiki创建、AI及飞书写入均0。后续F3须按资料类型选择reader。[F3-A Bitable结构 PASS](docs/verification/f3a-bitable-structure.md)：隔离TEST会话真实读取6张表/7个视图/65个字段，用户确认选择“生图任务 / ① 从这里开始｜准备生图”；记录读取及导入均0。[F3-B 有限记录预览 PASS](docs/verification/f3b-bitable-record-preview.md)：完成1次真实只读、显示5条有限预览并由用户选中1条，hasMore=true但未翻页；未导入或进入F3-C。G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
+当前状态：[E1 替代宿主 PASS](docs/verification/E1-ELECTRON-REPLACEMENT.md)，真人睡眠唤醒与两次 Chrome 冷启动均通过，[E2 清理与回归 PASS](docs/verification/E2-ELECTRON-RETIREMENT.md)，默认 Node / Chrome，Electron 正式依赖/适配层已移除。[S1 新 Keychain 重新录入 PASS](docs/verification/s1-keychain-reentry.md)：DeepSeek 与 Tavily 各完成一次真实连接检查，Chrome 冷启动后配置仍可用；旧 Electron safeStorage 未读、未删。[F1 飞书连接身份 PASS](docs/verification/f1-feishu-identity.md)：按用户确认使用官方 Contact User `nickname` 与真实头像；缓存、后台/Chrome 重启和600px已验证。连接身份与Profile隔离。[F2 元数据发现 PASS](docs/verification/f2-feishu-metadata-discovery.md)：用户完成1次真实标题搜索、5条候选并选择1条多维表格；正文/记录读取、Raw/Wiki创建、AI及飞书写入均0。后续F3须按资料类型选择reader。[F3-A Bitable结构 PASS](docs/verification/f3a-bitable-structure.md)：隔离TEST会话真实读取6张表/7个视图/65个字段，用户确认选择“生图任务 / ① 从这里开始｜准备生图”；记录读取及导入均0。[F3-B 有限记录预览 PASS](docs/verification/f3b-bitable-record-preview.md)：完成1次真实只读、显示5条有限预览并由用户选中1条，hasMore=true但未翻页；未导入。[F3-C Raw导入预览](docs/verification/f3c-bitable-raw-preview.md)已获用户审批；[F3-D 唯一Raw保存 PASS](docs/verification/f3d-bitable-raw-import.md)：原隔离TEST工作区0→1，正文/provenance与审批快照一致，重复确认不重复创建；新增飞书请求、Wiki、AI与飞书写入均0。G0–G5 PASS；[J-07 真实外部验收](docs/verification/j07-real-external.md)（[#31](https://github.com/frog-716/Career-Next/issues/31)）已用隔离 TEST DATA 通过 Tavily / DeepSeek / Feishu 三分支。G6 本地故障/恢复 PASS。Developer ID / Notarization / x64 = READY / NOT RUN；Migration M 已完成 M0 盘点及 M0.5 人工分类，M1-B #33 fixture adapter 已通过，M-Lite 当前8个对象已迁入并启用；不继续重型 M2/M3。⑩前端功能与UX baseline PASS（A/B/C），见 [⑩-C最终验收](docs/verification/frontend-c.md)。UX BASELINE = IMPLEMENTED；⑪ A6 / 方案3已获用户批准并进入正式实现，当前 checkpoint 与真实能力边界见 [A6实施](docs/ux/A6-IMPLEMENTATION.md)。
+
+本轮连续交付状态见 [资料主链与日常旅程](docs/verification/continuous-delivery.md)，独立网页审计交接见 [审计请求](docs/audit/FINAL-REVIEW-REQUEST.md)。云文档读取与Raw保存由窄connector和正式Materials组合；永久清除经内容无关通知关闭各窗口的相关飞书缓存及迟到预览，保留无关业务草稿；AI外发仍逐次授权。
 
 ## 目标与当前阶段
 
@@ -17,6 +19,8 @@ Career 是本地优先的长期职业工作台，覆盖求职、真实工作记�
 状态以用户于 2026-10-02 确认为准：Product Spec = Frozen R3，Architecture V2 = Frozen。两个 ZIP 的全部文件已原样保存，仅移除各自外层目录；正文中的 R2 标题、待审查状态和历史阶段指令保留原文，不覆盖当前状态或本轮授权范围。
 
 ## 顶层模块
+
+- [README 对外展示](README.md)：以普通语言介绍职业工作台、真实界面与设计取舍。`docs/assets/readme/` 保存封面、当前 Node / Chrome 架构图、隔离虚构数据截图与 GIF；`scripts/readme-{artwork.mjs,capture.ts,gif.py}` 可重建素材。截图脚本使用正式本机业务模块，禁用真实外部服务，结束后清理 TEST 工作区；展示素材不替代冻结正本或验收证据。
 
 | 位置 | 未来职责 |
 | --- | --- |
@@ -145,6 +149,8 @@ G0 探针及执行入口已在 E2 退役。历史结果保留在 verification / 
 - ⑩-C [#38](https://github.com/frog-716/Career-Next/issues/38)：Wiki/项目/任职阅读与编辑分层；`app/related-projects.tsx`经公开Project Contract装配任职/人物项目关系；`support/profile/`为设置内基础资料编辑；`support/ai/business-entry.tsx`按真实连接能力提供业务任务入口。Research的两种owner会话分别保留，Apply后只读刷新，不覆盖未保存草稿。设置五分组、普通语言与技术详情分层，开发诊断仅显式隔离模式显示。验收见 [⑩-C 全 baseline](docs/verification/frontend-c.md)。不进入⑪。
 
 ## ⑪ A6 / 方案 3 实施入口
+
+- [Resume 分区/实时预览与 Feishu 续期](docs/verification/resume-workbench-and-feishu-continuity.md)：按用户纠正接入妙搭实际 `legacy-entry/legacy-app/legacy.css` 单 A4 纸面（`features/resume/source-paper.*`），当前稿在独立私密副本保存并由原 owner 导出，字体 PDF 字符映射已修复；A4观看层固定纸面后等比例缩放，姓名/联系方式/网页/GitHub在简历纸面编辑，设置不再重复维护身份，保存仍走Profile公开命令；字段经原 Career editor/session 保存，保存/版本/PDF owner 不变；可续期 user 授权通过可信 CLI 恢复，并发共享一次恢复，真正失效后不自动反复请求。隔离 TEST Chrome 已验证，等待用户界面审阅；Resume验收与F3-D资料保存分属不同隔离工作区。
 
 - [A6实施](docs/ux/A6-IMPLEMENTATION.md) / [验收](docs/verification/frontend-a6.md) / [#39](https://github.com/frog-716/Career-Next/issues/39)：`design-system/brand/` 透明 SVG 与有限动效，`shell/` 四名称导航，`support/experience/avatar-menu.tsx` 辅助菜单，`features/opportunity/` 四列管线、详情六分区与新建小面板；Resume套用原件纸面/工具栏，三个其他模块使用原件资料行。人工审批尚未通过，当前补齐版本等待复审。`docs/ux/CHANGELOG.md` 是产品内更新日志源。
 - 不再使用独立 Home 或品牌跳转首页；已有默认启动模块仍由 preferences owner 管理。未连接飞书不显示姓名，不将 Profile 或 CLI token 当连接身份。现有合同无提醒字段，显示“未设”，不新增业务能力。

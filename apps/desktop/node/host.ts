@@ -26,11 +26,21 @@ import {ProviderConnectionTestRequest} from '../../../packages/contracts/ai/conn
 import {createFeishuConnector,type FeishuConnectorPorts} from '../../../packages/backend/platform/connectors/feishu/connector';
 import {createLarkCliFeishuPorts,createLarkCliDiscoveryPorts,createLarkCliBitablePorts,createLarkCliRecordPreviewPorts} from '../../../packages/backend/platform/connectors/feishu/lark-cli';
 import {createFeishuDiscovery,type FeishuDiscoveryPorts} from '../../../packages/backend/platform/connectors/feishu/discovery';
+import {createBitableRawPreview} from '../../../packages/backend/platform/connectors/feishu/raw-preview';
+import {createBitableRawImporter} from '../../../packages/backend/application/materials/bitable-import';
+import {createFeishuDocumentReader,type FeishuDocumentReadPorts} from '../../../packages/backend/platform/connectors/feishu/document';
+import {createLarkCliDocumentPorts} from '../../../packages/backend/platform/connectors/feishu/document-cli';
+import {createFeishuDocumentImporter} from '../../../packages/backend/application/materials/document-import';
+import {FeishuCacheEviction} from '../../../packages/contracts/platform/feishu-cache-eviction';
+import {BitableRawImportRequest} from '../../../packages/contracts/platform/feishu-bitable-raw-preview';
+import {FeishuDocumentImportRequest} from '../../../packages/contracts/platform/feishu-document';
+import type {BitableRawPreview} from '../../../packages/contracts/platform/feishu-bitable-raw-preview';
+import type {SelectedRecordSnapshot} from '../../../packages/backend/platform/connectors/feishu/record-snapshot';
 import {createBitableRecordPreview,type BitableRecordReadPorts} from '../../../packages/backend/platform/connectors/feishu/record-preview';
 import {createFeishuBitableStructure,type FeishuBitableReadPorts} from '../../../packages/backend/platform/connectors/feishu/bitable';
 
 // Trusted assembly ports for isolated fixtures; main.ts never supplies a fake binding or transport.
-export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch;feishuPorts?:Omit<FeishuConnectorPorts,'profileRoot'>;feishuDiscoveryPorts?:Pick<FeishuDiscoveryPorts,'searchDocuments'>;feishuBitablePorts?:FeishuBitableReadPorts;feishuBitableRecordPorts?:BitableRecordReadPorts;feishuSelectedBitable?:{title:string;url:string}};
+export type NodeHostOptions={profile:string;artifacts:string;webRoot:string;port?:number;automaticBackups?:boolean;requestExit?:()=>void;providerBinding?:ProviderBinding;providerTransport?:typeof fetch;tavilyTransport?:typeof fetch;feishuPorts?:Omit<FeishuConnectorPorts,'profileRoot'>;feishuDiscoveryPorts?:Pick<FeishuDiscoveryPorts,'searchDocuments'>;feishuBitablePorts?:FeishuBitableReadPorts;feishuBitableRecordPorts?:BitableRecordReadPorts;feishuDocumentPorts?:FeishuDocumentReadPorts;feishuSelectedRecordSnapshot?:SelectedRecordSnapshot;feishuApprovedRawPreview?:BitableRawPreview;feishuSelectedBitable?:{title:string;url:string}};
 /** Platform assembly only. Existing owners, writer and authorization controller remain the authority. */
 export async function createNodeHost(options:NodeHostOptions){
  const profile=path.resolve(options.profile);await mkdir(profile,{recursive:true,mode:0o700});
@@ -41,8 +51,11 @@ export async function createNodeHost(options:NodeHostOptions){
  const feishu=createFeishuConnector({profileRoot:profile,...(options.feishuPorts??createLarkCliFeishuPorts())});
  const feishuDiscovery=createFeishuDiscovery({getConnectionStatus:feishu.getConnectionStatus,...(options.feishuDiscoveryPorts??createLarkCliDiscoveryPorts())});
  if(options.feishuSelectedBitable)feishuDiscovery.registerSelectedBitable(options.feishuSelectedBitable);
+ const feishuDocument=createFeishuDocumentReader({getConnectionStatus:feishu.getConnectionStatus,resolveDocument:feishuDiscovery.resolveDocument,getAccountIdentity:feishu.getAccountIdentity,...(options.feishuDocumentPorts??createLarkCliDocumentPorts())});
  const feishuBitable=createFeishuBitableStructure({getConnectionStatus:feishu.getConnectionStatus,resolveBitable:feishuDiscovery.resolveBitable,...(options.feishuBitablePorts??createLarkCliBitablePorts())});
- const feishuBitablePreview=createBitableRecordPreview({getConnectionStatus:feishu.getConnectionStatus,resolveView:feishuBitable.resolveView,...(options.feishuBitableRecordPorts??createLarkCliRecordPreviewPorts())});
+ const feishuBitablePreview=createBitableRecordPreview({getConnectionStatus:feishu.getConnectionStatus,resolveView:feishuBitable.resolveView,...(options.feishuBitableRecordPorts??createLarkCliRecordPreviewPorts())},options.feishuSelectedRecordSnapshot);
+ const feishuRawPreview=createBitableRawPreview({readSelectedRecord:feishuBitablePreview.readSelectedRecord},options.feishuApprovedRawPreview);
+ function disposeFeishuReferences(){feishuDocument.dispose();feishuRawPreview.dispose();feishuBitablePreview.dispose();feishuBitable.dispose();feishuDiscovery.dispose();}
  const secrets=createSecretVault(path.join(profile,'security-native-v1'),deepseekStorage);
  const tavilySecrets=createSecretVault(path.join(profile,'security-tavily-native-v1'),tavilyStorage,undefined,'tavily');
  let providerBinding=options.providerBinding?ProviderBinding.parse(options.providerBinding):await resolveStartupProviderBinding(path.join(profile,'security-native-v1'),()=>secrets.request({operation:'status'}));
@@ -65,6 +78,10 @@ export async function createNodeHost(options:NodeHostOptions){
   if(provider==='deepseek'&&result.status.provider!=='deepseek-v4.1-flash')return undefined;
   return result.status.generation;
  }
+ const documentImporter=createFeishuDocumentImporter({materials:runtime.materials,session:()=>session,resolvePreview:feishuDocument.resolvePreview});
+ const rawImporter=createBitableRawImporter({materials:runtime.materials,session:()=>session,resolvePreview:feishuRawPreview.resolveForImport});
+ function clearFeishuBodies(){const document=feishuDocument.dispose(),table=feishuRawPreview.dispose(),record=feishuBitablePreview.dispose();return {previewRefs:[...new Set([...document.invalidatedPreviewRefs,...table.invalidatedPreviewRefs])],recordRefs:record.recordRefs};}
+ function evictSavedMaterials(materialIds:string[],context:BrowserContext,workspace:string){const document=feishuDocument.purgeSavedMaterials(materialIds),table=feishuRawPreview.purgeSavedMaterials(materialIds),record=feishuBitablePreview.invalidateRecordSnapshots(table.recordRefs,table.sources),tracked=new Set([...document.trackedMaterialIds,...table.trackedMaterialIds]),all=materialIds.some(id=>!tracked.has(id));const fallback=all?clearFeishuBodies():{previewRefs:[],recordRefs:[]};context.notify(FeishuCacheEviction.parse({kind:'feishu_cache_evicted',materialIds,previewRefs:[...new Set([...document.invalidatedPreviewRefs,...table.invalidatedPreviewRefs,...fallback.previewRefs])],recordRefs:[...new Set([...record.recordRefs,...fallback.recordRefs])],all}),workspace);}
  const printing=new Map<string,Promise<unknown>>();
  const handlers:Record<string,(input:unknown,context:BrowserContext)=>Promise<unknown>>={
   ready:async(_,context)=>{if(closed)throw Error('disconnected');context.bind(session.workspaceInstance);return identity();},
@@ -75,13 +92,23 @@ export async function createNodeHost(options:NodeHostOptions){
   'connection/test':async input=>{if(closed)throw Error('disconnected');const parsed=ProviderConnectionTestRequest.safeParse(input);if(!parsed.success)throw Error('invalid_request');return connectionTester.request(parsed.data,()=>connectionGeneration(parsed.data.provider));},
   'search/local':async input=>runtime.search(session,input),
   'search/tavily':async input=>{const operation=(input as {operation?:string})?.operation;return runtime.externalSearch(session,input,operation==='receipt'?undefined:await tavily.generationForDispatch().catch(()=>undefined));},
-  'feishu/status':async input=>{z.strictObject({}).parse(input);return feishu.getConnectionStatus();},
+  'feishu/status':async input=>{z.strictObject({}).parse(input);const status=await feishu.getConnectionStatus();if(status.state!=='connected')disposeFeishuReferences();return status;},
   'feishu/identity':async input=>{z.strictObject({}).parse(input);return feishu.getCurrentIdentity();},
-  'feishu/connect':async input=>{z.strictObject({}).parse(input);return feishu.connect();},
+  'feishu/connect':async input=>{z.strictObject({}).parse(input);disposeFeishuReferences();return feishu.connect();},
   'feishu/search':async input=>feishuDiscovery.searchDocuments(input),
+  'feishu/document/cached-preview':async input=>{const preview=feishuDocument.cachedPreview(input);if(preview.kind!=='document_preview')return preview;if(preview.source.accountIdentity&&preview.source.accountIdentity!==await feishu.getAccountIdentity()){disposeFeishuReferences();return {kind:'failure',reason:'preview_unavailable'};}return feishuDocument.resolvePreview({previewRef:preview.ref,previewDigest:preview.provenance.previewDigest})??{kind:'failure',reason:'preview_unavailable'};},
+  'feishu/document/preview':async input=>feishuDocument.preview(input),
+  'feishu/document/cancel':async input=>feishuDocument.cancel(input),
+  'feishu/document/import':async(input,context)=>{const bound=session,parsed=FeishuDocumentImportRequest.safeParse(input),preview=parsed.success?feishuDocument.resolvePreview({previewRef:parsed.data.previewRef,previewDigest:parsed.data.previewDigest}):undefined;if(preview?.source.accountIdentity&&preview.source.accountIdentity!==await feishu.getAccountIdentity()){disposeFeishuReferences();return {kind:'failure',reason:'preview_unavailable'};}const result=await documentImporter.importPreview(input);if(result.kind==='raw_saved'&&parsed.success&&!feishuDocument.bindSavedMaterial(parsed.data.previewRef,result.materialId))context.notify(FeishuCacheEviction.parse({kind:'feishu_cache_evicted',materialIds:[result.materialId],previewRefs:[parsed.data.previewRef],recordRefs:[],all:false}),bound.workspaceInstance);return result;},
+  'feishu/bitable/record-selection':async input=>{z.strictObject({}).parse(input);return feishuRawPreview.restoredMetadata()??feishuBitablePreview.getSelectedRecordMetadata();},
+  'feishu/bitable/select-record':async input=>feishuBitablePreview.selectRecord(input),
+  'feishu/bitable/raw-preview':async input=>feishuRawPreview.prepare(input),
+  'feishu/bitable/raw-preview-cancel':async input=>feishuRawPreview.cancel(input),
+  'feishu/bitable/raw-preview-ready':async input=>feishuRawPreview.ready(input),
+  'feishu/bitable/raw-import':async(input,context)=>{const bound=session,parsed=BitableRawImportRequest.safeParse(input),result=await rawImporter.importPreview(input);if(result.kind==='raw_saved'&&parsed.success&&!feishuRawPreview.bindSavedMaterial(parsed.data.previewRef,result.materialId))context.notify(FeishuCacheEviction.parse({kind:'feishu_cache_evicted',materialIds:[result.materialId],previewRefs:[parsed.data.previewRef],recordRefs:[],all:false}),bound.workspaceInstance);return result;},
   'feishu/bitable/select-preview':async input=>feishuBitablePreview.select(input),
   'feishu/bitable/preview':async input=>feishuBitablePreview.preview(input),
-  'feishu/bitable/selected':async input=>{z.strictObject({}).parse(input);return feishuDiscovery.getSelectedBitable();},
+  'feishu/bitable/selected':async input=>{z.strictObject({}).parse(input);const source=feishuBitablePreview.readSelectedRecord()?.source??feishuRawPreview.restoredMetadata()?.source;return source?{ref:source.bitableRef,title:source.bitableTitle,type:'bitable',updatedAt:null,url:null}:feishuDiscovery.getSelectedBitable();},
   'feishu/bitable/tables':async input=>feishuBitable.listBitableTables(input),
   'feishu/bitable/views':async input=>feishuBitable.listBitableViews(input),
   'feishu/bitable/fields':async input=>feishuBitable.listBitableFields(input),
@@ -94,8 +121,9 @@ export async function createNodeHost(options:NodeHostOptions){
   if(module==='application'){
    const data=DataResult.parse(result),refs=data.kind==='purged'?data.references:data.kind==='failure'?data.purgeReferences:undefined;
    if(refs?.length)context.notify(PurgeNotification.parse({workspaceInstance:bound.workspaceInstance,references:refs}),bound.workspaceInstance);
+   if(refs?.length){const materialIds=[...new Set(refs.filter(ref=>ref.owner==='materials').map(ref=>ref.objectId))];if(materialIds.length)evictSavedMaterials(materialIds,context,bound.workspaceInstance);}
    if(data.kind==='restored'||data.kind==='failure'&&data.code==='restore_failed_reconnected'){
-    await Promise.all([coordinator.request({operation:'disable'}),tavily.request({operation:'disable'})]);session=await runtime.connectHuman();if(session.workspaceInstance!==bound.workspaceInstance){context.notify({kind:'workspace_changed'},bound.workspaceInstance,true);context.replaceBinding(session.workspaceInstance);}
+    disposeFeishuReferences();await Promise.all([coordinator.request({operation:'disable'}),tavily.request({operation:'disable'})]);session=await runtime.connectHuman();if(session.workspaceInstance!==bound.workspaceInstance){context.notify({kind:'workspace_changed'},bound.workspaceInstance,true);context.replaceBinding(session.workspaceInstance);}
    }
   }
   if(module!=='resume')return result;
@@ -111,6 +139,6 @@ export async function createNodeHost(options:NodeHostOptions){
   'files/materials':{maximumBytes:MAX_TEXT_BYTES,handle:async input=>{const target=input.target===undefined?undefined:ImportTarget.parse(input.target),bound=session;return withBrowserFile(profile,input,['.txt','.md'],MAX_TEXT_BYTES,async filename=>{if(session!==bound)throw Error('invalid_capability');return MaterialResult.parse({kind:'preview',preview:await runtime.materials.selectFile(bound,filename,target)});});}},
   'files/sent':{maximumBytes:16*1024*1024,handle:async input=>{if(input.target!==undefined)throw Error('invalid_request');const bound=session;return withBrowserFile(profile,input,['.pdf','.txt','.md','.png','.jpg','.jpeg','.webp'],16*1024*1024,async filename=>{if(session!==bound)throw Error('invalid_capability');return runtime.selectSentFile(bound,filename);});}},
  },downloads:{'files/resume-pdf':async input=>{const value=z.strictObject({resumeId:z.uuid(),versionId:z.uuid()}).parse(input);const bytes=await runtime.readVersionPdf(session,value.resumeId,value.versionId);return {bytes,name:'Career-Resume.pdf',type:'application/pdf'};}},assets:{'feishu/avatar':async input=>{z.strictObject({}).parse(input);const avatar=await feishu.readAvatar();if(!avatar)throw Error('avatar_unavailable');return {bytes:avatar.bytes,type:avatar.mime};}}});
- return {...browser,handlers,identity,async close(){if(closed)return;closed=true;await Promise.allSettled([secrets.request({operation:'cancel'}),tavilySecrets.request({operation:'cancel'})]);await browser.close();deepseekStorage.close();tavilyStorage.close();await printer.close();await Promise.allSettled([...printing.values()]);await runtime.close();}};
- }catch(error){deepseekStorage.close();tavilyStorage.close();await printer.close();await runtime.close();throw error;}
+ return {...browser,handlers,identity,async close(){if(closed)return;closed=true;disposeFeishuReferences();await Promise.allSettled([secrets.request({operation:'cancel'}),tavilySecrets.request({operation:'cancel'})]);await browser.close();deepseekStorage.close();tavilyStorage.close();await printer.close();await Promise.allSettled([...printing.values()]);await runtime.close();}};
+ }catch(error){disposeFeishuReferences();deepseekStorage.close();tavilyStorage.close();await printer.close();await runtime.close();throw error;}
 }

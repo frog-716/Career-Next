@@ -3,7 +3,7 @@ import type {ImportTarget} from '../../../contracts/materials/schema';
 import { Kysely, SqliteDialect } from 'kysely';
 import type Database from 'better-sqlite3';
 import { randomUUID, createHash } from 'node:crypto';
-import { Receipt, ErrorCode, FeishuOrigin } from '../../../contracts/materials/schema';
+import { Receipt, ErrorCode, MaterialOrigin } from '../../../contracts/materials/schema';
 import type { Identity, Preview, RawSummary, Confirm, SourceRef } from '../../../contracts/materials/schema';
 import { createLedger } from '../../platform/database/ledger';
 import { createSessions, type SessionAuthority } from '../../platform/runtime/sessions';
@@ -60,14 +60,14 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
       db.prepare("UPDATE materials_imports SET state='revoked',validity=validity+1"+forgetOrigin+" WHERE state IN ('preparing','preview')").run();
       return authority.connect();
     },
-    begin(session: HumanSession, name: string,target?:ImportTarget,origin?:FeishuOrigin) {
-      check(session);if(origin&&!originAvailable)throw Error('invalid_capability');const value=origin?FeishuOrigin.parse(origin):undefined,id=randomUUID();
+    begin(session: HumanSession, name: string,target?:ImportTarget,origin?:MaterialOrigin) {
+      check(session);if(origin&&!originAvailable)throw Error('invalid_capability');const value=origin?MaterialOrigin.parse(origin):undefined,id=randomUUID();
       return db.transaction(()=>{db.prepare('INSERT INTO materials_imports(id,generation,connection,state,name) VALUES (?,?,?,\'preparing\',?)').run(id,backendGeneration,session.connectionGeneration,name);targets.begin(id,target);if(value)db.prepare('UPDATE materials_imports SET origin_json=? WHERE id=?').run(JSON.stringify(value),id);return id;})();
     },
     valid,
     preview(session: HumanSession, input: Preview) {
-      const row=valid(session,input.importId),origin=row.origin_json?FeishuOrigin.parse(JSON.parse(row.origin_json)):undefined;
-      if(JSON.stringify(input.origin?FeishuOrigin.parse(input.origin):null)!==JSON.stringify(origin??null))throw Error('conflict');
+      const row=valid(session,input.importId),origin=row.origin_json?MaterialOrigin.parse(JSON.parse(row.origin_json)):undefined;
+      if(JSON.stringify(input.origin?MaterialOrigin.parse(input.origin):null)!==JSON.stringify(origin??null))throw Error('conflict');
       db.prepare("UPDATE materials_imports SET state='preview',digest=?,size=? WHERE id=?").run(input.digest, input.size, input.importId);
       return input;
     },
@@ -116,7 +116,7 @@ export function createMaterialsStore(db: Database.Database, workspaceInstance: s
         ledger.verifyHold(blobId,input.commandId,backendGeneration);
         const id = randomUUID();
         db.prepare("INSERT INTO materials_raw(id,name,size,digest,blob_id,revision,scope,lifecycle,recorded_at) VALUES (?,?,?,?,?,1,?,'evidence-original',?)").run(id,row.name,row.size,row.digest,blobId,targets.read(input.importId,'import').kind,new Date().toISOString());targets.commit(input.importId,id);
-        if(row.origin_json)db.prepare('UPDATE materials_raw SET origin_json=? WHERE id=?').run(JSON.stringify(FeishuOrigin.parse(JSON.parse(row.origin_json))),id);
+        if(row.origin_json)db.prepare('UPDATE materials_raw SET origin_json=? WHERE id=?').run(JSON.stringify(MaterialOrigin.parse(JSON.parse(row.origin_json))),id);
         ledger.retain(blobId,id,input.commandId);
         db.prepare("UPDATE materials_imports SET state='consumed'"+forgetOrigin+" WHERE id=?").run(input.importId);
         return receipt(input.commandId);
@@ -138,5 +138,5 @@ export type Call = { [K in keyof Store]: { method: K; args: Parameters<Store[K]>
 
 type RawRow = { id: string; name: string; size: number; digest: string; blob_id: string; recorded_at: string; origin_json?:string|null };
 function summarize(row: RawRow,target:ImportTarget): RawSummary {
- const source:SourceRef={owner:'materials',objectId:row.id,revision:1,locator:'whole',scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{}};return {id:row.id,name:row.name,size:row.size,scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{},...row.origin_json?{origin:FeishuOrigin.parse(JSON.parse(row.origin_json))}:{},lifecycle:'evidence-original',revision:1,source,recordedAt:row.recorded_at};
+ const source:SourceRef={owner:'materials',objectId:row.id,revision:1,locator:'whole',scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{}};return {id:row.id,name:row.name,size:row.size,scope:target.kind,...target.kind!=='personal'?{scopeId:target.id}:{},...row.origin_json?{origin:MaterialOrigin.parse(JSON.parse(row.origin_json))}:{},lifecycle:'evidence-original',revision:1,source,recordedAt:row.recorded_at};
 }

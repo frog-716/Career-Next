@@ -1,4 +1,7 @@
 import React from 'react';
+import {SourcePaperBody} from './source-paper';
+import {MiaodaResumeBody} from './miaoda/preview';
+import './miaoda/template.css';
 import type {CareerDocument,Span} from '../../../contracts/resume/schema';
 
 function FrozenSpans({spans}:{spans:Span[]}){
@@ -16,6 +19,8 @@ function FrozenSpans({spans}:{spans:Span[]}){
 
 /** Read-only view of the frozen Career document; never reads the live editor. */
 export function FrozenResumeBody({content}:{content:CareerDocument}){
+ if(content.layout.template==='miaoda-paper')return <SourcePaperBody content={content}/>;
+ if(content.layout.template==='miaoda-resume')return <MiaodaResumeBody content={content}/>;
  return <div className={`resume-frozen-body resume-font-${content.layout.fontSize}`}>
   {content.sections.map(section=><section className="paper-section" key={section.id}>
    <h3>{section.title}</h3>

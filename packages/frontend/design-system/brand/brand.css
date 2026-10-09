@@ -6,3 +6,17 @@
 .career-brand-eye-overlay{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.career-brand-eye{opacity:0;transform-box:fill-box;transform-origin:center;stroke:none}
 .career-brand-line{position:absolute;inset:0;width:60px;height:84px;overflow:visible;pointer-events:none;fill:none}.career-brand-trace{stroke-width:.8;stroke-linecap:round;stroke-dasharray:100 100;stroke-dashoffset:100;opacity:0;fill:none}
 @media(prefers-reduced-motion:reduce){.career-brand-head,.career-brand-letter{transform:none!important;opacity:1!important}.career-brand-name{letter-spacing:1px!important}.career-brand-eye,.career-brand-trace{opacity:0!important}}
+/* Video reference uses temporary construction contours, then a clean lockup.
+   The approved transparent SVG geometry and final placement remain unchanged. */
+.career-brand-vector{position:absolute;inset:0}.career-brand-draft{opacity:0}.career-brand-draft svg>g>path{fill:none!important;stroke:#9b7946!important;stroke-width:.45!important;vector-effect:non-scaling-stroke}
+.career-brand-guides{fill:none;stroke:#9b8b72;stroke-width:.35;opacity:0;pointer-events:none}
+.career-brand-letter:before{content:attr(data-letter);position:absolute;inset:0;color:transparent;-webkit-text-stroke:.4px #a18861;opacity:var(--letter-outline,0);pointer-events:none}
+.career-brand-letter{color:rgb(21 33 28 / var(--letter-ink,1));will-change:auto}
+@media(prefers-reduced-motion:reduce){.career-brand-ink{clip-path:none!important;opacity:1!important}.career-brand-draft,.career-brand-guides,.career-brand-letter:before{opacity:0!important}.career-brand-letter{color:#15211c!important}}
+.career-brand-lit{opacity:0;filter:brightness(1.16) saturate(1.06);pointer-events:none}
+.career-brand-flare{opacity:0;transform-box:fill-box;transform-origin:center}
+.career-brand-spark{fill:#eab061;opacity:0;transform-box:fill-box;transform-origin:center}
+.career-brand-flame{opacity:0;transform-box:fill-box;transform-origin:50% 100%}
+@media(prefers-reduced-motion:reduce){.career-brand-ink{filter:none!important}.career-brand-lit,.career-brand-flare,.career-brand-spark,.career-brand-flame{opacity:0!important}}
+
+.career-brand[data-phase="waiting"] .career-brand-ink{filter:brightness(.25) saturate(.65)}

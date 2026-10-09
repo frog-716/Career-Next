@@ -3,9 +3,9 @@ import {CareerDocument,Mark,type Span} from '../../../contracts/resume/schema';
 /** Editor JSON is a temporary adapter format. Only Career structured content is persisted. */
 export function toEditor(document:CareerDocument):JSONContent {
  const text=(spans:Span[])=>spans.filter(span=>span.text.length).map(span=>({type:'text',text:span.text,marks:span.marks.map(mark=>mark.type==='link'?{type:'link',attrs:{href:mark.href,target:null,rel:null}}:{type:mark.type})}));
- return {type:'doc',attrs:{careerIdentityNameAlignment:document.layout.identityNameAlignment??null},content:document.sections.flatMap(section=>[
+ return {type:'doc',attrs:{careerIdentityNameAlignment:document.layout.identityNameAlignment??null,careerTemplate:document.layout.template},content:document.sections.flatMap(section=>[
   {type:'heading',attrs:{level:2,careerId:section.id,careerKind:section.kind},content:section.title?[{type:'text',text:section.title}]:[]},
-  ...section.blocks.map(block=>block.type==='paragraph'?{type:'paragraph',attrs:{careerId:block.id,textAlign:block.alignment??null},content:text(block.spans)}:{type:'bulletList',attrs:{careerId:block.id},content:block.items.map(item=>({type:'listItem',attrs:{careerId:item.id},content:[{type:'paragraph',attrs:{careerId:item.paragraphId,textAlign:item.alignment??null},content:text(item.spans)}]}))})
+  ...section.blocks.map(block=>block.type==='paragraph'?{type:'paragraph',attrs:{careerId:block.id,careerEntry:block.entry??null,textAlign:block.alignment??null},content:text(block.spans)}:{type:'bulletList',attrs:{careerId:block.id},content:block.items.map(item=>({type:'listItem',attrs:{careerId:item.id},content:[{type:'paragraph',attrs:{careerId:item.paragraphId,textAlign:item.alignment??null},content:text(item.spans)}]}))})
  ])};
 }
 export function fromEditor(editor:JSONContent,layout:CareerDocument['layout']):CareerDocument {
@@ -21,11 +21,11 @@ export function fromEditor(editor:JSONContent,layout:CareerDocument['layout']):C
    sections.push({id:id(node),kind:node.attrs?.careerKind,title:(node.content??[]).map(item=>{if(item.type!=='text')throw unsupported();return item.text??'';}).join(''),blocks:[]});continue;
   }
   const section=sections.at(-1);if(!section)throw unsupported();
-  if(node.type==='paragraph')section.blocks.push({id:id(node),type:'paragraph',...alignment(node),spans:spans(node.content)});
+  if(node.type==='paragraph')section.blocks.push({id:id(node),type:'paragraph',...(node.attrs?.careerEntry?{entry:node.attrs.careerEntry}:{}),...alignment(node),spans:spans(node.content)});
   else if(node.type==='bulletList')section.blocks.push({id:id(node),type:'bullet-list',items:(node.content??[]).map(item=>{if(item.type!=='listItem'||item.content?.length!==1||item.content[0].type!=='paragraph')throw unsupported();return {id:id(item),paragraphId:id(item.content[0]),...alignment(item.content[0]),spans:spans(item.content[0].content)};})});
   else throw unsupported();
  }
  const {identityNameAlignment:previousAlignment,...baseLayout}=layout;
  const nextLayout=Object.hasOwn(editor.attrs??{},'careerIdentityNameAlignment')?{...baseLayout,...editor.attrs?.careerIdentityNameAlignment!=null?{identityNameAlignment:editor.attrs.careerIdentityNameAlignment}:{}}:layout;
- return CareerDocument.parse({schemaVersion:1,sections,layout:nextLayout});
+ return CareerDocument.parse({schemaVersion:1,sections,layout:{...nextLayout,...editor.attrs?.careerTemplate?{template:editor.attrs.careerTemplate}:{}}});
 }
