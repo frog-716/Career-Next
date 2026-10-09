@@ -20,3 +20,5 @@
 @media(prefers-reduced-motion:reduce){.career-brand-ink{filter:none!important}.career-brand-lit,.career-brand-flare,.career-brand-spark,.career-brand-flame{opacity:0!important}}
 
 .career-brand[data-phase="waiting"] .career-brand-ink{filter:brightness(.25) saturate(.65)}
+/* Filled fire artwork must not inherit the shared navigation-icon stroke. */
+.career-brand-flame,.career-brand-flame path,.career-brand-flare{stroke:none;stroke-width:0}

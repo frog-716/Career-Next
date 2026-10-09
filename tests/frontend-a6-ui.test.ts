@@ -30,7 +30,7 @@ it('brand holds its first frame until hover, then breathes on later hovers with 
   await expect.poll(()=>brand.getAttribute('data-phase')).toBe('waiting');
   const first=await head.getAttribute('style');await page.waitForTimeout(4700);
   expect(await brand.getAttribute('data-phase')).toBe('waiting');expect(await head.getAttribute('style')).toBe(first);
-  expect(await brand.locator('.career-brand-flame').count()).toBe(10);expect(await brand.locator('.career-brand-flame[data-size="0.4"]').count()).toBe(4);expect(await brand.locator('[class*="blade"],[class*="beam"]').count()).toBe(0);
+  expect(await brand.locator('.career-brand-flame').count()).toBe(10);expect(await brand.locator('.career-brand-flame[data-size="0.4"]').count()).toBe(4);expect(await brand.locator('[class*="blade"],[class*="beam"]').count()).toBe(0);expect(await brand.locator('.career-brand-flame path').first().evaluate(el=>getComputedStyle(el).stroke)).toBe('none');expect(await brand.locator('.career-brand-flare').evaluate(el=>getComputedStyle(el).stroke)).toBe('none');
   await brand.hover();await expect.poll(()=>brand.getAttribute('data-phase')).toBe('contour');
   await expect.poll(()=>brand.locator('.career-brand-flame').first().evaluate(el=>Number(getComputedStyle(el).opacity)),{timeout:4000}).toBeGreaterThan(0);
   await page.getByRole('textbox',{name:'Task draft'}).hover();

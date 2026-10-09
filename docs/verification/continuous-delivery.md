@@ -60,4 +60,4 @@
 - 停用Provider后的部分历史AI任务入口可见性仍是UX限制（P2），正式已采纳Research仍可读取，停止外发的权限边界未放宽。
 - 独立网页GPT-6 Pro：NOT REVIEWED，交接包已准备；Developer ID/Notarization/x64仍READY / NOT RUN。
 
-最终checkpoint包含本文件；精确提交链接在提交完成后生成的本地独立审计请求中。用户复审统一使用Chrome的本地TEST Career页面，不代表真实外部/发布环境已经另行验收。
+最终checkpoint包含本文件；精确提交链接在提交完成后生成的本地独立审计请求中。最终v5仅修品牌火苗/暖光被通用SVG图标stroke污染的问题：Aura样式回归先红后绿，正式页确认无黑边；29个正式包文件再次SHA一致，停止后的TEST资料完整复制再启动，未写REAL资料。用户复审统一使用Chrome的本地TEST Career页面，不代表真实外部/发布环境已经另行验收。
